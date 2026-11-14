@@ -5,9 +5,15 @@
     <string name="app_history">History</string>
 
     <!-- Nav -->
-    <string name="nav_vod">Vod</string>
+    <string name="nav_vod">Home</string>
     <string name="nav_live">Live</string>
+    <string name="nav_local">Local</string>
+    <string name="nav_mine">Mine</string>
     <string name="nav_setting">Setting</string>
+
+    <!-- Local -->
+    <string name="local_empty">No local videos found</string>
+    <string name="local_no_permission">Video permission is needed. Tap to retry.</string>
 
     <!-- Menu -->
     <string name="home_push">Connect</string>
