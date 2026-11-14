@@ -23,12 +23,13 @@
 
     <com.fongmi.android.tv.ui.custom.DialogActionView
         android:id="@+id/close"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginStart="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="删除"
         android:padding="4dp"
-        app:srcCompat="@drawable/ic_action_close" />
+        app:srcCompat="@drawable/ic_action_close"
+        app:tint="@color/selector_control" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>
