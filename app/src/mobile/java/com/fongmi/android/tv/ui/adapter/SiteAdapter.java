@@ -32,7 +32,6 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
     }
 
     public interface OnClickListener {
-
         void onTextClick(Site item);
 
         void onDeleteClick(Site item);
@@ -81,8 +80,16 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         notifyDataSetChanged();
     }
 
+    // Drag is always allowed (unless filtering); dragging switches to custom order.
     public boolean canDrag() {
-        return sort == SiteOrder.SORT_DEFAULT && !isFiltering();
+        return !isFiltering();
+    }
+
+    // Switch the sort mode without re-sorting the list (used when a drag starts:
+    // dragging means custom order from now on).
+    public void setSortMode(int sort) {
+        this.sort = sort;
+        SiteOrder.putSort(sort);
     }
 
     public void onMove(int from, int to) {
