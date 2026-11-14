@@ -5,9 +5,15 @@
     <string name="app_history">最近觀看</string>
 
     <!-- Nav -->
-    <string name="nav_vod">點播</string>
+    <string name="nav_vod">主頁</string>
     <string name="nav_live">直播</string>
+    <string name="nav_local">本地</string>
+    <string name="nav_mine">我的</string>
     <string name="nav_setting">設定</string>
+
+    <!-- Local -->
+    <string name="local_empty">沒有找到本地視頻</string>
+    <string name="local_no_permission">需要允許訪問視頻權限，點擊重試</string>
 
     <!-- Menu -->
     <string name="home_push">連線</string>
