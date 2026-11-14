@@ -32,6 +32,7 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
     }
 
     public interface OnClickListener {
+
         void onTextClick(Site item);
 
         void onDeleteClick(Site item);
