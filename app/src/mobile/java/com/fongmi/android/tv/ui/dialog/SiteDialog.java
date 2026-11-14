@@ -26,6 +26,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     private DialogSiteBinding binding;
     private SiteListener listener;
     private SiteAdapter adapter;
+    private GridLayoutManager layoutManager;
 
     public static SiteDialog create() {
         return new SiteDialog();
@@ -57,7 +58,8 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     @Override
     protected void initView() {
         adapter = new SiteAdapter(this);
-        binding.recycler.setLayoutManager(new GridLayoutManager(requireContext(), 2));
+        layoutManager = new GridLayoutManager(requireContext(), SiteOrder.getLayout());
+        binding.recycler.setLayoutManager(layoutManager);
         binding.recycler.setAdapter(adapter);
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
@@ -69,6 +71,8 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
                 adapter.filter(s.toString());
             }
         });
+        updateLayoutButton();
+        binding.layoutToggle.setOnClickListener(v -> onLayoutClick());
         updateSortButtons();
         binding.sortName.setOnClickListener(v -> onSortClick(SiteOrder.SORT_NAME));
         binding.sortTime.setOnClickListener(v -> onSortClick(SiteOrder.SORT_TIME));
@@ -88,6 +92,19 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
             }
         }).attachToRecyclerView(binding.recycler);
+    }
+
+    // Single/double column toggle: tap once for single column, tap again for double column.
+    // Separate from the sort functions (alphabet / added time).
+    private void onLayoutClick() {
+        int layout = SiteOrder.getLayout() == SiteOrder.LAYOUT_SINGLE ? SiteOrder.LAYOUT_DOUBLE : SiteOrder.LAYOUT_SINGLE;
+        SiteOrder.putLayout(layout);
+        layoutManager.setSpanCount(layout);
+        updateLayoutButton();
+    }
+
+    private void updateLayoutButton() {
+        binding.layoutToggle.setText(SiteOrder.getLayout() == SiteOrder.LAYOUT_SINGLE ? "单列" : "双列");
     }
 
     private void onSortClick(int sort) {
