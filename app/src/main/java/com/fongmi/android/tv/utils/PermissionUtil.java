@@ -47,6 +47,12 @@ public class PermissionUtil {
         else post(fragment, () -> requestFile(PermissionX.init(fragment), requestAllFiles, callback));
     }
 
+    public static void requestMediaVideo(Fragment fragment, Consumer<Boolean> callback) {
+        FragmentActivity activity = fragment.requireActivity();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || isGranted(activity, Manifest.permission.READ_MEDIA_VIDEO)) callback.accept(true);
+        else post(fragment, () -> PermissionX.init(fragment).permissions(Manifest.permission.READ_MEDIA_VIDEO).request(new PermissionCallback(callback)));
+    }
+
     public static void requestNotify(FragmentActivity activity) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
         if (isGranted(activity, PermissionX.permission.POST_NOTIFICATIONS)) return;
