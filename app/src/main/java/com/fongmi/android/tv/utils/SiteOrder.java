@@ -20,9 +20,14 @@ public class SiteOrder {
     public static final int SORT_NAME = 1;
     public static final int SORT_TIME = 2;
 
+    // Dialog layout: single column (list) or double column (grid). Tapping the toggle switches.
+    public static final int LAYOUT_SINGLE = 1;
+    public static final int LAYOUT_DOUBLE = 2;
+
     private static final String KEY_ORDER = "site_order";
     private static final String KEY_REMOVED = "site_removed";
     private static final String KEY_SORT = "site_sort";
+    private static final String KEY_LAYOUT = "site_layout";
 
     public static int getSort() {
         return Prefers.getInt(KEY_SORT, SORT_DEFAULT);
@@ -30,6 +35,14 @@ public class SiteOrder {
 
     public static void putSort(int sort) {
         Prefers.put(KEY_SORT, sort);
+    }
+
+    public static int getLayout() {
+        return Prefers.getInt(KEY_LAYOUT, LAYOUT_SINGLE);
+    }
+
+    public static void putLayout(int layout) {
+        Prefers.put(KEY_LAYOUT, layout);
     }
 
     public static List<String> getOrder() {
@@ -58,12 +71,13 @@ public class SiteOrder {
         Prefers.put(KEY_REMOVED, App.gson().toJson(removed));
     }
 
-    public static List<Site> keysOf(List<Site> sites) {
+    public static List<String> keysOf(List<Site> sites) {
         List<String> keys = new ArrayList<>();
         for (Site site : sites) keys.add(site.getKey());
         return keys;
     }
 
+    // Custom drag order: sites in the stored order first, new sites appended in original order.
     public static List<Site> applyOrder(List<Site> sites) {
         List<String> order = getOrder();
         if (order.isEmpty()) return new ArrayList<>(sites);
@@ -81,11 +95,14 @@ public class SiteOrder {
         return result;
     }
 
+    // Alphabetical: Collator with Chinese locale sorts Chinese names by pinyin.
     public static void sortByName(List<Site> sites) {
         Collator collator = Collator.getInstance(Locale.CHINA);
         sites.sort((a, b) -> collator.compare(a.getName(), b.getName()));
     }
 
+    // By added time, newest first. Script sources use the local file's lastModified;
+    // config sources have no added time and keep their original order (time 0).
     public static void sortByTime(List<Site> sites) {
         sites.sort((a, b) -> Long.compare(getTime(b), getTime(a)));
     }
