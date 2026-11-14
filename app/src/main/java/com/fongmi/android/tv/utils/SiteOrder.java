@@ -6,6 +6,7 @@ import com.github.catvod.utils.Prefers;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
+import java.net.URLDecoder;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -107,20 +108,45 @@ public class SiteOrder {
         sites.sort((a, b) -> Long.compare(getTime(b), getTime(a)));
     }
 
-    public static long getTime(Site site) {
-        String api = site.getApi();
-        if (api != null && api.startsWith("file://")) {
-            return new File(api.substring(7)).lastModified();
-        }
-        return 0;
-    }
-
+    // A site is a local file when we can resolve it to a real file on the phone.
+    // NOTE: never test api.startsWith("file://") — Site.objectFrom runs
+    // UrlUtil.convert on the api, so a script source's api is actually
+    // "http://<local-server>/file/<encoded-path>", not "file://...".
     public static boolean isLocalFile(Site site) {
-        String api = site.getApi();
-        return api != null && api.startsWith("file://");
+        return getLocalPath(site) != null;
     }
 
+    // Resolve the real local path of a script/config source, or null when it is not a local file.
     public static String getLocalPath(Site site) {
-        return site.getApi().substring(7);
+        String key = site.getKey();
+        if (key != null && key.startsWith("script_")) {
+            String base = key.substring("script_".length());
+            for (File file : ScriptManager.get().scanFiles()) {
+                String name = file.getName();
+                int dot = name.lastIndexOf('.');
+                if (dot > 0 && name.substring(0, dot).equals(base)) return file.getAbsolutePath();
+            }
+        }
+        String api = site.getApi();
+        if (api != null) {
+            int idx = api.indexOf("/file/");
+            if (idx >= 0) {
+                try {
+                    String path = URLDecoder.decode(api.substring(idx + 6), "UTF-8");
+                    if (new File(path).isFile()) return path;
+                } catch (Exception ignored) {
+                }
+            }
+            if (api.startsWith("file://")) {
+                String path = api.substring(7);
+                if (new File(path).isFile()) return path;
+            }
+        }
+        return null;
+    }
+
+    public static long getTime(Site site) {
+        String path = getLocalPath(site);
+        return path == null ? 0 : new File(path).lastModified();
     }
 }
