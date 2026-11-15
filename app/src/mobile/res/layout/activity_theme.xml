@@ -33,7 +33,7 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginRight="16dp"
                 android:text="@string/theme_mode"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="16sp" />
 
             <androidx.appcompat.widget.LinearLayoutCompat
@@ -88,7 +88,7 @@
                 android:layout_marginTop="20dp"
                 android:layout_marginRight="16dp"
                 android:text="@string/theme_bg"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="16sp" />
 
             <GridLayout
@@ -107,7 +107,7 @@
                 android:layout_marginTop="20dp"
                 android:layout_marginRight="16dp"
                 android:text="@string/theme_bg_alpha"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="16sp" />
 
             <androidx.appcompat.widget.LinearLayoutCompat
@@ -130,7 +130,7 @@
                     android:layout_width="52dp"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="15sp" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
