@@ -50,7 +50,8 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.libassText.setText(Setting.getSwitch(PlayerSetting.isLibass()));
         mBinding.bufferText.setText(String.valueOf(PlayerSetting.getBuffer()));
         setMpvOptions();
-        mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
+                    mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
+                mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
     }
 
     @Override
@@ -69,6 +70,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.buffer.setOnClickListener(this::onBuffer);
         mBinding.preload.setOnClickListener(this::onPreload);
         mBinding.ua.setOnClickListener(this::onUa);
+                mBinding.incognito.setOnClickListener(this::setIncognito);
     }
 
     private void setVisible() {
@@ -178,8 +180,13 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
 
     private void setAdblock(View view) {
         Setting.putAdblock(!Setting.isAdblock());
-        mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));
+        mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));    
     }
+        
+    private void setIncognito(View view) {
+                    Setting.putIncognito(!Setting.isIncognito());
+                    mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
+        }
 
     private void setLibass(View view) {
         PlayerSetting.putLibass(!PlayerSetting.isLibass());
