@@ -41,14 +41,17 @@ import com.fongmi.android.tv.ui.dialog.FilterDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
+import com.fongmi.android.tv.utils.ConfigManager;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -89,6 +92,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         setViewModel();
         showProgress();
         setTitle();
+        setIface();
         setLogo();
     }
 
@@ -97,6 +101,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         mBinding.top.setOnClickListener(this::onTop);
         mBinding.logo.setOnClickListener(this::onLogo);
         mBinding.title.setOnClickListener(this::onSite);
+        mBinding.iface.setOnClickListener(this::onIface);
         mBinding.filter.setOnClickListener(this::onFilter);
         mBinding.toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
         mBinding.appBar.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
@@ -145,6 +150,52 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         List<String> items = Arrays.asList(getHome().getName(), getConfig().getName(), getString(R.string.app_name));
         Optional<String> optional = items.stream().filter(s -> !TextUtils.isEmpty(s)).findFirst();
         optional.ifPresent(s -> mBinding.title.setText(s));
+    }
+
+    private void setIface() {
+        String name = ConfigManager.getActiveName();
+        mBinding.iface.setText(name == null ? getString(R.string.config_all_interfaces) : name);
+    }
+
+    private void onIface(View view) {
+        List<ConfigManager.Sub> subs = ConfigManager.getSubs(ConfigManager.TAB_VOD);
+        List<ConfigManager.Sub> enabled = new ArrayList<>();
+        for (ConfigManager.Sub sub : subs) if (sub.enabled) enabled.add(sub);
+        String[] items = new String[enabled.size() + 1];
+        items[0] = getString(R.string.config_all_interfaces);
+        for (int i = 0; i < enabled.size(); i++) items[i + 1] = enabled.get(i).name;
+        int checked = 0;
+        String activeId = ConfigManager.getActiveId();
+        for (int i = 0; i < enabled.size(); i++) if (enabled.get(i).id.equals(activeId)) checked = i + 1;
+        new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.config_interface).setSingleChoiceItems(items, checked, (dialog, which) -> {
+            dialog.dismiss();
+            if (which == 0) {
+                ConfigManager.setActiveId("");
+                ConfigManager.reloadVod(getCallback());
+            } else {
+                ConfigManager.activateVod(enabled.get(which - 1), getCallback());
+            }
+            setIface();
+        }).show();
+    }
+
+    private Callback getCallback() {
+        return new Callback() {
+            @Override
+            public void start() {
+                showProgress();
+                hideContent();
+                setTitle();
+                setLogo();
+            }
+
+            @Override
+            public void error(String msg) {
+                Notify.dismiss();
+                Notify.show(msg);
+                showContent();
+            }
+        };
     }
 
     private void onTop(View view) {
@@ -216,6 +267,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         switch (event.getType()) {
             case HOME:
                 setTitle();
+                setIface();
             case SIZE:
                 homeContent();
                 break;
