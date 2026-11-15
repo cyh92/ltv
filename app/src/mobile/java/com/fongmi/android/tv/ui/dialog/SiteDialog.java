@@ -7,22 +7,21 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.DialogSiteBinding;
+import com.fongmi.android.tv.impl.SiteListener;
 import com.fongmi.android.tv.ui.adapter.SiteAdapter;
-import com.fongmi.android.tv.ui.base.BaseDialog;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
+import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.SiteOrder;
-import com.fongmi.android.tv.widget.SpaceItemDecoration;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 
-public class SiteDialog extends BaseDialog implements SiteAdapter.OnClickListener {
+public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickListener {
 
     private DialogSiteBinding binding;
     private SiteListener listener;
