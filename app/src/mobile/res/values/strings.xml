@@ -136,6 +136,6 @@
     <string name="theme_bg_6">Warm spring</string>
     <string name="theme_bg_7">Purple haze</string>
     <string name="theme_bg_8">Dragon gold</string>
-    <string name="home_all_types">All Categories</string>
+    <string name="home_all_types">Categories</string>
     <string name="section_all">All &gt;</string>
 </resources>
