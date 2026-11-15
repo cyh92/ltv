@@ -20,8 +20,6 @@ import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.FragmentSettingBinding;
 import com.fongmi.android.tv.db.BackupManager;
-import com.fongmi.android.tv.event.ConfigEvent;
-import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigListener;
 import com.fongmi.android.tv.impl.LiveListener;
@@ -31,26 +29,11 @@ import com.fongmi.android.tv.ui.activity.ConfigActivity;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.activity.ThemeActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
-import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.DeviceConnectDialog;
-import com.fongmi.android.tv.ui.dialog.HistoryDialog;
-import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
-import com.fongmi.android.tv.ui.dialog.ScriptDialog;
-import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
-import com.github.catvod.bean.Doh;
-import com.github.catvod.net.OkHttp;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SettingFragment extends BaseFragment implements ConfigListener, SiteListener, LiveListener {
 
@@ -58,16 +41,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     public static SettingFragment newInstance() {
         return new SettingFragment();
-    }
-
-    private int getDohIndex() {
-        return Math.max(0, VodConfig.get().getDoh().indexOf(Doh.objectFrom(Setting.getDoh())));
-    }
-
-    private String[] getDohList() {
-        List<String> list = new ArrayList<>();
-        for (Doh item : VodConfig.get().getDoh()) list.add(item.getName());
-        return list.toArray(new String[0]);
     }
 
     private HomeActivity getRoot() {
@@ -81,17 +54,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     @Override
     protected void initView() {
-        EventBus.getDefault().register(this);
-        mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
-        setOtherText();
         setCacheText();
-    }
-
-    private void setOtherText() {
-        mBinding.dohText.setText(getDohList()[getDohIndex()]);
-        mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
     }
 
     private void setCacheText() {
@@ -105,26 +69,14 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     @Override
     protected void initEvent() {
-        mBinding.vod.setOnClickListener(this::onVod);
         mBinding.config.setOnClickListener(this::onConfig);
         mBinding.theme.setOnClickListener(this::onTheme);
-        mBinding.doh.setOnClickListener(this::setDoh);
-        mBinding.live.setOnClickListener(this::onLive);
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.backup.setOnClickListener(this::onBackup);
         mBinding.player.setOnClickListener(this::onPlayer);
         mBinding.module.setOnClickListener(this::onModule);
-        mBinding.danmaku.setOnClickListener(this::onDanmaku);
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.version.setOnClickListener(this::onVersion);
-        mBinding.vod.setOnLongClickListener(this::onVodEdit);
-        mBinding.vodHome.setOnClickListener(this::onVodHome);
-        mBinding.script.setOnClickListener(this::onScript);
-        mBinding.live.setOnLongClickListener(this::onLiveEdit);
-        mBinding.liveHome.setOnClickListener(this::onLiveHome);
-        mBinding.incognito.setOnClickListener(this::setIncognito);
-        mBinding.vodHistory.setOnClickListener(this::onVodHistory);
-        mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
         mBinding.settingToolbar.setOnMenuItemClickListener(this::onMenuItemClick);
     }
 
@@ -186,46 +138,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         LiveConfig.get().setHome(item);
     }
 
-    private void onVod(View view) {
-        ConfigDialog.create().vod().show(this);
-    }
-
-    private void onLive(View view) {
-        ConfigDialog.create().live().show(this);
-    }
-
-    private boolean onVodEdit(View view) {
-        ConfigDialog.create().vod().edit().show(this);
-        return true;
-    }
-
-    private boolean onLiveEdit(View view) {
-        ConfigDialog.create().live().edit().show(this);
-        return true;
-    }
-
-    private void onVodHome(View view) {
-        SiteDialog.create().search().change().show(this);
-    }
-
-    private void onScript(View view) {
-        ScriptDialog.create().show(this);
-    }
-
     public void reloadVod() {
         VodConfig.load(VodConfig.get().getConfig(), getCallback());
-    }
-
-    private void onLiveHome(View view) {
-        LiveDialog.show(this);
-    }
-
-    private void onVodHistory(View view) {
-        HistoryDialog.create().vod().show(this);
-    }
-
-    private void onLiveHistory(View view) {
-        HistoryDialog.create().live().show(this);
     }
 
     private void onPlayer(View view) {
@@ -234,10 +148,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     private void onModule(View view) {
         getRoot().change(6);
-    }
-
-    private void onDanmaku(View view) {
-        getRoot().change(3);
     }
 
     private void onConfig(View view) {
@@ -250,24 +160,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     private void onVersion(View view) {
         Updater.get().start(requireActivity(), true);
-    }
-
-    private void setIncognito(View view) {
-        Setting.putIncognito(!Setting.isIncognito());
-        mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
-    }
-
-    private void setDoh(View view) {
-        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.setting_doh).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(getDohList(), getDohIndex(), (dialog, which) -> {
-            setDoh(VodConfig.get().getDoh().get(which));
-            dialog.dismiss();
-        }).show();
-    }
-
-    private void setDoh(Doh doh) {
-        OkHttp.dns().setDoh(doh);
-        Setting.putDoh(doh.toString());
-        mBinding.dohText.setText(doh.getName());
     }
 
     private void onCache(View view) {
@@ -298,7 +190,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             @Override
             public void success() {
                 Notify.show(R.string.restore_success);
-                setOtherText();
                 initConfig();
             }
 
@@ -315,22 +206,9 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         WallConfig.get().init().load();
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onConfigEvent(ConfigEvent event) {
-        if (event.type() != ConfigEvent.Type.COMMON) return;
-        mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
-    }
-
     @Override
     public void onHiddenChanged(boolean hidden) {
         if (hidden) return;
         setCacheText();
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        EventBus.getDefault().unregister(this);
     }
 }
