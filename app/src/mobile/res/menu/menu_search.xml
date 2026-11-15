@@ -7,12 +7,14 @@
         android:icon="@drawable/ic_action_reset"
         android:title="@string/menu_reset"
         android:visible="false"
+        app:iconTint="?attr/colorOnSurface"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_site"
         android:icon="@drawable/ic_action_site"
         android:title="@string/menu_site"
+        app:iconTint="?attr/colorOnSurface"
         app:showAsAction="always" />
 
 </menu>
