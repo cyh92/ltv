@@ -188,6 +188,14 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout" />
 
         <activity
+            android:name=".ui.activity.ConfigActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout" />
+
+        <activity
+            android:name=".ui.activity.ThemeActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout" />
+
+        <activity
             android:name=".ui.activity.KeepActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout" />
 
@@ -197,7 +205,7 @@
             android:exported="true"
             android:launchMode="singleTop"
             android:parentActivityName=".ui.activity.HomeActivity"
-            android:screenOrientation="sensorLandscape"
+            android:screenOrientation="portrait"
             android:supportsPictureInPicture="true" />
 
         <activity
