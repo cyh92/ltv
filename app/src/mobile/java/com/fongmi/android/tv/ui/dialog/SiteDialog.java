@@ -31,6 +31,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     private SiteListener listener;
     private SiteAdapter adapter;
     private GridLayoutManager layoutManager;
+    private SpaceItemDecoration decoration;
 
     public static SiteDialog create() {
         return new SiteDialog();
@@ -67,7 +68,8 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         binding.recycler.setAdapter(adapter);
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
-        binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 8));
+        decoration = new SpaceItemDecoration(SiteOrder.getLayout(), 8);
+        binding.recycler.addItemDecoration(decoration);
         binding.recycler.post(() -> binding.recycler.scrollToPosition(VodConfig.getHomeIndex()));
         binding.keyword.addTextChangedListener(new CustomTextListener() {
             @Override
@@ -100,6 +102,9 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         int layout = SiteOrder.getLayout() == SiteOrder.LAYOUT_SINGLE ? SiteOrder.LAYOUT_DOUBLE : SiteOrder.LAYOUT_SINGLE;
         SiteOrder.putLayout(layout);
         layoutManager.setSpanCount(layout);
+        binding.recycler.removeItemDecoration(decoration);
+        decoration = new SpaceItemDecoration(layout, 8);
+        binding.recycler.addItemDecoration(decoration);
         updateLayoutButton();
     }
 
