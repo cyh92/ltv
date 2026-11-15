@@ -12,9 +12,10 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         app:menu="@menu/menu_keep"
-        app:navigationIconTint="@android:color/white"
+        app:navigationIconTint="?attr/colorOnSurface"
         app:title="@string/app_keep"
-        app:titleTextAppearance="@style/ToolbarTextAppearance" />
+        app:titleTextAppearance="@style/ToolbarTextAppearance"
+        app:titleTextColor="?attr/colorOnSurface" />
 
     <com.fongmi.android.tv.ui.custom.ProgressLayout
         android:id="@+id/progressLayout"
