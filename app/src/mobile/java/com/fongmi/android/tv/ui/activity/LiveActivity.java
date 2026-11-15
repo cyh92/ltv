@@ -190,7 +190,8 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         mBinding.control.next.setOnClickListener(view -> nextChannel());
         mBinding.control.prev.setOnClickListener(view -> prevChannel());
         mBinding.control.right.lock.setOnClickListener(view -> onLock());
-        mBinding.control.right.rotate.setOnClickListener(view -> onRotate());
+        mBinding.control.right.rotate.setOnClickListener(view -> onRotate()); 
+        mBinding.control.fullscreen.setOnClickListener(view -> onFullscreenClick());
         mBinding.control.action.text.setOnClickListener(this::onTrack);
         mBinding.control.action.audio.setOnClickListener(this::onTrack);
         mBinding.control.action.video.setOnClickListener(this::onTrack);
@@ -378,6 +379,14 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         setRequestedOrientation(PlaybackOrientation.getRotateOrientation(this));
     }
 
+    private void onFullscreenClick() {
+        onRotate();
+    }
+
+    private void updateFullscreenIcon() {
+        mBinding.control.fullscreen.setImageResource(ResUtil.isLand(this) ? R.drawable.ic_control_fullscreen_exit : R.drawable.ic_control_fullscreen);
+    }
+
     private void checkPlay() {
         if (isWebPlaybackPlaying() || player().isPlaying()) onPaused();
         else onPlay();
@@ -520,6 +529,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         mBinding.control.back.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        updateFullscreenIcon();
         setR1Callback();
         hideInfo();
     }
@@ -1198,6 +1208,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         Util.hideSystemUI(this);
+        updateFullscreenIcon();
     }
 
     @Override
@@ -1229,6 +1240,8 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
             hideUI();
         } else if (handleWebViewNavigation()) {
             return;
+        } else if (ResUtil.isLand(this)) {
+            onRotate();
         } else if (!isLock()) {
             if (isTaskRoot()) startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
             super.onBackInvoked();
