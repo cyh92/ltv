@@ -1,5 +1,8 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.text.InputType;
+import android.widget.EditText;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -17,6 +20,7 @@ import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.SiteOrder;
+import com.fongmi.android.tv.utils.UrlUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
@@ -73,9 +77,6 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         });
         updateLayoutButton();
         binding.layoutToggle.setOnClickListener(v -> onLayoutClick());
-        updateSortButtons();
-        binding.sortName.setOnClickListener(v -> onSortClick(SiteOrder.SORT_NAME));
-        binding.sortTime.setOnClickListener(v -> onSortClick(SiteOrder.SORT_TIME));
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, 0) {
             @Override
             public boolean isLongPressDragEnabled() {
@@ -84,11 +85,6 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
 
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                // Dragging means custom order from now on, whatever sort was active.
-                if (adapter.getSort() != SiteOrder.SORT_DEFAULT) {
-                    adapter.setSortMode(SiteOrder.SORT_DEFAULT);
-                    updateSortButtons();
-                }
                 adapter.onMove(viewHolder.getAdapterPosition(), target.getAdapterPosition());
                 return true;
             }
@@ -99,8 +95,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         }).attachToRecyclerView(binding.recycler);
     }
 
-    // Single/double column toggle: tap once for single column, tap again for double column.
-    // Separate from the sort functions (alphabet / added time).
+    // Single/double column toggle: icon button in the search row (list icon = single column, grid icon = double column).
     private void onLayoutClick() {
         int layout = SiteOrder.getLayout() == SiteOrder.LAYOUT_SINGLE ? SiteOrder.LAYOUT_DOUBLE : SiteOrder.LAYOUT_SINGLE;
         SiteOrder.putLayout(layout);
@@ -109,23 +104,78 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     }
 
     private void updateLayoutButton() {
-        binding.layoutToggle.setText(SiteOrder.getLayout() == SiteOrder.LAYOUT_SINGLE ? "单列" : "双列");
-    }
-
-    private void onSortClick(int sort) {
-        adapter.setSort(adapter.getSort() == sort ? SiteOrder.SORT_DEFAULT : sort);
-        updateSortButtons();
-    }
-
-    private void updateSortButtons() {
-        binding.sortName.setSelected(adapter.getSort() == SiteOrder.SORT_NAME);
-        binding.sortTime.setSelected(adapter.getSort() == SiteOrder.SORT_TIME);
+        binding.layoutToggle.setImageResource(SiteOrder.getLayout() == SiteOrder.LAYOUT_SINGLE ? com.fongmi.android.tv.R.drawable.ic_view_list : com.fongmi.android.tv.R.drawable.ic_view_grid);
     }
 
     @Override
     public void onTextClick(Site item) {
         if (listener != null) listener.setSite(item);
         dismiss();
+    }
+
+    @Override
+    public void onEditClick(Site item) {
+        String current = getEditableName(item);
+        EditText input = new EditText(requireContext());
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setText(current);
+        input.setSelection(current.length());
+        int padding = (int) (24 * getResources().getDisplayMetrics().density);
+        input.setPadding(padding, padding / 2, padding, padding / 2);
+        new MaterialAlertDialogBuilder(requireContext()).setTitle("修改源名称").setView(input).setPositiveButton(com.fongmi.android.tv.R.string.dialog_positive, (dialog, which) -> renameSite(item, input.getText().toString().trim())).setNegativeButton(com.fongmi.android.tv.R.string.dialog_negative, null).show();
+    }
+
+    // Script sources show "name[py]"/"name[js]"; the editable part is the name without the suffix.
+    private String getEditableName(Site item) {
+        String name = item.getName();
+        if (SiteOrder.isLocalFile(item) && (name.endsWith("[py]") || name.endsWith("[js]"))) return name.substring(0, name.length() - 4);
+        return name;
+    }
+
+    private void renameSite(Site item, String newName) {
+        if (newName.isEmpty()) {
+            Notify.show("名称不能为空");
+            return;
+        }
+        if (newName.contains("/") || newName.contains("\\") || newName.contains(":") || newName.contains("*") || newName.contains("?") || newName.contains("\"") || newName.contains("<") || newName.contains(">") || newName.contains("|")) {
+            Notify.show("名称不能包含特殊字符");
+            return;
+        }
+        String path = SiteOrder.getLocalPath(item);
+        if (path != null) renameLocalFile(item, path, newName);
+        else {
+            SiteOrder.putName(item.getKey(), newName);
+            item.setName(newName);
+            adapter.rename(item);
+            Notify.show("已重命名");
+        }
+    }
+
+    // Local script source: rename the file on the phone too, so the file name changes together with the source name.
+    private void renameLocalFile(Site item, String path, String newBase) {
+        File oldFile = new File(path);
+        String name = oldFile.getName();
+        int dot = name.lastIndexOf('.');
+        String ext = dot > 0 ? name.substring(dot) : "";
+        String suffix = name.toLowerCase().endsWith(".py") ? "[py]" : "[js]";
+        File newFile = new File(oldFile.getParent(), newBase + ext);
+        if (newFile.exists()) {
+            Notify.show("已有同名源文件");
+            return;
+        }
+        if (!oldFile.renameTo(newFile)) {
+            Notify.show("重命名失败");
+            return;
+        }
+        String oldKey = item.getKey();
+        boolean wasHome = VodConfig.get().getHome() != null && oldKey.equals(VodConfig.get().getHome().getKey());
+        item.setKey("script_" + newBase);
+        item.setName(newBase + suffix);
+        item.setApi(UrlUtil.convert("file://" + newFile.getAbsolutePath()));
+        SiteOrder.renameKey(oldKey, item.getKey());
+        if (wasHome) VodConfig.get().setHome(item);
+        adapter.rename(item);
+        Notify.show("已重命名");
     }
 
     @Override
