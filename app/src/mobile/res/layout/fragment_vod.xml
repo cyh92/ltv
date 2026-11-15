@@ -141,7 +141,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="10dp"
-                android:src="@drawable/ic_action_menu"
+                android:src="@drawable/ic_arrow_down"
                 app:tint="?attr/colorOnSurface" />
 
         </LinearLayout>
