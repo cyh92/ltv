@@ -15,6 +15,7 @@ import java.util.Set;
 public class ScriptManager {
 
     private static final String KEY = "script_folders";
+    private static final String KEY_FILES = "script_files";
 
     private static class Loader {
         static final ScriptManager INSTANCE = new ScriptManager();
@@ -54,8 +55,37 @@ public class ScriptManager {
         Prefers.put(KEY, App.gson().toJson(folders));
     }
 
+    /** 单独导入的 .py/.js 文件（不在文件夹里的单个源）。 */
+    public List<String> getFiles() {
+        try {
+            List<String> files = App.gson().fromJson(Prefers.getString(KEY_FILES), new TypeToken<List<String>>() {
+            }.getType());
+            return files == null ? new ArrayList<>() : files;
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    public boolean addFile(String path) {
+        List<String> files = getFiles();
+        if (files.contains(path)) return false;
+        files.add(path);
+        saveFiles(files);
+        return true;
+    }
+
+    public void removeFile(String path) {
+        List<String> files = getFiles();
+        if (files.remove(path)) saveFiles(files);
+    }
+
+    private void saveFiles(List<String> files) {
+        Prefers.put(KEY_FILES, App.gson().toJson(files));
+    }
+
     public List<File> scanFiles() {
         List<File> files = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
         for (String folder : getFolders()) {
             File dir = new File(folder);
             File[] children = dir.isDirectory() ? dir.listFiles() : null;
@@ -63,8 +93,14 @@ public class ScriptManager {
             for (File file : children) {
                 if (!file.isFile()) continue;
                 String lower = file.getName().toLowerCase();
-                if (lower.endsWith(".py") || lower.endsWith(".js")) files.add(file);
+                if ((lower.endsWith(".py") || lower.endsWith(".js")) && seen.add(file.getAbsolutePath())) files.add(file);
             }
+        }
+        for (String path : getFiles()) {
+            File file = new File(path);
+            if (!file.isFile()) continue;
+            String lower = file.getName().toLowerCase();
+            if ((lower.endsWith(".py") || lower.endsWith(".js")) && seen.add(file.getAbsolutePath())) files.add(file);
         }
         files.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
         return files;
