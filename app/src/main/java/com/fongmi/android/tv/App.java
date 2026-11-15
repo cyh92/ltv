@@ -11,10 +11,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 import androidx.media3.mpvplayer.MpvLibrary;
+
 import com.fongmi.android.tv.player.mpv.MpvUtil;
 import com.fongmi.android.tv.receiver.RuntimeReceiver;
 import com.fongmi.android.tv.setting.Setting;
@@ -25,14 +27,17 @@ import com.fongmi.hook.Hook;
 import com.github.catvod.Runtime;
 import com.github.catvod.utils.RuntimeModule;
 import com.google.gson.Gson;
+
 import java.io.IOException;
 
 public class App extends Application implements Application.ActivityLifecycleCallbacks {
 
     private static volatile App instance;
+
     private final Handler handler;
     private final Gson gson;
     private final long time;
+
     private volatile Activity activity;
     private Hook hook;
 
