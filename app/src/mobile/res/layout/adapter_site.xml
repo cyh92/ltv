@@ -4,28 +4,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/shape_site_capsule"
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
-    <com.google.android.material.button.MaterialButton
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/text"
-        style="?attr/materialButtonOutlinedStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:ellipsize="marquee"
-        android:singleLine="true"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:textColor="@color/selector_control"
-        android:textSize="14sp"
-        app:backgroundTint="@color/selector_button"
-        app:strokeColor="@color/selector_stroke"
-        tools:text="泥巴" />
+        android:textSize="12sp"
+        tools:text="4K咕噜[py]" />
+
+    <com.fongmi.android.tv.ui.custom.DialogActionView
+        android:id="@+id/edit"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="修改名称"
+        android:padding="4dp"
+        app:srcCompat="@drawable/ic_action_edit"
+        app:tint="@color/selector_control" />
 
     <com.fongmi.android.tv.ui.custom.DialogActionView
         android:id="@+id/close"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="4dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="删除"
         android:padding="4dp"
