@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         app:menu="@menu/menu_search"
-        app:navigationIconTint="@android:color/white">
+        app:navigationIconTint="?attr/colorOnSurface">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/keyword"
@@ -25,8 +25,8 @@
             android:maxLength="255"
             android:singleLine="true"
             android:textAppearance="@style/ToolbarTextAppearance"
-            android:textColor="@color/white"
-            android:textColorHint="@color/white"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOnSurfaceVariant"
             android:textCursorDrawable="@drawable/shape_cursor" />
 
     </com.google.android.material.appbar.MaterialToolbar>
@@ -50,7 +50,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:text="@string/search_record"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="18sp" />
 
             <androidx.recyclerview.widget.RecyclerView
@@ -76,7 +76,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 android:text="@string/search_hot"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="18sp" />
 
             <androidx.recyclerview.widget.RecyclerView
