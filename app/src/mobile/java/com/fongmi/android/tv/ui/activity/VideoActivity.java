@@ -387,6 +387,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         mBinding.control.next.setOnClickListener(view -> checkNext());
         mBinding.control.prev.setOnClickListener(view -> checkPrev());
         mBinding.control.setting.setOnClickListener(view -> onSetting());
+        mBinding.control.fullscreen.setOnClickListener(view -> onFullscreenClick());
         mBinding.control.heading.setOnLongClickListener(view -> onChange());
         mBinding.control.right.lock.setOnClickListener(view -> onLock());
         mBinding.control.right.rotate.setOnClickListener(view -> onRotate());
@@ -1245,6 +1246,15 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         hideControl();
     }
 
+    private void onFullscreenClick() {
+        if (isFullscreen()) exitFullscreen();
+        else enterFullscreen();
+    }
+
+    private void updateFullscreenIcon() {
+        mBinding.control.fullscreen.setImageResource(isFullscreen() ? R.drawable.ic_control_fullscreen_exit : R.drawable.ic_control_fullscreen);
+    }
+
     private void setTransition() {
         ChangeBounds transition = new ChangeBounds();
         transition.setDuration(150);
@@ -1303,6 +1313,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         mBinding.control.cast.setVisibility(player().isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.center.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.bottom.setVisibility(isLock() ? View.GONE : View.VISIBLE);
+        updateFullscreenIcon();
         mBinding.control.back.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
