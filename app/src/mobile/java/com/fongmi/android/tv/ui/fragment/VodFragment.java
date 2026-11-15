@@ -24,7 +24,6 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Value;
 import com.fongmi.android.tv.databinding.FragmentVodBinding;
 import com.fongmi.android.tv.event.CastEvent;
-import com.fongmi.android.tv.event.ConfigEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.event.StateEvent;
 import com.fongmi.android.tv.impl.Callback;
@@ -38,11 +37,9 @@ import com.fongmi.android.tv.ui.activity.SearchActivity;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.FilterDialog;
-import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.ConfigManager;
-import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -93,13 +90,11 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         showProgress();
         setTitle();
         setIface();
-        setLogo();
     }
 
     @Override
     protected void initEvent() {
         mBinding.top.setOnClickListener(this::onTop);
-        mBinding.logo.setOnClickListener(this::onLogo);
         mBinding.title.setOnClickListener(this::onSite);
         mBinding.iface.setOnClickListener(this::onIface);
         mBinding.filter.setOnClickListener(this::onFilter);
@@ -186,7 +181,6 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
                 showProgress();
                 hideContent();
                 setTitle();
-                setLogo();
             }
 
             @Override
@@ -204,9 +198,6 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         if (mBinding.filter.getVisibility() == View.INVISIBLE) mBinding.filter.show();
     }
 
-    private void onLogo(View view) {
-        HistoryDialog.create().vod().readOnly().show(this);
-    }
 
     private void onSite(View view) {
         SiteDialog.create().change().show(this);
@@ -253,14 +244,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         return mResult == null ? new Result() : mResult;
     }
 
-    private void setLogo() {
-        ImgUtil.logo(mBinding.logo);
-    }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onConfigEvent(ConfigEvent event) {
-        if (event.type() == ConfigEvent.Type.VOD) setLogo();
-    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onRefreshEvent(RefreshEvent event) {
@@ -302,7 +286,6 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
                 showProgress();
                 hideContent();
                 setTitle();
-                setLogo();
             }
 
             @Override
