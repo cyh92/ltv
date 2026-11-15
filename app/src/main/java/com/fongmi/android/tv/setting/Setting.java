@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.setting;
 
+import androidx.appcompat.app.AppCompatDelegate;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.utils.Prefers;
@@ -7,7 +8,7 @@ import com.github.catvod.utils.Prefers;
 public class Setting {
 
     private static final int MIN_WALL = 0;
-    private static final int MAX_WALL = 4;
+    private static final int MAX_WALL = 8;
     private static final int MIN_WALL_TYPE = 0;
     private static final int MAX_WALL_TYPE = 2;
     private static final int MIN_SITE_MODE = 0;
@@ -65,6 +66,27 @@ public class Setting {
 
     public static void putWallType(int type) {
         Prefers.put("wall_type", Math.clamp(type, MIN_WALL_TYPE, MAX_WALL_TYPE));
+    }
+
+    public static int getThemeMode() {
+        return Math.clamp(Prefers.getInt("theme_mode", 2), 0, 2);
+    }
+
+    public static void putThemeMode(int mode) {
+        Prefers.put("theme_mode", Math.clamp(mode, 0, 2));
+    }
+
+    public static void applyThemeMode() {
+        int mode = getThemeMode();
+        AppCompatDelegate.setDefaultNightMode(mode == 0 ? AppCompatDelegate.MODE_NIGHT_NO : mode == 1 ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+    }
+
+    public static int getWallAlpha() {
+        return Math.clamp(Prefers.getInt("wall_alpha", 100), 0, 100);
+    }
+
+    public static void putWallAlpha(int alpha) {
+        Prefers.put("wall_alpha", Math.clamp(alpha, 0, 100));
     }
 
     public static int getThemeColor() {
