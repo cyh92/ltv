@@ -357,8 +357,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
 
     @Override
     public void onItemClick(int position, Class item) {
-        exitFocused();
-        mBinding.sections.smoothScrollToPosition(position);
+        enterFocused(item);
         mAdapter.setSelected(position);
     }
 
