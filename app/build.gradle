@@ -1,4 +1,4 @@
-"import com.android.build.api.artifact.SingleArtifact
+import com.android.build.api.artifact.SingleArtifact
 import com.fongmi.gradle.AbiApkPackaging
 
 plugins {
