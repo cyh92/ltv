@@ -29,13 +29,13 @@
                 <LinearLayout
                     android:id="@+id/ifacePill"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="40dp"
                     android:background="@drawable/shape_top_pill"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingStart="10dp"
+                    android:paddingStart="12dp"
                     android:paddingTop="5dp"
                     android:paddingEnd="8dp"
                     android:paddingBottom="5dp">
@@ -49,7 +49,7 @@
                         android:maxWidth="110dp"
                         android:text="@string/config_all_interfaces"
                         android:textColor="@color/selector_control"
-                        android:textSize="12sp" />
+                        android:textSize="13sp" />
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:layout_width="16dp"
@@ -63,7 +63,7 @@
                 <LinearLayout
                     android:id="@+id/sourcePill"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="40dp"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:background="@drawable/shape_top_pill"
@@ -71,7 +71,7 @@
                     android:focusable="true"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingStart="10dp"
+                    android:paddingStart="12dp"
                     android:paddingTop="5dp"
                     android:paddingEnd="8dp"
                     android:paddingBottom="5dp">
@@ -85,7 +85,7 @@
                         android:maxLines="1"
                         android:text="@string/app_name"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:layout_width="16dp"
@@ -95,19 +95,6 @@
                         app:tint="?attr/colorOnSurface" />
 
                 </LinearLayout>
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/search"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/shape_top_pill"
-                    android:clickable="true"
-                    android:contentDescription="@string/menu_search"
-                    android:focusable="true"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_action_search"
-                    app:tint="?attr/colorOnSurface" />
 
             </LinearLayout>
 
