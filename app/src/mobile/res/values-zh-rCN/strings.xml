@@ -136,4 +136,6 @@
     <string name="theme_bg_6">暮春暖</string>
     <string name="theme_bg_7">紫霞</string>
     <string name="theme_bg_8">烛龙金</string>
+    <string name="home_all_types">全部分类</string>
+    <string name="section_all">全部 &gt;</string>
 </resources>
