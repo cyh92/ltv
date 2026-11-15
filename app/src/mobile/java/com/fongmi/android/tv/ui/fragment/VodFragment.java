@@ -106,7 +106,6 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     protected void initEvent() {
         mBinding.ifacePill.setOnClickListener(this::onIface);
         mBinding.sourcePill.setOnClickListener(this::onSite);
-        mBinding.search.setOnClickListener(v -> SearchActivity.start(requireActivity()));
         mBinding.typeMenu.setOnClickListener(this::onTypeMenu);
         mBinding.top.setOnClickListener(this::onTop);
         mBinding.filter.setOnClickListener(this::onFilter);
@@ -262,7 +261,8 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     }
 
     private boolean onMenuItemClick(MenuItem item) {
-        if (item.getItemId() == R.id.keep) KeepActivity.start(requireActivity());
+        if (item.getItemId() == R.id.search) SearchActivity.start(requireActivity());
+        else if (item.getItemId() == R.id.keep) KeepActivity.start(requireActivity());
         else if (item.getItemId() == R.id.history) HistoryActivity.start(requireActivity());
         return true;
     }
