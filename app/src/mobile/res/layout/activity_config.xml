@@ -66,7 +66,7 @@
         android:layout_weight="1"
         android:gravity="center"
         android:text="@string/config_empty"
-        android:textColor="@color/white_70"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="15sp"
         android:visibility="gone" />
 
