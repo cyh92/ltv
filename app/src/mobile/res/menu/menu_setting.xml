@@ -6,7 +6,7 @@
         android:id="@+id/deviceConnect"
         android:icon="@drawable/ic_home_connect"
         android:title="@string/home_push"
-        app:iconTint="@color/white"
+        app:iconTint="?attr/colorOnSurface"
         app:showAsAction="always" />
 
 </menu>
