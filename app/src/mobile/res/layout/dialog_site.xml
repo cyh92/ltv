@@ -27,50 +27,16 @@
             android:singleLine="true"
             android:textSize="14sp" />
 
-        <com.google.android.material.button.MaterialButton
+        <com.fongmi.android.tv.ui.custom.DialogActionView
             android:id="@+id/layoutToggle"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_marginStart="8dp"
-            android:text="单列"
-            android:textColor="@color/selector_control"
-            android:textSize="13sp"
-            app:backgroundTint="@color/selector_button"
-            app:strokeColor="@color/selector_stroke" />
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
-
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="24dp"
-        android:paddingBottom="8dp">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/sortName"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="按字母"
-            android:textColor="@color/selector_control"
-            android:textSize="13sp"
-            app:backgroundTint="@color/selector_button"
-            app:strokeColor="@color/selector_stroke" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/sortTime"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="按添加时间"
-            android:textColor="@color/selector_control"
-            android:textSize="13sp"
-            app:backgroundTint="@color/selector_button"
-            app:strokeColor="@color/selector_stroke" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="切换单列/双列"
+            android:padding="8dp"
+            app:srcCompat="@drawable/ic_view_list"
+            app:tint="@color/selector_control" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
