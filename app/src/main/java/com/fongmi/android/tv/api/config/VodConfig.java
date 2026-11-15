@@ -218,6 +218,7 @@ public class VodConfig extends BaseConfig {
         Set<String> keys = getSites().stream().map(Site::getKey).collect(Collectors.toSet());
         ScriptManager.get().scan().stream().filter(site -> keys.add(site.getKey())).forEach(site -> getSites().add(site));     
         getSites().removeIf(site -> SiteOrder.isRemoved(site.getKey()));
+        getSites().forEach(site -> { String name = SiteOrder.getName(site.getKey()); if (name != null) site.setName(name); });
         Map<String, Site> items = Site.findAll().stream().collect(Collectors.toMap(Site::getKey, Function.identity()));
         getSites().forEach(site -> site.sync(items.get(site.getKey())));
         setHome(config, getSites().isEmpty() ? new Site() : getSites().stream().filter(item -> item.getKey().equals(config.getHome())).findFirst().orElse(getSites().get(0)), false);
