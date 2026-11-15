@@ -24,7 +24,7 @@
         android:layout_weight="1"
         android:ellipsize="end"
         android:singleLine="true"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="16sp" />
 
     <FrameLayout
@@ -39,7 +39,7 @@
             android:layout_height="24dp"
             android:layout_gravity="center"
             android:visibility="gone"
-            app:tint="@color/white" />
+            app:tint="?attr/colorOnSurface" />
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progress"
@@ -50,7 +50,7 @@
             android:indeterminate="true"
             android:saveEnabled="false"
             android:visibility="gone"
-            app:indicatorColor="@color/white"
+            app:indicatorColor="?attr/colorPrimary"
             app:indicatorSize="24dp"
             app:trackThickness="2dp"
             app:wavelength="8dp" />
