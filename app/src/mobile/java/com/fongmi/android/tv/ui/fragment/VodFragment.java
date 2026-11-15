@@ -8,20 +8,18 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewbinding.ViewBinding;
-import androidx.viewpager.widget.ViewPager;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.Filter;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Value;
+import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.FragmentVodBinding;
 import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
@@ -34,6 +32,9 @@ import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.HistoryActivity;
 import com.fongmi.android.tv.ui.activity.KeepActivity;
 import com.fongmi.android.tv.ui.activity.SearchActivity;
+import com.fongmi.android.tv.ui.activity.VideoActivity;
+import com.fongmi.android.tv.ui.activity.WebActivity;
+import com.fongmi.android.tv.ui.adapter.SectionAdapter;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.FilterDialog;
@@ -41,7 +42,6 @@ import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.ConfigManager;
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.greenrobot.eventbus.EventBus;
@@ -50,26 +50,37 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
-public class VodFragment extends BaseFragment implements ConfigListener, SiteListener, FilterListener, TypeAdapter.OnClickListener {
+public class VodFragment extends BaseFragment implements ConfigListener, SiteListener, FilterListener, TypeAdapter.OnClickListener, SectionAdapter.OnClickListener {
 
     private FragmentVodBinding mBinding;
     private SiteViewModel mViewModel;
     private TypeAdapter mAdapter;
+    private SectionAdapter mSectionAdapter;
     private Result mResult;
+    private FolderFragment mFocused;
+    private Class mFocusedType;
+    private final Set<String> mObservedSections = new HashSet<>();
 
     public static VodFragment newInstance() {
         return new VodFragment();
     }
 
-    private FolderFragment getFragment() {
-        return (FolderFragment) mBinding.pager.getAdapter().instantiateItem(mBinding.pager, mBinding.pager.getCurrentItem());
+    private boolean isFocused() {
+        return mFocused != null;
     }
 
     private Site getHome() {
         return VodConfig.get().getHome();
+    }
+
+    private Site getSite() {
+        return VodConfig.get().getSite(getHome().getKey());
     }
 
     private Config getConfig() {
@@ -84,7 +95,6 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     @Override
     protected void initView() {
         EventBus.getDefault().register(this);
-        mBinding.title.setSelected(true);
         setRecyclerView();
         setViewModel();
         showProgress();
@@ -94,50 +104,66 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
 
     @Override
     protected void initEvent() {
+        mBinding.ifacePill.setOnClickListener(this::onIface);
+        mBinding.sourcePill.setOnClickListener(this::onSite);
+        mBinding.search.setOnClickListener(v -> SearchActivity.start(requireActivity()));
+        mBinding.typeMenu.setOnClickListener(this::onTypeMenu);
         mBinding.top.setOnClickListener(this::onTop);
-        mBinding.title.setOnClickListener(this::onSite);
-        mBinding.iface.setOnClickListener(this::onIface);
         mBinding.filter.setOnClickListener(this::onFilter);
         mBinding.toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
-        mBinding.appBar.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
-            float factor = Math.abs(verticalOffset * 1f / appBarLayout.getTotalScrollRange());
-            int padding = (int) (ResUtil.dp2px(12) * factor);
-            if (mBinding.type.getPaddingTop() == padding) return;
-            mBinding.type.setPadding(mBinding.type.getPaddingStart(), padding, mBinding.type.getPaddingEnd(), mBinding.type.getPaddingBottom());
-        });
-        mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                mBinding.type.smoothScrollToPosition(position);
-                mAdapter.setSelected(position);
-                setFabVisible(position);
-            }
-        });
     }
 
     private void setRecyclerView() {
         mBinding.type.setHasFixedSize(true);
         mBinding.type.setItemAnimator(null);
         mBinding.type.setAdapter(mAdapter = new TypeAdapter(this));
-        mBinding.pager.setAdapter(new PageAdapter(getChildFragmentManager()));
+        mBinding.sections.setHasFixedSize(false);
+        mBinding.sections.setItemAnimator(null);
+        mBinding.sections.setAdapter(mSectionAdapter = new SectionAdapter(this));
     }
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
         mViewModel.getResult().observe(getViewLifecycleOwner(), this::setAdapter);
+        mViewModel.getAction().observe(getViewLifecycleOwner(), result -> WebActivity.handleAction(requireActivity(), result));
     }
 
     private void setAdapter(Result result) {
         mAdapter.addAll(mResult = result);
-        mBinding.pager.getAdapter().notifyDataSetChanged();
-        setFabVisible(0);
+        List<Class> types = new ArrayList<>();
+        for (int i = 0; i < mAdapter.getItemCount(); i++) types.add(mAdapter.get(i));
+        mSectionAdapter.setSections(getHome().getKey(), types);
+        for (Class type : types) {
+            if (type.isHome()) mSectionAdapter.setSectionItems(type, result.getList());
+            else loadSection(type);
+        }
+        setFabVisible();
         hideProgress();
         showContent();
     }
 
-    private void setFabVisible(int position) {
+    private void loadSection(Class type) {
+        SiteViewModel vm = new ViewModelProvider(this).get("section_" + type.getTypeId(), SiteViewModel.class);
+        if (mObservedSections.add(type.getTypeId())) {
+            vm.getResult().observe(getViewLifecycleOwner(), result -> onSectionResult(type, result));
+        }
+        vm.categoryContent(getHome().getKey(), type.getTypeId(), "1", true, getExtend(type));
+    }
+
+    private void onSectionResult(Class type, Result result) {
+        if (result.getList().isEmpty()) mSectionAdapter.removeSection(type);
+        else mSectionAdapter.setSectionItems(type, result.getList());
+    }
+
+    private HashMap<String, String> getExtend(Class type) {
+        HashMap<String, String> extend = new HashMap<>();
+        for (Filter filter : type.getFilters()) if (filter.getInit() != null) extend.put(filter.getKey(), filter.getInit());
+        return extend;
+    }
+
+    private void setFabVisible() {
         mBinding.top.setVisibility(View.INVISIBLE);
-        if (mAdapter.getItemCount() > 0 && !mAdapter.get(position).getFilters().isEmpty()) mBinding.filter.show();
+        if (isFocused() && mFocusedType != null && !mFocusedType.getFilters().isEmpty()) mBinding.filter.show();
         else mBinding.filter.setVisibility(View.GONE);
     }
 
@@ -174,6 +200,14 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         }).show();
     }
 
+    private void onTypeMenu(View view) {
+        int count = mAdapter.getItemCount();
+        if (count == 0) return;
+        String[] items = new String[count];
+        for (int i = 0; i < count; i++) items[i] = mAdapter.get(i).getTypeName();
+        new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.home_all_types).setItems(items, (dialog, which) -> onItemClick(which, mAdapter.get(which))).show();
+    }
+
     private Callback getCallback() {
         return new Callback() {
             @Override
@@ -192,24 +226,43 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         };
     }
 
+    private void enterFocused(Class type) {
+        exitFocused();
+        mFocusedType = type;
+        mFocused = FolderFragment.newInstance(getHome().getKey(), type, 4);
+        getChildFragmentManager().beginTransaction().replace(R.id.focusedContainer, mFocused).commit();
+        mBinding.focusedContainer.setVisibility(View.VISIBLE);
+        mBinding.sections.setVisibility(View.GONE);
+        setFabVisible();
+    }
+
+    private void exitFocused() {
+        if (mFocused == null) return;
+        getChildFragmentManager().beginTransaction().remove(mFocused).commit();
+        mFocused = null;
+        mFocusedType = null;
+        mBinding.focusedContainer.setVisibility(View.GONE);
+        mBinding.sections.setVisibility(View.VISIBLE);
+        setFabVisible();
+    }
+
     private void onTop(View view) {
-        getFragment().scrollToTop();
+        if (isFocused()) mFocused.scrollToTop();
+        else mBinding.sections.smoothScrollToPosition(0);
         mBinding.top.setVisibility(View.INVISIBLE);
         if (mBinding.filter.getVisibility() == View.INVISIBLE) mBinding.filter.show();
     }
-
 
     private void onSite(View view) {
         SiteDialog.create().change().show(this);
     }
 
     private void onFilter(View view) {
-        if (mAdapter.getItemCount() > 0) FilterDialog.create().filter(getFragment().getFilters()).show(this);
+        if (isFocused() && mFocused.getFilters() != null && !mFocused.getFilters().isEmpty()) FilterDialog.create().filter(mFocused.getFilters()).show(this);
     }
 
     private boolean onMenuItemClick(MenuItem item) {
         if (item.getItemId() == R.id.keep) KeepActivity.start(requireActivity());
-        else if (item.getItemId() == R.id.search) SearchActivity.start(requireActivity());
         else if (item.getItemId() == R.id.history) HistoryActivity.start(requireActivity());
         return true;
     }
@@ -224,27 +277,26 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
 
     private void hideContent() {
         mBinding.type.setVisibility(View.INVISIBLE);
-        mBinding.pager.setVisibility(View.INVISIBLE);
+        mBinding.content.setVisibility(View.INVISIBLE);
     }
 
     private void showContent() {
         mBinding.type.setVisibility(View.VISIBLE);
-        mBinding.pager.setVisibility(View.VISIBLE);
+        mBinding.content.setVisibility(View.VISIBLE);
     }
 
     private void homeContent() {
+        exitFocused();
         showProgress();
-        setFabVisible(0);
+        setFabVisible();
         mAdapter.clear();
+        mSectionAdapter.clear();
         mViewModel.homeContent();
-        mBinding.pager.setAdapter(new PageAdapter(getChildFragmentManager()));
     }
 
     public Result getResult() {
         return mResult == null ? new Result() : mResult;
     }
-
-
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onRefreshEvent(RefreshEvent event) {
@@ -256,7 +308,8 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
                 homeContent();
                 break;
             case CATEGORY:
-                getFragment().onRefresh();
+                if (isFocused()) mFocused.onRefresh();
+                else homeContent();
                 break;
         }
     }
@@ -304,49 +357,59 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
 
     @Override
     public void onItemClick(int position, Class item) {
-        mBinding.pager.setCurrentItem(position);
+        exitFocused();
+        mBinding.sections.smoothScrollToPosition(position);
         mAdapter.setSelected(position);
     }
 
     @Override
     public void setFilter(String key, Value value) {
-        getFragment().setFilter(key, value);
+        if (isFocused()) mFocused.setFilter(key, value);
+    }
+
+    @Override
+    public void onSectionAllClick(Class type) {
+        enterFocused(type);
+    }
+
+    @Override
+    public void onSectionItemClick(Class type, Vod item) {
+        if (item.isAction()) {
+            mViewModel.action(getHome().getKey(), item.getAction());
+        } else if (item.isFolder()) {
+            enterFocused(type);
+            mBinding.focusedContainer.post(() -> {
+                if (mFocused != null) mFocused.openFolder(item.getId(), getExtend(type));
+            });
+        } else {
+            if (getSite().isIndex()) SearchActivity.start(requireActivity(), item.getName());
+            else VideoActivity.start(requireActivity(), getHome().getKey(), item, type.isFolder() ? item.getName() : null);
+        }
+    }
+
+    @Override
+    public boolean onSectionItemLongClick(Class type, Vod item) {
+        if (item.isAction() || item.isFolder()) return false;
+        SearchActivity.start(requireActivity(), item.getName());
+        return true;
     }
 
     @Override
     public boolean canBack() {
-        if (mBinding.pager.getAdapter() == null || mBinding.pager.getAdapter().getCount() == 0) return true;
-        if (!getFragment().canBack()) return true;
-        getFragment().goBack();
-        return false;
+        if (isFocused()) {
+            if (mFocused.canBack()) {
+                mFocused.goBack();
+                return false;
+            }
+            exitFocused();
+            return false;
+        }
+        return true;
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         EventBus.getDefault().unregister(this);
-    }
-
-    class PageAdapter extends FragmentStatePagerAdapter {
-
-        public PageAdapter(@NonNull FragmentManager fm) {
-            super(fm);
-        }
-
-        @NonNull
-        @Override
-        public Fragment getItem(int position) {
-            Class type = mAdapter.get(position);
-            return FolderFragment.newInstance(getHome().getKey(), type, 4);
-        }
-
-        @Override
-        public int getCount() {
-            return mAdapter.getItemCount();
-        }
-
-        @Override
-        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-        }
     }
 }
