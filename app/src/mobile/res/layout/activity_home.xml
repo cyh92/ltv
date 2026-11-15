@@ -8,7 +8,7 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/navBar" />
+        android:layout_above="@+id/navBar"/>
     <LinearLayout
         android:id="@+id/navBar"
         android:layout_width="match_parent"
@@ -19,11 +19,11 @@
         <Space
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:layout_weight="0.125" />
+            android:layout_weight="0.125"/>
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/navigation"
             android:layout_width="0dp"
-            android:layout_height="53dp"
+            android:layout_height="64dp"
             android:layout_weight="0.75"
             android:background="@drawable/shape_nav_capsule"
             app:elevation="4dp"
@@ -34,10 +34,10 @@
             app:itemTextAppearanceInactive="@style/TextAppearance.Zhulong.NavLabel"
             app:itemTextColor="@color/selector_nav"
             app:labelVisibilityMode="labeled"
-            app:menu="@menu/menu_nav" />
+            app:menu="@menu/menu_nav"/>
         <Space
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:layout_weight="0.125" />
+            android:layout_weight="0.125"/>
     </LinearLayout>
 </RelativeLayout>
