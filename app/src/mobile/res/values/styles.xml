@@ -38,4 +38,8 @@
         <item name="android:background">@drawable/shape_accent</item>
     </style>
 
+    <style name="Widget.Zhulong.NavActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:background">@drawable/shape_nav_indicator</item>
+    </style>
+
 </resources>
