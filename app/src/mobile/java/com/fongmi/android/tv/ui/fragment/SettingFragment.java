@@ -26,9 +26,10 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigListener;
 import com.fongmi.android.tv.impl.LiveListener;
 import com.fongmi.android.tv.impl.SiteListener;
-import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.Setting;
+import com.fongmi.android.tv.ui.activity.ConfigActivity;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
+import com.fongmi.android.tv.ui.activity.ThemeActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.DeviceConnectDialog;
@@ -37,11 +38,9 @@ import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.ScriptDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
-import com.fongmi.android.tv.ui.dialog.ThemeDialog;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
-import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -53,19 +52,12 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingFragment extends BaseFragment implements ConfigListener, SiteListener, LiveListener, ThemeDialog.Listener {
+public class SettingFragment extends BaseFragment implements ConfigListener, SiteListener, LiveListener {
 
     private FragmentSettingBinding mBinding;
-    private String[] size;
 
     public static SettingFragment newInstance() {
         return new SettingFragment();
-    }
-
-    private String getThemeText() {
-        int color = Setting.getThemeColor();
-        if (color == -1) return getString(R.string.setting_off);
-        return getString(color == 0 ? R.string.setting_auto : R.string.setting_custom);
     }
 
     private int getDohIndex() {
@@ -92,17 +84,14 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         EventBus.getDefault().register(this);
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
-        mBinding.wallUrl.setText(WallConfig.getDesc());
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         setOtherText();
         setCacheText();
     }
 
     private void setOtherText() {
-        mBinding.themeColorText.setText(getThemeText());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
-        mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
     }
 
     private void setCacheText() {
@@ -117,10 +106,10 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     @Override
     protected void initEvent() {
         mBinding.vod.setOnClickListener(this::onVod);
+        mBinding.config.setOnClickListener(this::onConfig);
+        mBinding.theme.setOnClickListener(this::onTheme);
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.live.setOnClickListener(this::onLive);
-        mBinding.wall.setOnClickListener(this::onWall);
-        mBinding.size.setOnClickListener(this::setSize);
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.backup.setOnClickListener(this::onBackup);
         mBinding.player.setOnClickListener(this::onPlayer);
@@ -133,14 +122,9 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.script.setOnClickListener(this::onScript);
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
         mBinding.liveHome.setOnClickListener(this::onLiveHome);
-        mBinding.wall.setOnLongClickListener(this::onWallEdit);
         mBinding.incognito.setOnClickListener(this::setIncognito);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
-        mBinding.themeColor.setOnClickListener(this::onThemeColor);
         mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
-        mBinding.wallDefault.setOnClickListener(this::setWallDefault);
-        mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
-        mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
         mBinding.settingToolbar.setOnMenuItemClickListener(this::onMenuItemClick);
     }
 
@@ -202,22 +186,12 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         LiveConfig.get().setHome(item);
     }
 
-    @Override
-    public void setTheme(int color) {
-        Setting.putThemeColor(color);
-        RefreshEvent.theme();
-    }
-
     private void onVod(View view) {
         ConfigDialog.create().vod().show(this);
     }
 
     private void onLive(View view) {
         ConfigDialog.create().live().show(this);
-    }
-
-    private void onWall(View view) {
-        ConfigDialog.create().wall().show(this);
     }
 
     private boolean onVodEdit(View view) {
@@ -227,11 +201,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     private boolean onLiveEdit(View view) {
         ConfigDialog.create().live().edit().show(this);
-        return true;
-    }
-
-    private boolean onWallEdit(View view) {
-        ConfigDialog.create().wall().edit().show(this);
         return true;
     }
 
@@ -271,42 +240,21 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         getRoot().change(3);
     }
 
-    private void onThemeColor(View view) {
-        ThemeDialog.show(this);
+    private void onConfig(View view) {
+        ConfigActivity.start(requireActivity());
+    }
+
+    private void onTheme(View view) {
+        ThemeActivity.start(requireActivity());
     }
 
     private void onVersion(View view) {
         Updater.get().start(requireActivity(), true);
     }
 
-    private void setWallDefault(View view) {
-        Setting.putWall(Setting.getWall() == 4 ? 1 : Setting.getWall() + 1);
-        Setting.putWallType(0);
-        ConfigEvent.wall();
-    }
-
-    private void setWallRefresh(View view) {
-        Setting.putWall(0);
-        WallConfig.get().load(getCallback());
-    }
-
-    private boolean onWallHistory(View view) {
-        HistoryDialog.create().wall().show(this);
-        return true;
-    }
-
     private void setIncognito(View view) {
         Setting.putIncognito(!Setting.isIncognito());
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
-    }
-
-    private void setSize(View view) {
-        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.setting_size).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(size, PlayerSetting.getSize(), (dialog, which) -> {
-            mBinding.sizeText.setText(size[which]);
-            PlayerSetting.putSize(which);
-            RefreshEvent.size();
-            dialog.dismiss();
-        }).show();
     }
 
     private void setDoh(View view) {
@@ -372,7 +320,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         if (event.type() != ConfigEvent.Type.COMMON) return;
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
-        mBinding.wallUrl.setText(WallConfig.getDesc());
     }
 
     @Override
