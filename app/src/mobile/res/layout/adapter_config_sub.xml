@@ -26,7 +26,7 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/white"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="16sp" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -44,7 +44,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
-                android:textColor="@color/white_60"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -56,7 +56,7 @@
             android:layout_marginTop="2dp"
             android:ellipsize="middle"
             android:maxLines="1"
-            android:textColor="@color/white_70"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="13sp" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
@@ -69,7 +69,7 @@
         android:contentDescription="@string/config_more"
         android:padding="6dp"
         android:src="@drawable/ic_action_more"
-        app:tint="@color/white_70" />
+        app:tint="?attr/colorOnSurfaceVariant" />
 
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/toggle"
