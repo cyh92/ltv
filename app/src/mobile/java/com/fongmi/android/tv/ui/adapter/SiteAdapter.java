@@ -22,18 +22,21 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
     private final List<Site> all = new ArrayList<>();
     private final List<Site> items = new ArrayList<>();
     private String keyword = "";
-    private int sort = SiteOrder.getSort();
 
     public SiteAdapter(OnClickListener listener) {
         this.listener = listener;
         for (Site site : VodConfig.get().getSites()) if (!site.isHide()) all.add(site);
-        applySort();
+        List<Site> ordered = SiteOrder.applyOrder(all);
+        all.clear();
+        all.addAll(ordered);
         items.addAll(all);
     }
 
     public interface OnClickListener {
 
         void onTextClick(Site item);
+
+        void onEditClick(Site item);
 
         void onDeleteClick(Site item);
     }
@@ -42,31 +45,8 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         return items;
     }
 
-    public int getSort() {
-        return sort;
-    }
-
     public boolean isFiltering() {
         return keyword != null && !keyword.trim().isEmpty();
-    }
-
-    public void setSort(int sort) {
-        this.sort = sort;
-        SiteOrder.putSort(sort);
-        applySort();
-        filter(keyword);
-    }
-
-    private void applySort() {
-        if (sort == SiteOrder.SORT_NAME) {
-            SiteOrder.sortByName(all);
-        } else if (sort == SiteOrder.SORT_TIME) {
-            SiteOrder.sortByTime(all);
-        } else {
-            List<Site> ordered = SiteOrder.applyOrder(all);
-            all.clear();
-            all.addAll(ordered);
-        }
     }
 
     public void filter(String keyword) {
@@ -81,16 +61,9 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         notifyDataSetChanged();
     }
 
-    // Drag is always allowed (unless filtering); dragging switches to custom order.
+    // Drag is always allowed (unless filtering); dragging keeps the custom order.
     public boolean canDrag() {
         return !isFiltering();
-    }
-
-    // Switch the sort mode without re-sorting the list (used when a drag starts:
-    // dragging means custom order from now on).
-    public void setSortMode(int sort) {
-        this.sort = sort;
-        SiteOrder.putSort(sort);
     }
 
     public void onMove(int from, int to) {
@@ -113,6 +86,12 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         SiteOrder.putOrder(SiteOrder.keysOf(all));
     }
 
+    // The site object is updated in place by the rename; just refresh its row.
+    public void rename(Site item) {
+        int position = items.indexOf(item);
+        if (position >= 0) notifyItemChanged(position);
+    }
+
     @Override
     public int getItemCount() {
         return items.size();
@@ -128,8 +107,13 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Site item = items.get(position);
         holder.binding.text.setText(item.getName());
+        // Selected state drives the capsule fill, the text color and the icon tints (all use selector colors).
+        holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.text.setSelected(item.isSelected());
-        holder.binding.text.setOnClickListener(v -> listener.onTextClick(item));
+        holder.binding.edit.setSelected(item.isSelected());
+        holder.binding.close.setSelected(item.isSelected());
+        holder.binding.getRoot().setOnClickListener(v -> listener.onTextClick(item));
+        holder.binding.edit.setOnClickListener(v -> listener.onEditClick(item));
         holder.binding.close.setOnClickListener(v -> listener.onDeleteClick(item));
     }
 
