@@ -30,7 +30,7 @@ public class Product {
 
     public static int[] getSpec(Context context, Style style) {
         int column = getColumn(context, style);
-        int space = ResUtil.dp2px(32) + ResUtil.dp2px(16 * (column - 1)) + getCutout(context);
+        int space = ResUtil.dp2px(6 + 6 * column) + getCutout(context);
         if (style.isOval()) space += ResUtil.dp2px(column * 16);
         return getSpec(context, space, column, style);
     }
