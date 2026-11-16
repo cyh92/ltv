@@ -32,6 +32,17 @@
             android:paddingBottom="8dp">
 
             <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/checkAll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:text="@string/config_check_all"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="16sp" />
+
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/importLocal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
