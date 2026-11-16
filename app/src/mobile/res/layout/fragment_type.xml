@@ -16,8 +16,8 @@
             android:layout_height="match_parent"
             android:clipChildren="false"
             android:clipToPadding="false"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
+            android:paddingStart="3dp"
+            android:paddingEnd="3dp"
             android:paddingBottom="8dp"
             tools:listitem="@layout/adapter_vod_rect" />
 
