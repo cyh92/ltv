@@ -1,17 +1,20 @@
 package com.fongmi.android.tv.ui.fragment;
 
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
@@ -19,32 +22,38 @@ import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.FragmentSettingBinding;
-import com.fongmi.android.tv.db.BackupManager;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigListener;
 import com.fongmi.android.tv.impl.LiveListener;
 import com.fongmi.android.tv.impl.SiteListener;
 import com.fongmi.android.tv.setting.Setting;
-import com.fongmi.android.tv.ui.activity.ConfigActivity;
-import com.fongmi.android.tv.ui.activity.HomeActivity;
-import com.fongmi.android.tv.ui.activity.ThemeActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.DeviceConnectDialog;
-import com.fongmi.android.tv.ui.dialog.RestoreDialog;
-import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 
 public class SettingFragment extends BaseFragment implements ConfigListener, SiteListener, LiveListener {
 
+    private static final String STATE_TAB = "tab";
+
     private FragmentSettingBinding mBinding;
+    private TextView[] mTabs;
+    private int mTab;
 
     public static SettingFragment newInstance() {
         return new SettingFragment();
     }
 
-    private HomeActivity getRoot() {
-        return (HomeActivity) requireActivity();
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) mTab = savedInstanceState.getInt(STATE_TAB, 0);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(STATE_TAB, mTab);
     }
 
     @Override
@@ -54,29 +63,16 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     @Override
     protected void initView() {
-        mBinding.versionText.setText(BuildConfig.VERSION_NAME);
-        setCacheText();
-    }
-
-    private void setCacheText() {
-        FileUtil.getCacheSize(new Callback() {
-            @Override
-            public void success(String result) {
-                mBinding.cacheText.setText(result);
-            }
-        });
+        mTabs = new TextView[]{mBinding.tabConfig, mBinding.tabModule, mBinding.tabPlayer, mBinding.tabTheme, mBinding.tabData};
+        for (int i = 0; i < mTabs.length; i++) {
+            int index = i;
+            mTabs[i].setOnClickListener(v -> selectTab(index));
+        }
+        selectTab(mTab);
     }
 
     @Override
     protected void initEvent() {
-        mBinding.config.setOnClickListener(this::onConfig);
-        mBinding.theme.setOnClickListener(this::onTheme);
-        mBinding.cache.setOnClickListener(this::onCache);
-        mBinding.backup.setOnClickListener(this::onBackup);
-        mBinding.player.setOnClickListener(this::onPlayer);
-        mBinding.module.setOnClickListener(this::onModule);
-        mBinding.restore.setOnClickListener(this::onRestore);
-        mBinding.version.setOnClickListener(this::onVersion);
         mBinding.settingToolbar.setOnMenuItemClickListener(this::onMenuItemClick);
     }
 
@@ -84,6 +80,49 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         if (item.getItemId() != R.id.deviceConnect) return false;
         DeviceConnectDialog.show(requireActivity());
         return true;
+    }
+
+    private void selectTab(int index) {
+        mTab = index;
+        for (int i = 0; i < mTabs.length; i++) mTabs[i].setSelected(i == index);
+        FragmentManager fm = getChildFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        for (int i = 0; i < mTabs.length; i++) {
+            Fragment f = fm.findFragmentByTag("tab" + i);
+            if (i == index) {
+                if (f == null) ft.add(R.id.container, createTab(i), "tab" + i);
+                else ft.show(f);
+            } else if (f != null) {
+                ft.hide(f);
+            }
+        }
+        ft.commit();
+        refreshTab(index);
+    }
+
+    private Fragment createTab(int index) {
+        return switch (index) {
+            case 0 -> ConfigFragment.newInstance(true);
+            case 1 -> ModuleFragment.newInstance(true);
+            case 2 -> SettingPlayerFragment.newInstance(true);
+            case 3 -> ThemeFragment.newInstance(true);
+            case 4 -> DataFragment.newInstance();
+            default -> null;
+        };
+    }
+
+    private void refreshTab(int index) {
+        Fragment f = getChildFragmentManager().findFragmentByTag("tab" + index);
+        if (f == null || !f.isAdded() || f.getView() == null) return;
+        if (f instanceof ModuleFragment) ((ModuleFragment) f).refresh();
+        else if (f instanceof SettingPlayerFragment) ((SettingPlayerFragment) f).refresh();
+        else if (f instanceof DataFragment) ((DataFragment) f).refresh();
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        if (hidden) return;
+        refreshTab(mTab);
     }
 
     @Override
@@ -117,7 +156,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             @Override
             public void success() {
                 Notify.dismiss();
-                setCacheText();
             }
 
             @Override
@@ -140,75 +178,5 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     public void reloadVod() {
         VodConfig.load(VodConfig.get().getConfig(), getCallback());
-    }
-
-    private void onPlayer(View view) {
-        getRoot().change(2);
-    }
-
-    private void onModule(View view) {
-        getRoot().change(6);
-    }
-
-    private void onConfig(View view) {
-        ConfigActivity.start(requireActivity());
-    }
-
-    private void onTheme(View view) {
-        ThemeActivity.start(requireActivity());
-    }
-
-    private void onVersion(View view) {
-        Updater.get().start(requireActivity(), true);
-    }
-
-    private void onCache(View view) {
-        FileUtil.clearCache(new Callback() {
-            @Override
-            public void success() {
-                setCacheText();
-            }
-        });
-    }
-
-    private void onBackup(View view) {
-        PermissionUtil.requestFile(this, allGranted -> BackupManager.backup(new Callback() {
-            @Override
-            public void success() {
-                Notify.show(R.string.backup_success);
-            }
-
-            @Override
-            public void error() {
-                Notify.show(R.string.backup_fail);
-            }
-        }));
-    }
-
-    private void onRestore(View view) {
-        PermissionUtil.requestFile(this, allGranted -> RestoreDialog.create().show(requireActivity(), new Callback() {
-            @Override
-            public void success() {
-                Notify.show(R.string.restore_success);
-                initConfig();
-            }
-
-            @Override
-            public void error() {
-                Notify.show(R.string.restore_fail);
-            }
-        }));
-    }
-
-    private void initConfig() {
-        VodConfig.get().init().load(getCallback());
-        LiveConfig.get().init().load();
-        WallConfig.get().init().load();
-    }
-
-    @Override
-    public void onHiddenChanged(boolean hidden) {
-        if (hidden) return;
-        setCacheText();
     }
 }
