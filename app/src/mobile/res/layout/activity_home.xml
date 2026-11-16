@@ -19,12 +19,12 @@
         <Space
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:layout_weight="0.125"/>
+            android:layout_weight="0.245"/>
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/navigation"
             android:layout_width="0dp"
-            android:layout_height="68dp"
-            android:layout_weight="0.75"
+            android:layout_height="80dp"
+            android:layout_weight="0.51"
             android:background="@drawable/shape_nav_capsule"
             app:elevation="4dp"
             app:itemActiveIndicatorStyle="@style/Widget.Zhulong.NavActiveIndicator"
@@ -36,6 +36,6 @@
         <Space
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:layout_weight="0.125"/>
+            android:layout_weight="0.245"/>
     </LinearLayout>
 </RelativeLayout>
