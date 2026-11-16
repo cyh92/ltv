@@ -53,7 +53,7 @@ public class Setting {
     }
 
     public static int getWall() {
-        return Math.clamp(Prefers.getInt("wall", 1), MIN_WALL, MAX_WALL);
+        return Math.clamp(Prefers.getInt("wall", 0), MIN_WALL, MAX_WALL);
     }
 
     public static void putWall(int wall) {
