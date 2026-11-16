@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.fragment;
 
 import android.content.DialogInterface;
 import android.os.Build;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,11 +13,11 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.FragmentSettingPlayerBinding;
-import com.fongmi.android.tv.impl.BufferListener;
-import com.fongmi.android.tv.impl.UaListener;
-import com.fongmi.android.tv.player.mpv.MpvUtil;
-import com.fongmi.android.tv.setting.PlayerSetting;
-import com.fongmi.android.tv.setting.Setting;
+import com.fongmi.android.tv.ui.listener.BufferListener;
+import com.fongmi.android.tv.ui.listener.UaListener;
+import com.github.catvod.utils.MpvUtil;
+import com.github.catvod.utils.PlayerSetting;
+import com.github.catvod.utils.Setting;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.BufferDialog;
@@ -32,9 +33,24 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
     private String[] background;
     private String[] render;
     private String[] engine;
+    private boolean embedded;
 
     public static SettingPlayerFragment newInstance() {
-        return new SettingPlayerFragment();
+        return newInstance(false);
+    }
+
+    public static SettingPlayerFragment newInstance(boolean embedded) {
+        SettingPlayerFragment fragment = new SettingPlayerFragment();
+        Bundle args = new Bundle();
+        args.putBoolean("embedded", embedded);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) embedded = getArguments().getBoolean("embedded", false);
     }
 
     @Override
@@ -44,14 +60,15 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
 
     @Override
     protected void initView() {
+        if (embedded) mBinding.toolbar.setVisibility(View.GONE);
         setVisible();
         setPlaybackModeText();
         mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));
         mBinding.libassText.setText(Setting.getSwitch(PlayerSetting.isLibass()));
         mBinding.bufferText.setText(String.valueOf(PlayerSetting.getBuffer()));
         setMpvOptions();
-                    mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
-                mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
+        mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
+        mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
     }
 
     @Override
@@ -70,7 +87,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.buffer.setOnClickListener(this::onBuffer);
         mBinding.preload.setOnClickListener(this::onPreload);
         mBinding.ua.setOnClickListener(this::onUa);
-                mBinding.incognito.setOnClickListener(this::setIncognito);
+        mBinding.incognito.setOnClickListener(this::setIncognito);
     }
 
     private void setVisible() {
@@ -114,8 +131,8 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.player_mpv_motion).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(items, PlayerSetting.getExoMotion(), this::onExoMotion).show();
     }
 
-    private void onExoMotion(DialogInterface dialog, int which) {
-        PlayerSetting.putExoMotion(which);
+    private void onExoMotion(DialogInterface dialog, int index) {
+        PlayerSetting.putExoMotion(index);
         setExoMotionText();
         Notify.show(R.string.player_motion_restart);
         dialog.dismiss();
@@ -130,8 +147,8 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.player_mpv_motion).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(items, PlayerSetting.getMpvMotion(), this::onMpvMotion).show();
     }
 
-    private void onMpvMotion(DialogInterface dialog, int which) {
-        PlayerSetting.putMpvMotion(which);
+    private void onMpvMotion(DialogInterface dialog, int index) {
+        PlayerSetting.putMpvMotion(index);
         setMpvOptions();
         dialog.dismiss();
     }
@@ -180,13 +197,13 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
 
     private void setAdblock(View view) {
         Setting.putAdblock(!Setting.isAdblock());
-        mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));    
+        mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));
     }
-        
+
     private void setIncognito(View view) {
-                    Setting.putIncognito(!Setting.isIncognito());
-                    mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
-        }
+        Setting.putIncognito(!Setting.isIncognito());
+        mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
+    }
 
     private void setLibass(View view) {
         PlayerSetting.putLibass(!PlayerSetting.isLibass());
@@ -208,6 +225,10 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
     @Override
     public void setUa(String ua) {
         Setting.putUa(ua);
+    }
+
+    public void refresh() {
+        if (mBinding != null) initView();
     }
 
     @Override
