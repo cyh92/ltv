@@ -93,6 +93,11 @@
     <string name="config_import_single">Import single source</string>
     <string name="config_local_pack">Local package</string>
     <string name="config_local_file">Local file</string>
+    <string name="config_import_local_interface">Import local interface</string>
+    <string name="config_import_folder">Import folder</string>
+    <string name="config_import_online">Import online interface</string>
+    <string name="config_import_live_local">Import live local source</string>
+    <string name="config_import_live_online">Import live online source</string>
     <string name="config_empty">No subscriptions yet. Tap a button below to add.</string>
     <string name="config_edit_sub">Edit subscription</string>
     <string name="config_edit">Edit</string>
