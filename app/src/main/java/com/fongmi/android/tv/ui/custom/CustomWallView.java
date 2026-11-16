@@ -92,7 +92,8 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     private void load() {
         int wall = Setting.getWall();
         int type = Setting.getWallType();
-        if (isBuiltIn(wall, type)) loadRes(WALL_PAPERS[wall]);
+        if (wall == 0 && type == TYPE_RES) binding.image.setImageDrawable(null);
+            else if (isBuiltIn(wall, type)) loadRes(WALL_PAPERS[wall]);
         else if (type == TYPE_VIDEO) loadVideo(Path.wall(wall));
         else if (type == TYPE_GIF) loadGif(Path.wall(wall));
         else loadImage();
