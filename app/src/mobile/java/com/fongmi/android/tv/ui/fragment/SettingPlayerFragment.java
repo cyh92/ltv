@@ -87,7 +87,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.buffer.setOnClickListener(this::onBuffer);
         mBinding.preload.setOnClickListener(this::onPreload);
         mBinding.ua.setOnClickListener(this::onUa);
-        mBinding.incognito.setOnClickListener(this::setIncognito);
+                mBinding.incognito.setOnClickListener(this::setIncognito);
     }
 
     private void setVisible() {
@@ -199,7 +199,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         Setting.putAdblock(!Setting.isAdblock());
         mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));    
     }
-    
+        
     private void setIncognito(View view) {
                     Setting.putIncognito(!Setting.isIncognito());
                     mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
