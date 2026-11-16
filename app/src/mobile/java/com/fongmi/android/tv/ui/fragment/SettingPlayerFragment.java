@@ -13,11 +13,11 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.FragmentSettingPlayerBinding;
-import com.fongmi.android.tv.ui.listener.BufferListener;
-import com.fongmi.android.tv.ui.listener.UaListener;
-import com.github.catvod.utils.MpvUtil;
-import com.github.catvod.utils.PlayerSetting;
-import com.github.catvod.utils.Setting;
+import com.fongmi.android.tv.impl.BufferListener;
+import com.fongmi.android.tv.impl.UaListener;
+import com.fongmi.android.tv.player.mpv.MpvUtil;
+import com.fongmi.android.tv.setting.PlayerSetting;
+import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.BufferDialog;
@@ -67,8 +67,8 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.libassText.setText(Setting.getSwitch(PlayerSetting.isLibass()));
         mBinding.bufferText.setText(String.valueOf(PlayerSetting.getBuffer()));
         setMpvOptions();
-        mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
-        mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
+                    mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
+                mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
     }
 
     @Override
@@ -131,8 +131,8 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.player_mpv_motion).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(items, PlayerSetting.getExoMotion(), this::onExoMotion).show();
     }
 
-    private void onExoMotion(DialogInterface dialog, int index) {
-        PlayerSetting.putExoMotion(index);
+    private void onExoMotion(DialogInterface dialog, int which) {
+        PlayerSetting.putExoMotion(which);
         setExoMotionText();
         Notify.show(R.string.player_motion_restart);
         dialog.dismiss();
@@ -147,8 +147,8 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.player_mpv_motion).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(items, PlayerSetting.getMpvMotion(), this::onMpvMotion).show();
     }
 
-    private void onMpvMotion(DialogInterface dialog, int index) {
-        PlayerSetting.putMpvMotion(index);
+    private void onMpvMotion(DialogInterface dialog, int which) {
+        PlayerSetting.putMpvMotion(which);
         setMpvOptions();
         dialog.dismiss();
     }
@@ -197,13 +197,13 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
 
     private void setAdblock(View view) {
         Setting.putAdblock(!Setting.isAdblock());
-        mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));
+        mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));    
     }
-
+    
     private void setIncognito(View view) {
-        Setting.putIncognito(!Setting.isIncognito());
-        mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
-    }
+                    Setting.putIncognito(!Setting.isIncognito());
+                    mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
+        }
 
     private void setLibass(View view) {
         PlayerSetting.putLibass(!PlayerSetting.isLibass());
