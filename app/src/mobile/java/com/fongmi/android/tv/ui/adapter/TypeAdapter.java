@@ -35,6 +35,8 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
 
     public void addAll(Result result) {
         mItems.addAll(result.getTypes());
+        mItems.removeIf(type -> type.isHome() || "推荐".equals(type.getTypeName()));
+        if (mItems.isEmpty()) mItems.addAll(result.getTypes());
         if (!mItems.isEmpty()) mItems.get(0).setSelected(true);
         notifyDataSetChanged();
     }
