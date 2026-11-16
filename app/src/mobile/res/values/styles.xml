@@ -12,7 +12,9 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
     </style>
 
-    <style name="Theme.App" parent="Theme.Base" />
+    <style name="Theme.App" parent="Theme.Base">
+        <item name="actionButtonStyle">@style/Widget.Zhulong.ActionButton</item>
+    </style>
 
     <style name="Theme.Crash" parent="Theme.Base">
         <item name="android:windowDisablePreview">true</item>
@@ -41,6 +43,11 @@
     <style name="Widget.Zhulong.NavActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <item name="android:background">@drawable/shape_nav_indicator</item>
     </style>
+    <style name="Widget.Zhulong.ActionButton" parent="Widget.AppCompat.ActionButton">
+        <item name="android:minWidth">40dp</item>
+        <item name="android:paddingLeft">0dp</item>
+            <item name="android:paddingRight">0dp</item>
+    </style>        
 
     <style name="TextAppearance.Zhulong.NavLabel" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:textSize">11sp</item>
