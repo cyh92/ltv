@@ -93,6 +93,11 @@
     <string name="config_import_single">单源导入</string>
     <string name="config_local_pack">本地包</string>
     <string name="config_local_file">本地文件</string>
+    <string name="config_import_local_interface">本地接口导入</string>
+    <string name="config_import_folder">文件夹导入</string>
+    <string name="config_import_online">在线接口导入</string>
+    <string name="config_import_live_local">直播本地源导入</string>
+    <string name="config_import_live_online">直播在线源导入</string>
     <string name="config_empty">暂无订阅，点击下方按钮添加</string>
     <string name="config_edit_sub">编辑订阅</string>
     <string name="config_edit">编辑</string>
