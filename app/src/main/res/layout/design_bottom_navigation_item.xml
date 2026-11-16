@@ -59,7 +59,7 @@
       android:id="@id/navigation_bar_item_labels_group"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginTop="-8dp"
+      android:layout_marginTop="-2dp"
       android:paddingBottom="@dimen/m3_bottom_nav_item_padding_bottom"
       android:clipChildren="false"
       android:clipToPadding="false"
