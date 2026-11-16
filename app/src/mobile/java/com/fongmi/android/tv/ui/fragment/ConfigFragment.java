@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.bean.Config;
@@ -31,11 +32,14 @@ import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.ScriptManager;
+import com.fongmi.android.tv.utils.SourceChecker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnClickListener {
 
@@ -69,6 +73,9 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
     private int tab = ConfigManager.TAB_VOD;
     private int pickMode = PICK_SINGLE;
     private boolean embedded;
+    private ExecutorService checkExecutor;
+    private volatile boolean checkCancelled;
+    private boolean checking;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -107,6 +114,7 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
 
     @Override
     protected void initEvent() {
+        mBinding.checkAll.setOnClickListener(v -> startCheckAll());
         mBinding.importLocal.setOnClickListener(v -> {
             setTab(ConfigManager.TAB_VOD);
             pickMode = PICK_LOCAL;
@@ -162,6 +170,77 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
         List<ConfigManager.Sub> result = new ArrayList<>();
         for (ConfigManager.Sub sub : subs) if (kind.equals(sub.kind)) result.add(sub);
         return result;
+    }
+
+    @Override
+    public void onDestroyView() {
+        checkCancelled = true;
+        if (checkExecutor != null) checkExecutor.shutdownNow();
+        super.onDestroyView();
+    }
+
+    /** 检测全部源：一个一个来（网慢，并行会拖死），每出一个结果就标在它下边。 */
+    private void startCheckAll() {
+        if (checking) return;
+        checking = true;
+        checkCancelled = false;
+        List<ConfigManager.Sub> all = new ArrayList<>();
+        all.addAll(ConfigManager.getSubs(ConfigManager.TAB_VOD));
+        all.addAll(ConfigManager.getSubs(ConfigManager.TAB_LIVE));
+        for (ConfigSubAdapter adapter : new ConfigSubAdapter[]{mAdapterLocal, mAdapterFolder, mAdapterSingle, mAdapterOnline, mAdapterLiveLocal, mAdapterLiveOnline}) adapter.clearStatus();
+        mBinding.checkAll.setText(getString(R.string.config_checking, 0, all.size()));
+        mBinding.checkAll.setEnabled(false);
+        checkExecutor = Executors.newSingleThreadExecutor();
+        checkExecutor.execute(() -> {
+            int okCount = 0;
+            int failCount = 0;
+            for (int i = 0; i < all.size(); i++) {
+                if (checkCancelled) break;
+                ConfigManager.Sub sub = all.get(i);
+                SourceChecker.Result result = SourceChecker.check(sub);
+                if (result.ok) okCount++;
+                else failCount++;
+                int done = i + 1;
+                App.post(() -> {
+                    if (getView() == null) return;
+                    setStatus(sub, result);
+                    mBinding.checkAll.setText(getString(R.string.config_checking, done, all.size()));
+                });
+            }
+            int ok = okCount;
+            int fail = failCount;
+            App.post(() -> {
+                if (getView() == null) return;
+                checking = false;
+                mBinding.checkAll.setEnabled(true);
+                mBinding.checkAll.setText(R.string.config_check_all);
+                if (!checkCancelled) Notify.show(getString(R.string.config_check_done, ok, fail));
+            });
+        });
+    }
+
+    private void setStatus(ConfigManager.Sub sub, SourceChecker.Result result) {
+        String text = statusText(result);
+        if (sub.isJson()) mAdapterLocal.setStatus(sub.id, text, result.ok);
+        else if (sub.isFolder()) mAdapterFolder.setStatus(sub.id, text, result.ok);
+        else if (sub.isFile()) mAdapterSingle.setStatus(sub.id, text, result.ok);
+        else if (sub.isUrl()) mAdapterOnline.setStatus(sub.id, text, result.ok);
+        else if (sub.isLiveFile()) mAdapterLiveLocal.setStatus(sub.id, text, result.ok);
+        else if (sub.isLiveUrl()) mAdapterLiveOnline.setStatus(sub.id, text, result.ok);
+    }
+
+    private String statusText(SourceChecker.Result result) {
+        if (!result.ok) return getString(R.string.config_check_fail, getString(result.reason));
+        switch (result.countKind) {
+            case SourceChecker.COUNT_SITES:
+                return getString(R.string.config_check_ok_sites, result.count);
+            case SourceChecker.COUNT_CHANNELS:
+                return getString(R.string.config_check_ok_channels, result.count);
+            case SourceChecker.COUNT_SOURCES:
+                return getString(R.string.config_check_ok_sources, result.count);
+            default:
+                return getString(R.string.config_check_ok);
+        }
     }
 
     private Callback getCallback() {
