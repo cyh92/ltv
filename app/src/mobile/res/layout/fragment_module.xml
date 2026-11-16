@@ -34,13 +34,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <include
-                android:id="@+id/bdj"
-                layout="@layout/item_module"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" />
-
+            
             <include
                 android:id="@+id/python"
                 layout="@layout/item_module"
