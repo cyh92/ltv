@@ -357,8 +357,9 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
 
     @Override
     public void onItemClick(int position, Class item) {
-        enterFocused(item);
+        onSectionAllClick(item);
         mAdapter.setSelected(position);
+        Notify.show("正在加载全部影视…");
     }
 
     @Override
