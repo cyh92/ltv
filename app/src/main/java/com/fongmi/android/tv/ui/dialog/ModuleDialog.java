@@ -75,7 +75,7 @@ public class ModuleDialog extends BaseAlertDialog {
     @Override
     protected void initView() {
         int index = requireArguments().getInt("index");
-        model = ModuleViewModel.get(requireActivity(), index == 0 ? RuntimeModule.BDJ : RuntimeModule.values()[index - 1]);
+        model = ModuleViewModel.get(requireActivity(), RuntimeModule.values()[index]);
         binding.title.setText(model.getTitle());
         model.getState().observe(this, this::render);
         model.getHealth().observe(this, health -> render(model.getState().getValue()));
