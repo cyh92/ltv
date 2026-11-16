@@ -2,7 +2,6 @@ package com.fongmi.android.tv.ui.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -28,7 +27,6 @@ import com.fongmi.android.tv.impl.LiveListener;
 import com.fongmi.android.tv.impl.SiteListener;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseFragment;
-import com.fongmi.android.tv.ui.dialog.DeviceConnectDialog;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 
@@ -69,17 +67,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             mTabs[i].setOnClickListener(v -> selectTab(index));
         }
         selectTab(mTab);
-    }
-
-    @Override
-    protected void initEvent() {
-        mBinding.settingToolbar.setOnMenuItemClickListener(this::onMenuItemClick);
-    }
-
-    private boolean onMenuItemClick(MenuItem item) {
-        if (item.getItemId() != R.id.deviceConnect) return false;
-        DeviceConnectDialog.show(requireActivity());
-        return true;
     }
 
     private void selectTab(int index) {
