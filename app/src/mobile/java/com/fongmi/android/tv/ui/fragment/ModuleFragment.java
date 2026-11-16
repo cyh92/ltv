@@ -1,7 +1,9 @@
 package com.fongmi.android.tv.ui.fragment;
 
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -25,13 +27,28 @@ public class ModuleFragment extends BaseFragment {
     private FragmentModuleBinding mBinding;
     private ModuleViewModel[] models;
     private ItemModuleBinding[] items;
+    private boolean embedded;
 
     public static ModuleFragment newInstance() {
-        return new ModuleFragment();
+        return newInstance(false);
+    }
+
+    public static ModuleFragment newInstance(boolean embedded) {
+        ModuleFragment fragment = new ModuleFragment();
+        Bundle args = new Bundle();
+        args.putBoolean("embedded", embedded);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     private HomeActivity getRoot() {
         return (HomeActivity) requireActivity();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) embedded = getArguments().getBoolean("embedded", false);
     }
 
     @Override
@@ -41,10 +58,11 @@ public class ModuleFragment extends BaseFragment {
 
     @Override
     protected void initView() {
+        if (embedded) mBinding.toolbar.setVisibility(View.GONE);
         mBinding.toolbar.getMenu().add(R.string.module_check).setIcon(R.drawable.ic_setting_refresh).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         mBinding.toolbar.setOnMenuItemClickListener(this::onCheck);
-        models = new ModuleViewModel[]{ModuleViewModel.get(getRoot(), RuntimeModule.BDJ), ModuleViewModel.get(getRoot(), RuntimeModule.PYTHON), ModuleViewModel.get(getRoot(), RuntimeModule.NODEJS), ModuleViewModel.get(getRoot(), RuntimeModule.QUICKJS), ModuleViewModel.get(getRoot(), RuntimeModule.THUNDER), ModuleViewModel.get(getRoot(), RuntimeModule.MPV)};
-        items = new ItemModuleBinding[]{mBinding.bdj, mBinding.python, mBinding.nodejs, mBinding.quickjs, mBinding.thunder, mBinding.mpv};
+        models = new ModuleViewModel[]{ModuleViewModel.get(getRoot(), RuntimeModule.PYTHON), ModuleViewModel.get(getRoot(), RuntimeModule.NODEJS), ModuleViewModel.get(getRoot(), RuntimeModule.QUICKJS), ModuleViewModel.get(getRoot(), RuntimeModule.THUNDER), ModuleViewModel.get(getRoot(), RuntimeModule.TVBUS)};
+        items = new ItemModuleBinding[]{mBinding.python, mBinding.nodejs, mBinding.quickjs, mBinding.thunder, mBinding.tvbus};
         for (int i = 0; i < items.length; i++) bind(items[i], models[i], i);
     }
 
@@ -62,29 +80,25 @@ public class ModuleFragment extends BaseFragment {
 
     private void select(int index) {
         ModuleViewModel model = models[index];
-        ModuleViewModel.State state = model.getState().getValue();
-        if (state.isPending()) confirmInstallation(model, state);
-        else if (state.canInstall()) model.install();
-        else ModuleDialog.create(index).show(getRoot());
+        if (model.isInstalled()) {
+            ModuleDialog.newInstance(model.getModule()).show(getChildFragmentManager(), "module");
+        } else {
+            Notify.show(R.string.module_install);
+        }
     }
 
-    private void confirmInstallation(ModuleViewModel model, ModuleViewModel.State state) {
-        Notify.show(model.getStatusText(state));
-        RuntimeInstaller.confirmInstallation(getRoot());
-    }
-
-    private void render(ItemModuleBinding binding, ModuleViewModel model, ModuleViewModel.State state) {
-        ModuleUtil.render(binding, model, state);
-        mBinding.toolbar.getMenu().getItem(0).setEnabled(!ModuleUtil.isBusy(models));
-    }
-
-    private void refresh() {
-        if (mBinding != null && !isHidden()) for (ModuleViewModel model : models) model.refresh();
-    }
-
-    @Override
-    public void onHiddenChanged(boolean hidden) {
-        if (!hidden) refresh();
+    private void render(ItemModuleBinding binding, ModuleViewModel model, ModuleUtil.State state) {
+        binding.state.setText(state.getText());
+        binding.state.setTextColor(getResources().getColor(state.getColor(), null));
+        binding.icon.setAlpha(state.getAlpha());
+        binding.progress.setVisibility(state.isLoading() ? View.VISIBLE : View.GONE);
+        binding.button.setText(state.getButton());
+        binding.button.setVisibility(state.getButton() == null ? View.GONE : View.VISIBLE);
+        binding.button.setOnClickListener(view -> {
+            if (state.isInstall()) ModuleUtil.install(model);
+            else if (state.isUpdate()) ModuleUtil.update(model);
+            else if (state.isUninstall()) ModuleUtil.uninstall(model);
+        });
     }
 
     @Override
@@ -93,12 +107,17 @@ public class ModuleFragment extends BaseFragment {
         refresh();
     }
 
+    public void refresh() {
+        for (ModuleViewModel model : models) model.refresh();
+    }
+
     @Override
     public void onDestroyView() {
-        for (ItemModuleBinding item : items) item.progress.setWaveSpeed(0);
-        mBinding = null;
-        models = null;
-        items = null;
         super.onDestroyView();
+        mBinding = null;
+    }
+
+    private boolean isInstalled(ModuleViewModel model) {
+        return RuntimeInstaller.isInstalled(model.getModule());
     }
 }
