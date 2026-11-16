@@ -5,7 +5,7 @@
     <string name="app_history">最近观看</string>
 
     <!-- Nav -->
-    <string name="nav_vod">主页</string>
+    <string name="nav_vod">首页</string>
     <string name="nav_live">直播</string>
     <string name="nav_local">本地</string>
     <string name="nav_mine">我的</string>
