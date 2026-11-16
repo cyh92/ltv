@@ -66,6 +66,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     private FolderFragment mFocused;
     private Class mFocusedType;
     private final Set<String> mObservedSections = new HashSet<>();
+    private boolean mAutoFirst = true;
 
     public static VodFragment newInstance() {
         return new VodFragment();
@@ -139,6 +140,10 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         setFabVisible();
         hideProgress();
         showContent();
+        if (mAutoFirst && mAdapter.getItemCount() > 0 && !isFocused()) {
+            mAutoFirst = false;
+            onItemClick(0, mAdapter.get(0));
+        }
     }
 
     private void loadSection(Class type) {
@@ -211,6 +216,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         return new Callback() {
             @Override
             public void start() {
+                mAutoFirst = true;
                 showProgress();
                 hideContent();
                 setTitle();
@@ -291,6 +297,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         setFabVisible();
         mAdapter.clear();
         mSectionAdapter.clear();
+        mAutoFirst = true;
         mViewModel.homeContent();
     }
 
@@ -336,6 +343,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         VodConfig.load(config, new Callback() {
             @Override
             public void start() {
+                mAutoFirst = true;
                 showProgress();
                 hideContent();
                 setTitle();
