@@ -17,7 +17,7 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="44dp"
             app:menu="@menu/menu_vod">
 
             <LinearLayout
@@ -29,16 +29,16 @@
                 <LinearLayout
                     android:id="@+id/ifacePill"
                     android:layout_width="wrap_content"
-                    android:layout_height="40dp"
+                    android:layout_height="24dp"
                     android:background="@drawable/shape_top_pill"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingStart="12dp"
-                    android:paddingTop="5dp"
+                    android:paddingTop="2dp"
                     android:paddingEnd="8dp"
-                    android:paddingBottom="5dp">
+                    android:paddingBottom="2dp">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/iface"
@@ -63,7 +63,7 @@
                 <LinearLayout
                     android:id="@+id/sourcePill"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="24dp"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:background="@drawable/shape_top_pill"
@@ -72,9 +72,9 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingStart="12dp"
-                    android:paddingTop="5dp"
+                    android:paddingTop="2dp"
                     android:paddingEnd="8dp"
-                    android:paddingBottom="5dp">
+                    android:paddingBottom="2dp">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/title"
