@@ -42,6 +42,7 @@
 
     <style name="Widget.Zhulong.NavActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <item name="android:background">@drawable/shape_nav_indicator</item>
+        <item name="android:height">24dp</item>
     </style>
     <style name="Widget.Zhulong.ActionButton" parent="Widget.AppCompat.ActionButton">
         <item name="android:minWidth">40dp</item>
