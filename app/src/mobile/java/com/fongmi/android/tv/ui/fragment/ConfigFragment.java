@@ -87,27 +87,37 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
 
     @Override
     protected void initEvent() {
-        mBinding.tabVod.setOnClickListener(v -> setTab(ConfigManager.TAB_VOD));
-        mBinding.tabLive.setOnClickListener(v -> setTab(ConfigManager.TAB_LIVE));
-        mBinding.add.setOnClickListener(v -> onAdd());
-        mBinding.scan.setOnClickListener(v -> folderLauncher.launch(new Intent(requireActivity(), FileActivity.class).putExtra(FileActivity.EXTRA_PICK_DIR, true)));
-        mBinding.single.setOnClickListener(v -> {
+        mBinding.importLocal.setOnClickListener(v -> {
+            setTab(ConfigManager.TAB_VOD);
+            pickMode = PICK_LOCAL;
+            FileChooser.from(fileLauncher).show();
+        });
+        mBinding.importFolder.setOnClickListener(v -> {
+            setTab(ConfigManager.TAB_VOD);
+            folderLauncher.launch(new Intent(requireActivity(), FileActivity.class).putExtra(FileActivity.EXTRA_PICK_DIR, true));
+        });
+        mBinding.importSingle.setOnClickListener(v -> {
+            setTab(ConfigManager.TAB_VOD);
             pickMode = PICK_SINGLE;
             FileChooser.from(fileLauncher).show();
         });
-        mBinding.local.setOnClickListener(v -> {
+        mBinding.importOnline.setOnClickListener(v -> {
+            setTab(ConfigManager.TAB_VOD);
+            onAdd();
+        });
+        mBinding.importLiveLocal.setOnClickListener(v -> {
+            setTab(ConfigManager.TAB_LIVE);
             pickMode = PICK_LOCAL;
             FileChooser.from(fileLauncher).show();
+        });
+        mBinding.importLiveOnline.setOnClickListener(v -> {
+            setTab(ConfigManager.TAB_LIVE);
+            onAdd();
         });
     }
 
     private void setTab(int tab) {
         this.tab = tab;
-        mBinding.tabVod.setSelected(tab == ConfigManager.TAB_VOD);
-        mBinding.tabLive.setSelected(tab == ConfigManager.TAB_LIVE);
-        mBinding.scan.setVisibility(tab == ConfigManager.TAB_VOD ? View.VISIBLE : View.GONE);
-        mBinding.single.setVisibility(tab == ConfigManager.TAB_VOD ? View.VISIBLE : View.GONE);
-        mBinding.local.setText(tab == ConfigManager.TAB_VOD ? R.string.config_local_pack : R.string.config_local_file);
         refresh();
     }
 
@@ -169,7 +179,8 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
                     String kind = tab == ConfigManager.TAB_VOD ? ConfigManager.KIND_URL : ConfigManager.KIND_LIVE_URL;
                     ConfigManager.Sub sub = ConfigManager.add(tab, kind, name, link);
                     refresh();
-                    ConfigManager.activateVod(sub, getCallback());
+                    if (tab == ConfigManager.TAB_VOD) ConfigManager.activateVod(sub, getCallback());
+                    else ConfigManager.activateLive(sub, getCallback());
                 })
                 .setNegativeButton(R.string.dialog_negative, null)
                 .show();
