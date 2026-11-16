@@ -8,34 +8,18 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/navBar"/>
-    <LinearLayout
-        android:id="@+id/navBar"
+        android:layout_above="@+id/navigation"/>
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/navigation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="80dp"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="43dp"
-        android:orientation="horizontal">
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="0.245"/>
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/navigation"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:layout_weight="0.51"
-            android:background="@drawable/shape_nav_capsule"
-            app:elevation="4dp"
-            app:itemActiveIndicatorStyle="@style/Widget.Zhulong.NavActiveIndicator"
-            app:itemIconSize="20dp"
-            app:itemIconTint="@color/selector_nav"
-            app:itemTextColor="@color/selector_nav"
-            app:labelVisibilityMode="labeled"
-            app:menu="@menu/menu_nav"/>
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="0.245"/>
-    </LinearLayout>
+        android:background="?attr/colorSurface"
+        app:elevation="0dp"
+        app:itemActiveIndicatorStyle="@style/Widget.Zhulong.NavActiveIndicator"
+        app:itemIconSize="24dp"
+        app:itemIconTint="@color/selector_nav"
+        app:itemTextColor="@color/selector_nav"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/menu_nav"/>
 </RelativeLayout>
