@@ -23,15 +23,13 @@
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/navigation"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="68dp"
             android:layout_weight="0.75"
             android:background="@drawable/shape_nav_capsule"
             app:elevation="4dp"
             app:itemActiveIndicatorStyle="@style/Widget.Zhulong.NavActiveIndicator"
             app:itemIconSize="20dp"
             app:itemIconTint="@color/selector_nav"
-            app:itemTextAppearanceActive="@style/TextAppearance.Zhulong.NavLabel"
-            app:itemTextAppearanceInactive="@style/TextAppearance.Zhulong.NavLabel"
             app:itemTextColor="@color/selector_nav"
             app:labelVisibilityMode="labeled"
             app:menu="@menu/menu_nav"/>
