@@ -11,10 +11,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.AdapterConfigSubBinding;
 import com.fongmi.android.tv.utils.ConfigManager;
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ConfigSubAdapter extends RecyclerView.Adapter<ConfigSubAdapter.ViewHolder> {
 
@@ -28,9 +31,31 @@ public class ConfigSubAdapter extends RecyclerView.Adapter<ConfigSubAdapter.View
 
     private final OnClickListener listener;
     private final List<ConfigManager.Sub> items = new ArrayList<>();
+    private final Map<String, Status> statuses = new HashMap<>();
+
+    /** 检测结果（按源 id 存，refresh 换数据也不丢）。 */
+    private static class Status {
+        final String text;
+        final boolean ok;
+
+        Status(String text, boolean ok) {
+            this.text = text;
+            this.ok = ok;
+        }
+    }
 
     public ConfigSubAdapter(OnClickListener listener) {
         this.listener = listener;
+    }
+
+    public void setStatus(String subId, String text, boolean ok) {
+        statuses.put(subId, new Status(text, ok));
+        notifyDataSetChanged();
+    }
+
+    public void clearStatus() {
+        statuses.clear();
+        notifyDataSetChanged();
     }
 
     public void refresh(List<ConfigManager.Sub> subs) {
@@ -52,6 +77,14 @@ public class ConfigSubAdapter extends RecyclerView.Adapter<ConfigSubAdapter.View
         holder.binding.link.setText(item.getDisplayLink());
         holder.binding.kind.setText(kindText(holder.itemView.getContext(), item));
         holder.binding.active.setVisibility(item.id.equals(ConfigManager.getActiveId()) ? View.VISIBLE : View.GONE);
+        Status status = statuses.get(item.id);
+        if (status == null) {
+            holder.binding.status.setVisibility(View.GONE);
+        } else {
+            holder.binding.status.setVisibility(View.VISIBLE);
+            holder.binding.status.setText(status.text);
+            holder.binding.status.setTextColor(MaterialColors.getColor(holder.itemView, status.ok ? R.attr.colorPrimary : R.attr.colorError));
+        }
         holder.binding.toggle.setOnCheckedChangeListener(null);
         holder.binding.toggle.setChecked(item.enabled);
         holder.binding.toggle.setOnCheckedChangeListener((buttonView, isChecked) -> listener.onToggle(item, isChecked));
