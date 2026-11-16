@@ -16,39 +16,6 @@
         app:title="@string/config_manage"
         app:titleTextColor="?attr/colorOnSurface" />
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginRight="16dp"
-        android:orientation="horizontal">
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tab_vod"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:background="@drawable/shape_site_capsule"
-            android:gravity="center"
-            android:text="@string/config_vod"
-            android:textColor="@color/selector_control"
-            android:textSize="15sp" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tab_live"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="12dp"
-            android:layout_weight="1"
-            android:background="@drawable/shape_site_capsule"
-            android:gravity="center"
-            android:text="@string/config_live"
-            android:textColor="@color/selector_control"
-            android:textSize="15sp" />
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
@@ -74,46 +41,77 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/black_30"
-        android:orientation="horizontal"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp">
+        android:orientation="vertical"
+        android:paddingLeft="16dp"
+        android:paddingTop="8dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="8dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/add"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="@string/config_add_interface"
-            android:textColor="?attr/colorPrimary" />
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/importLocal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/config_import_local_interface"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/scan"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="@string/config_scan_folder"
-            android:textColor="?attr/colorPrimary" />
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/importFolder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/config_import_folder"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/single"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/importSingle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             android:text="@string/config_import_single"
-            android:textColor="?attr/colorPrimary" />
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/local"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="@string/config_local_pack"
-            android:textColor="?attr/colorPrimary" />
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/importOnline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/config_import_online"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/importLiveLocal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/config_import_live_local"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/importLiveOnline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/config_import_live_online"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
