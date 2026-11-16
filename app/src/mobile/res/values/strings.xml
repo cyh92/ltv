@@ -127,7 +127,7 @@
     <string name="theme_bg">Background</string>
     <string name="theme_bg_alpha">Background opacity</string>
     <string name="theme_bg_alpha_value">%1$d%%</string>
-    <string name="theme_bg_none">None</string>
+    <string name="theme_bg_none">Moon white</string>
     <string name="theme_bg_1">Spring green</string>
     <string name="theme_bg_2">Starry blue</string>
     <string name="theme_bg_3">Morning mist</string>
@@ -136,6 +136,13 @@
     <string name="theme_bg_6">Warm spring</string>
     <string name="theme_bg_7">Purple haze</string>
     <string name="theme_bg_8">Dragon gold</string>
+    <string name="setting_menu_interface">Interface</string>
+    <string name="setting_menu_plugin">Plugins</string>
+    <string name="setting_menu_player">Player</string>
+    <string name="setting_menu_appearance">Appearance</string>
+    <string name="setting_menu_data">Data Center</string>
+    <string name="setting_backup_restore">Backup &amp; Restore</string>
+    <string name="setting_history">History</string>
     <string name="home_all_types">Categories</string>
     <string name="section_all">All &gt;</string>
 </resources>
