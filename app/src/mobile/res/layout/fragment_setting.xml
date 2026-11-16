@@ -10,7 +10,6 @@
         android:id="@+id/settingToolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:menu="@menu/menu_setting"
         app:navigationIconTint="?attr/colorOnSurface"
         app:titleTextColor="?attr/colorOnSurface"
         app:title="@string/nav_setting"
@@ -37,49 +36,54 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:background="@drawable/shape_type_chip"
                 android:text="@string/setting_menu_interface"
-                android:textColor="@color/selector_type_text"
-                android:textSize="13sp" />
+                android:textColor="@color/selector_tab_text"
+                android:textSize="16sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tabModule"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:background="@drawable/shape_type_chip"
                 android:text="@string/setting_menu_plugin"
-                android:textColor="@color/selector_type_text"
-                android:textSize="13sp" />
+                android:textColor="@color/selector_tab_text"
+                android:textSize="16sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tabPlayer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:background="@drawable/shape_type_chip"
                 android:text="@string/setting_menu_player"
-                android:textColor="@color/selector_type_text"
-                android:textSize="13sp" />
+                android:textColor="@color/selector_tab_text"
+                android:textSize="16sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tabTheme"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:background="@drawable/shape_type_chip"
                 android:text="@string/setting_menu_appearance"
-                android:textColor="@color/selector_type_text"
-                android:textSize="13sp" />
+                android:textColor="@color/selector_tab_text"
+                android:textSize="16sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tabData"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/shape_type_chip"
                 android:text="@string/setting_menu_data"
-                android:textColor="@color/selector_type_text"
-                android:textSize="13sp" />
+                android:textColor="@color/selector_tab_text"
+                android:textSize="16sp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
     </HorizontalScrollView>
