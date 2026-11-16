@@ -15,6 +15,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -33,6 +34,7 @@ import com.fongmi.android.tv.utils.ScriptManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnClickListener {
@@ -58,7 +60,12 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
     private final ActivityResultLauncher<Intent> fileLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> FileChooser.getFileUri(result, this::onFilePicked));
 
     private ActivityConfigBinding mBinding;
-    private ConfigSubAdapter mAdapter;
+    private ConfigSubAdapter mAdapterLocal;
+    private ConfigSubAdapter mAdapterFolder;
+    private ConfigSubAdapter mAdapterSingle;
+    private ConfigSubAdapter mAdapterOnline;
+    private ConfigSubAdapter mAdapterLiveLocal;
+    private ConfigSubAdapter mAdapterLiveOnline;
     private int tab = ConfigManager.TAB_VOD;
     private int pickMode = PICK_SINGLE;
     private boolean embedded;
@@ -78,11 +85,24 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
     protected void initView() {
         if (embedded) mBinding.toolbar.setVisibility(View.GONE);
         else mBinding.toolbar.setNavigationOnClickListener(v -> requireActivity().finish());
-        mAdapter = new ConfigSubAdapter(this);
-        mBinding.recycler.setAdapter(mAdapter);
-        mBinding.recycler.setHasFixedSize(true);
-        mBinding.recycler.setItemAnimator(null);
-        setTab(ConfigManager.TAB_VOD);
+        mAdapterLocal = new ConfigSubAdapter(this);
+        mAdapterFolder = new ConfigSubAdapter(this);
+        mAdapterSingle = new ConfigSubAdapter(this);
+        mAdapterOnline = new ConfigSubAdapter(this);
+        mAdapterLiveLocal = new ConfigSubAdapter(this);
+        mAdapterLiveOnline = new ConfigSubAdapter(this);
+        bindSection(mBinding.recyclerLocal, mAdapterLocal);
+        bindSection(mBinding.recyclerFolder, mAdapterFolder);
+        bindSection(mBinding.recyclerSingle, mAdapterSingle);
+        bindSection(mBinding.recyclerOnline, mAdapterOnline);
+        bindSection(mBinding.recyclerLiveLocal, mAdapterLiveLocal);
+        bindSection(mBinding.recyclerLiveOnline, mAdapterLiveOnline);
+        refresh();
+    }
+
+    private void bindSection(RecyclerView recycler, ConfigSubAdapter adapter) {
+        recycler.setAdapter(adapter);
+        recycler.setItemAnimator(null);
     }
 
     @Override
@@ -116,15 +136,32 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
         });
     }
 
+    /** 只记下当前类型（onAdd / onFilePicked 靠它定 kind）；列表不再按类型切页，6 组一直都在。 */
     private void setTab(int tab) {
         this.tab = tab;
-        refresh();
     }
 
+    /** 导入的源按导入方式分组，分别列在各自的导入行下边；没源的组只留标题。 */
     private void refresh() {
-        List<ConfigManager.Sub> subs = ConfigManager.getSubs(tab);
-        mAdapter.refresh(subs);
-        mBinding.empty.setVisibility(subs.isEmpty() ? View.VISIBLE : View.GONE);
+        List<ConfigManager.Sub> vod = ConfigManager.getSubs(ConfigManager.TAB_VOD);
+        List<ConfigManager.Sub> live = ConfigManager.getSubs(ConfigManager.TAB_LIVE);
+        refreshSection(mBinding.recyclerLocal, mAdapterLocal, filter(vod, ConfigManager.KIND_JSON));
+        refreshSection(mBinding.recyclerFolder, mAdapterFolder, filter(vod, ConfigManager.KIND_FOLDER));
+        refreshSection(mBinding.recyclerSingle, mAdapterSingle, filter(vod, ConfigManager.KIND_FILE));
+        refreshSection(mBinding.recyclerOnline, mAdapterOnline, filter(vod, ConfigManager.KIND_URL));
+        refreshSection(mBinding.recyclerLiveLocal, mAdapterLiveLocal, filter(live, ConfigManager.KIND_LIVE_FILE));
+        refreshSection(mBinding.recyclerLiveOnline, mAdapterLiveOnline, filter(live, ConfigManager.KIND_LIVE_URL));
+    }
+
+    private void refreshSection(RecyclerView recycler, ConfigSubAdapter adapter, List<ConfigManager.Sub> subs) {
+        adapter.refresh(subs);
+        recycler.setVisibility(subs.isEmpty() ? View.GONE : View.VISIBLE);
+    }
+
+    private List<ConfigManager.Sub> filter(List<ConfigManager.Sub> subs, String kind) {
+        List<ConfigManager.Sub> result = new ArrayList<>();
+        for (ConfigManager.Sub sub : subs) if (kind.equals(sub.kind)) result.add(sub);
+        return result;
     }
 
     private Callback getCallback() {
