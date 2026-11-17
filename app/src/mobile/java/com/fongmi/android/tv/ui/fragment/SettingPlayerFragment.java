@@ -128,14 +128,21 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         boolean exo = PlayerSetting.isExo();
         boolean exoMotion = exo && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
         mBinding.exoMotion.setVisibility(exoMotion ? View.VISIBLE : View.GONE);
+        mBinding.dividerExoMotion.setVisibility(exoMotion ? View.VISIBLE : View.GONE);
         setExoMotionText();
         boolean vulkan = !exo && MpvUtil.isVulkanSupported();
         mBinding.mpvConf.setVisibility(exo ? View.GONE : View.VISIBLE);
+        mBinding.dividerMpvConf.setVisibility(exo ? View.GONE : View.VISIBLE);
         mBinding.mpvVulkan.setVisibility(vulkan ? View.VISIBLE : View.GONE);
+        mBinding.dividerMpvVulkan.setVisibility(vulkan ? View.VISIBLE : View.GONE);
         mBinding.mpvMotion.setVisibility(vulkan ? View.VISIBLE : View.GONE);
+        mBinding.dividerMpvMotion.setVisibility(vulkan ? View.VISIBLE : View.GONE);
         mBinding.mpvGpuNext.setVisibility(exo ? View.GONE : View.VISIBLE);
+        mBinding.dividerMpvGpuNext.setVisibility(exo ? View.GONE : View.VISIBLE);
         mBinding.libass.setVisibility(exo ? View.VISIBLE : View.GONE);
+        mBinding.dividerLibass.setVisibility(exo ? View.VISIBLE : View.GONE);
         mBinding.buffer.setVisibility(exo ? View.VISIBLE : View.GONE);
+        mBinding.dividerBuffer.setVisibility(exo ? View.VISIBLE : View.GONE);
     }
 
     private void refreshEngineCard() {
