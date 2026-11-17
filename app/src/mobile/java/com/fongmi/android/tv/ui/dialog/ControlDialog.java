@@ -95,6 +95,7 @@ public class ControlDialog extends BaseBottomSheetDialog {
     private void setSpeed(int index) {
         player.setSpeed(SPEEDS[index]);
         refreshSpeed();
+        ((Listener) requireActivity()).onSpeedChanged();
     }
 
     private void refreshScale() {
@@ -124,5 +125,8 @@ public class ControlDialog extends BaseBottomSheetDialog {
         void onParse(Parse item);
 
         void onScaleChanged();
+
+        default void onSpeedChanged() {
+        }
     }
 }
