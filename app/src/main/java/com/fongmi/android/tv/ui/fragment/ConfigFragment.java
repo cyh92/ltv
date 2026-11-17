@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.fragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -77,6 +80,10 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
     private ExecutorService checkExecutor;
     private volatile boolean checkCancelled;
     private boolean checking;
+    private AlertDialog progressDialog;
+    private ProgressBar progressBar;
+    private TextView progressItem;
+    private TextView progressCount;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -177,10 +184,11 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
     public void onDestroyView() {
         checkCancelled = true;
         if (checkExecutor != null) checkExecutor.shutdownNow();
+        dismissProgressDialog();
         super.onDestroyView();
     }
 
-    /** 检测全部源：一个一个来（网慢，并行会拖死），每出一个结果就标在它下边。 */
+    /** 检测全部源：一个一个来（网慢，并行会拖死），每出一个结果就标在它下边；进度框里能看到正在测哪个、测到第几个。 */
     private void startCheckAll() {
         if (checking) return;
         checking = true;
@@ -191,6 +199,7 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
         for (ConfigSubAdapter adapter : new ConfigSubAdapter[]{mAdapterLocal, mAdapterFolder, mAdapterSingle, mAdapterOnline, mAdapterLiveLocal, mAdapterLiveOnline}) adapter.clearStatus();
         mBinding.checkAll.setText(getString(R.string.config_checking, 0, all.size()));
         mBinding.checkAll.setEnabled(false);
+        showProgressDialog();
         checkExecutor = Executors.newSingleThreadExecutor();
         checkExecutor.execute(() -> {
             int greenCount = 0;
@@ -199,7 +208,32 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
             for (int i = 0; i < all.size(); i++) {
                 if (checkCancelled) break;
                 ConfigManager.Sub sub = all.get(i);
-                SourceChecker.Result result = SourceChecker.check(sub);
+                int subIndex = i + 1;
+                App.post(() -> {
+                    if (getView() == null || progressDialog == null) return;
+                    progressBar.setIndeterminate(true);
+                    progressItem.setText(sub.name);
+                    progressCount.setText(getString(R.string.config_check_progress_sub, subIndex, all.size()));
+                });
+                SourceChecker.Result result = SourceChecker.check(sub, new SourceChecker.ProgressListener() {
+                    @Override
+                    public void onItem(String itemName, int done, int total) {
+                        App.post(() -> {
+                            if (getView() == null || progressDialog == null) return;
+                            progressBar.setIndeterminate(false);
+                            progressBar.setMax(total);
+                            progressBar.setProgress(done);
+                            progressItem.setText(sub.name + " · " + itemName);
+                            progressCount.setText(getString(R.string.config_check_progress, done, total, subIndex, all.size()));
+                        });
+                    }
+
+                    @Override
+                    public boolean isCancelled() {
+                        return checkCancelled;
+                    }
+                });
+                if (checkCancelled) break;
                 if (result.grade == SourceChecker.GRADE_GREEN) greenCount++;
                 else if (result.grade == SourceChecker.GRADE_YELLOW) yellowCount++;
                 else redCount++;
@@ -217,12 +251,48 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
             int red = redCount;
             App.post(() -> {
                 if (getView() == null) return;
+                dismissProgressDialog();
                 checking = false;
                 mBinding.checkAll.setEnabled(true);
                 mBinding.checkAll.setText(R.string.config_check_all);
                 if (!checkCancelled) Notify.show(getString(R.string.config_check_done, green, yellow, red));
             });
         });
+    }
+
+    /** 检测进度框：当前源名 + 横向进度条 + 计数；取消按钮停掉检测。 */
+    private void showProgressDialog() {
+        LinearLayout layout = new LinearLayout(requireContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int padding = ResUtil.dp2px(20);
+        layout.setPadding(padding, ResUtil.dp2px(8), padding, ResUtil.dp2px(8));
+        progressItem = new TextView(requireContext());
+        progressItem.setTextSize(16);
+        progressBar = new ProgressBar(requireContext(), null, android.R.attr.progressBarStyleHorizontal);
+        LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        barParams.topMargin = ResUtil.dp2px(12);
+        progressBar.setLayoutParams(barParams);
+        progressBar.setIndeterminate(true);
+        progressCount = new TextView(requireContext());
+        progressCount.setTextSize(14);
+        LinearLayout.LayoutParams countParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        countParams.topMargin = ResUtil.dp2px(8);
+        progressCount.setLayoutParams(countParams);
+        layout.addView(progressItem);
+        layout.addView(progressBar);
+        layout.addView(progressCount);
+        progressDialog = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.config_checking_title)
+                .setView(layout)
+                .setNegativeButton(R.string.config_check_cancel, (dialog, which) -> checkCancelled = true)
+                .setCancelable(false)
+                .create();
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null && progressDialog.isShowing()) progressDialog.dismiss();
+        progressDialog = null;
     }
 
     private void setStatus(ConfigManager.Sub sub, SourceChecker.Result result) {
