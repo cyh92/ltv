@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.AdapterConfigSubBinding;
 import com.fongmi.android.tv.utils.ConfigManager;
-import com.google.android.material.color.MaterialColors;
+import com.fongmi.android.tv.utils.SourceChecker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
@@ -36,11 +36,11 @@ public class ConfigSubAdapter extends RecyclerView.Adapter<ConfigSubAdapter.View
     /** 检测结果（按源 id 存，refresh 换数据也不丢）。 */
     private static class Status {
         final String text;
-        final boolean ok;
+        final int grade;
 
-        Status(String text, boolean ok) {
+        Status(String text, int grade) {
             this.text = text;
-            this.ok = ok;
+            this.grade = grade;
         }
     }
 
@@ -48,8 +48,8 @@ public class ConfigSubAdapter extends RecyclerView.Adapter<ConfigSubAdapter.View
         this.listener = listener;
     }
 
-    public void setStatus(String subId, String text, boolean ok) {
-        statuses.put(subId, new Status(text, ok));
+    public void setStatus(String subId, String text, int grade) {
+        statuses.put(subId, new Status(text, grade));
         notifyDataSetChanged();
     }
 
@@ -83,7 +83,7 @@ public class ConfigSubAdapter extends RecyclerView.Adapter<ConfigSubAdapter.View
         } else {
             holder.binding.status.setVisibility(View.VISIBLE);
             holder.binding.status.setText(status.text);
-            holder.binding.status.setTextColor(MaterialColors.getColor(holder.itemView, status.ok ? androidx.appcompat.R.attr.colorPrimary : androidx.appcompat.R.attr.colorError));
+            holder.binding.status.setTextColor(SourceChecker.gradeColor(status.grade));
         }
         holder.binding.toggle.setOnCheckedChangeListener(null);
         holder.binding.toggle.setChecked(item.enabled);
