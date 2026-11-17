@@ -282,10 +282,11 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     }
 
     private int getScale() {
-        return mHistory != null && mHistory.getScale() != -1 ? Math.clamp(mHistory.getScale(), PlayerSetting.MIN_SCALE, PlayerSetting.MAX_SCALE) : PlayerSetting.getScale();
+        return PlayerSetting.getScale();
     }
 
     private void setScale(int scale) {
+        PlayerSetting.putScale(scale);
         mVod.setScale(scale);
         mBinding.player.setResizeMode(PlayerSetting.getScaleMode(scale));
         setPlayerAspectRatio(scale);
@@ -1670,6 +1671,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     @Override
     protected void onPrepare() {
         setPlaybackMode();
+        player().setSpeed(PlayerSetting.getSpeed());
         checkControl();
     }
 
@@ -1951,7 +1953,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
 
     @Override
     public void onScaleChanged() {
-        setScale(getScale());
+        setScale(PlayerSetting.getScale());
     }
 
     @Override
