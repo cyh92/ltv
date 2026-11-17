@@ -100,6 +100,10 @@
     <string name="config_import_live_online">Import live online source</string>
     <string name="config_check_all">Check all sources</string>
     <string name="config_checking">Checking %1$d/%2$d</string>
+    <string name="config_checking_title">Checking</string>
+    <string name="config_check_progress">%1$d/%2$d · %3$d/%4$d interfaces</string>
+    <string name="config_check_progress_sub">%1$d/%2$d interfaces</string>
+    <string name="config_check_cancel">Cancel</string>
     <string name="config_check_done">Check done: %1$d good, %2$d slow/partial, %3$d failed</string>
     <string name="config_check_ok">Valid</string>
     <string name="config_check_ok_sites">Valid · %1$d sites</string>
