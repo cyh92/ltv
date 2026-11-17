@@ -344,7 +344,7 @@
 
     <!-- Player -->
     <string name="player">播放核心</string>
-    <string name="player_engine">播放引擎</string>
+    <string name="player_engine">播放内核</string>
     <string name="player_debug">调试</string>
     <string name="player_render">视频输出</string>
     <string name="player_libass">字幕特效</string>
@@ -357,7 +357,7 @@
     <string name="player_adblock">智能去广</string>
     <string name="player_tunnel">隧道模式</string>
     <string name="player_buffer">缓冲时间</string>
-    <string name="player_decode_setting">解码设置</string>
+    <string name="player_decode_setting">解码方式</string>
     <string name="player_preload_setting">预载设置</string>
     <string name="player_preload">预载</string>
     <string name="player_preload_next">预载下集</string>
@@ -483,6 +483,8 @@
         <item>原始</item>
         <item>填充</item>
         <item>裁剪</item>
+        <item>16:9</item>
+        <item>4:3</item>
     </string-array>
 
     <string-array name="audio_effect_stability_levels">
@@ -525,7 +527,7 @@
     <string name="subtitle_offset_reset">重置字幕时间</string>
     <string name="subtitle_offset_limit">字幕偏移须在正负 300 秒内。</string>
 
-    <string name="decoder_setting">解码设置</string>
+    <string name="decoder_setting">解码方式</string>
     <string name="decoder_action">解码</string>
     <string name="decoder_tab_video">视频</string>
     <string name="decoder_tab_audio">音频</string>
@@ -538,6 +540,24 @@
     <string name="decoder_mode_ffmpeg">软件</string>
     <string name="decoder_mode_ffmpeg_detail">使用 FFmpeg 软件解码</string>
     <string name="decoder_mode_unavailable">当前播放引擎没有可切换的解码模式。</string>
+
+    <string name="player_kernel_current">已安装（插件中心）· 当前：%1$s</string>
+    <string name="player_decode_hint">自动（硬解优先，失败自动回退）· 切换后下次播放生效</string>
+    <string name="player_decode_advanced">高级解码设置</string>
+    <string name="decoder_mode_hw">硬解</string>
+    <string name="player_display_setting">屏显设置</string>
+    <string name="player_buttons_setting">播放器按钮</string>
+    <string name="player_buttons_visible">显示 %1$d/%2$d</string>
+    <string name="player_buttons_reset">重置</string>
+    <string name="player_long_press_speed">长按倍速</string>
+    <string name="player_scale_title">缩放比例</string>
+    <string name="display_item_title">标题</string>
+    <string name="display_item_resolution">分辨率</string>
+    <string name="display_item_time">时间</string>
+    <string name="display_item_progress">进度</string>
+    <string name="display_item_speed">网速</string>
+    <string name="display_item_mini">迷你</string>
+    <string name="display_item_params">播放参数</string>
 
     <string name="dialog_action_search_subtitles">搜索字幕</string>
     <string name="dialog_action_load_subtitles">加载字幕</string>
