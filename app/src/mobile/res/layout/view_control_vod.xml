@@ -56,6 +56,17 @@
                 tools:text="第1集"
                 tools:visibility="visible" />
 
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/resolution"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textColor="@color/white_80"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="1080p"
+                tools:visibility="visible" />
+
         </androidx.appcompat.widget.LinearLayoutCompat>
 
         <androidx.appcompat.widget.LinearLayoutCompat
