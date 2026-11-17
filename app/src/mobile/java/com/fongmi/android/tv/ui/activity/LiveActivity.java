@@ -885,6 +885,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     @Override
     protected void onPrepare() {
         setPlaybackMode();
+        player().setSpeed(PlayerSetting.getSpeed());
         checkControl();
     }
 
