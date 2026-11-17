@@ -18,6 +18,7 @@ import androidx.media3.common.C;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.ui.PlayerSeekView;
+import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
@@ -52,6 +53,7 @@ import com.fongmi.android.tv.playback.live.LivePlaybackController;
 import com.fongmi.android.tv.playback.live.LivePlaybackHost;
 import com.fongmi.android.tv.player.extractor.Source;
 import com.fongmi.android.tv.service.PlaybackService;
+import com.fongmi.android.tv.setting.DisplaySetting;
 import com.fongmi.android.tv.setting.LiveSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.ui.adapter.ChannelAdapter;
@@ -236,6 +238,9 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     private void setScale(int scale) {
         LiveSetting.putScale(scale);
         mBinding.player.setResizeMode(PlayerSetting.getScaleMode(scale));
+        float ratio = PlayerSetting.getAspectRatio(scale);
+        AspectRatioFrameLayout frame = mBinding.player.findViewById(androidx.media3.ui.R.id.exo_content_frame);
+        if (frame != null) frame.setAspectRatio(ratio);
         mBinding.control.action.scale.setText(ResUtil.getStringArray(R.array.select_scale)[scale]);
     }
 
@@ -554,7 +559,8 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     }
 
     private void setTraffic() {
-        Traffic.setSpeed(mBinding.progress.traffic);
+        if (DisplaySetting.isSpeed()) Traffic.setSpeed(mBinding.progress.traffic);
+        else mBinding.progress.traffic.setVisibility(View.GONE);
         App.post(mR2, 1000);
     }
 
