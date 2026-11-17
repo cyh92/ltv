@@ -100,6 +100,10 @@
     <string name="config_import_live_online">直播在线源导入</string>
     <string name="config_check_all">检测全部源</string>
     <string name="config_checking">检测中 %1$d/%2$d</string>
+    <string name="config_checking_title">正在检测</string>
+    <string name="config_check_progress">%1$d/%2$d · 第 %3$d/%4$d 个接口</string>
+    <string name="config_check_progress_sub">第 %1$d/%2$d 个接口</string>
+    <string name="config_check_cancel">取消</string>
     <string name="config_check_done">检测完成：优质 %1$d，偏慢 %2$d，失效 %3$d</string>
     <string name="config_check_ok">有效</string>
     <string name="config_check_ok_sites">有效 · %1$d 个站</string>
