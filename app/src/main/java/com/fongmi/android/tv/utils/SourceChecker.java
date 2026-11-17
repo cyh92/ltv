@@ -123,9 +123,23 @@ public class SourceChecker {
         }
     }
 
+    /** 文件夹检测的逐项进度：当前脚本文件名、已完成数、总数。 */
+    public interface ProgressListener {
+        void onItem(String itemName, int done, int total);
+
+        /** 点了取消就返回 true，文件夹检测会提前停。 */
+        default boolean isCancelled() {
+            return false;
+        }
+    }
+
     public static Result check(ConfigManager.Sub sub) {
+        return check(sub, null);
+    }
+
+    public static Result check(ConfigManager.Sub sub, ProgressListener listener) {
         try {
-            if (sub.isFolder()) return checkFolder(sub);
+            if (sub.isFolder()) return checkFolder(sub, listener);
             if (sub.isFile()) return gradeScript(new File(sub.link), new ConcurrentHashMap<>());
             if (sub.isJson()) {
                 if (!new File(sub.link).exists()) return Result.red(R.string.config_reason_no_file);
@@ -156,7 +170,7 @@ public class SourceChecker {
     }
 
     /** 文件夹：每个脚本单独探站；全好变绿，部分坏变黄，全坏变红。 */
-    private static Result checkFolder(ConfigManager.Sub sub) {
+    private static Result checkFolder(ConfigManager.Sub sub, ProgressListener listener) {
         File dir = new File(sub.link);
         if (!dir.exists() || !dir.isDirectory()) return Result.red(R.string.config_reason_no_file);
         File[] children = dir.listFiles();
@@ -175,6 +189,10 @@ public class SourceChecker {
         int good = 0;
         int green = 0;
         for (int i = 0; i < scripts.size(); i++) {
+            if (listener != null && listener.isCancelled()) {
+                pool.shutdownNow();
+                return Result.red(R.string.config_reason_open_fail);
+            }
             Result one;
             try {
                 one = futures.get(i).get();
@@ -184,6 +202,7 @@ public class SourceChecker {
             siteGrades.put(scriptKey(scripts.get(i)), one.grade);
             if (one.grade != GRADE_RED) good++;
             if (one.grade == GRADE_GREEN) green++;
+            if (listener != null) listener.onItem(scripts.get(i).getName(), i + 1, scripts.size());
         }
         pool.shutdownNow();
         int red = scripts.size() - good;
