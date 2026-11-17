@@ -328,6 +328,14 @@
     <string name="module_removing">Removing…</string>
     <string name="module_confirm_remove">Confirm removal in the system dialog</string>
     <string name="module_removed">Removed</string>
+    <string name="module_installed_count">%1$d plugins installed</string>
+    <string name="module_hint">Tap a plugin card for details. Turn on to install, off to uninstall.</string>
+    <string name="module_remove_confirm">Turning off will uninstall %1$s. Sources that need it will stop working. Continue?</string>
+    <string name="module_desc_mpv">Full MPV playback core: upscaling, screenshots, more protocols. Used when the player core is set to MPV.</string>
+    <string name="module_desc_python">Local Python spider engine. Runs .py sources.</string>
+    <string name="module_desc_quickjs">JavaScript spider engine. Runs .js sources.</string>
+    <string name="module_desc_nodejs">Node.js spider engine. Used when a .js source fails on QuickJS.</string>
+    <string name="module_desc_thunder">Thunder engine for Thunder-protocol downloads and playback.</string>
 
     <!-- Backup & Restore -->
     <string name="restore_select">Select backup</string>
