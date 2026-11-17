@@ -47,6 +47,18 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <ProgressBar
+            android:id="@+id/miniProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_gravity="bottom"
+            android:max="1000"
+            android:progress="0"
+            android:progressBackgroundTint="@color/white_20"
+            android:progressTint="?attr/colorPrimary"
+            android:visibility="gone" />
+
     </FrameLayout>
 
     <View
