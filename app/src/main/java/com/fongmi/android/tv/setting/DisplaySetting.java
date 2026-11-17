@@ -1,6 +1,13 @@
 package com.fongmi.android.tv.setting;
 
+import android.content.Context;
+import android.text.TextUtils;
+
+import com.fongmi.android.tv.R;
 import com.github.catvod.utils.Prefers;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 屏显设置（播放器里显示哪些东西）。
@@ -62,5 +69,18 @@ public class DisplaySetting {
 
     public static void putParams(boolean visible) {
         PlayerSetting.putDebug(visible);
+    }
+
+    /** 已开启的屏显项，用“ / ”连起来（设置页右侧汇总）。顺序与屏显弹窗一致。 */
+    public static String getSummaryText(Context context) {
+        List<String> items = new ArrayList<>();
+        if (isTitle()) items.add(context.getString(R.string.display_item_title));
+        if (isResolution()) items.add(context.getString(R.string.display_item_resolution));
+        if (isTime()) items.add(context.getString(R.string.display_item_time));
+        if (isProgress()) items.add(context.getString(R.string.display_item_progress));
+        if (isSpeed()) items.add(context.getString(R.string.display_item_speed));
+        if (isMini()) items.add(context.getString(R.string.display_item_mini));
+        if (isParams()) items.add(context.getString(R.string.display_item_params));
+        return TextUtils.join(" / ", items);
     }
 }
