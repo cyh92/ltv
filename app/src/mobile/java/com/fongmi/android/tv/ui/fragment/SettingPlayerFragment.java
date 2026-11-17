@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.media3.common.C;
+import androidx.media3.common.DecoderMode;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -16,15 +18,21 @@ import com.fongmi.android.tv.databinding.FragmentSettingPlayerBinding;
 import com.fongmi.android.tv.impl.BufferListener;
 import com.fongmi.android.tv.impl.UaListener;
 import com.fongmi.android.tv.player.mpv.MpvUtil;
+import com.fongmi.android.tv.setting.DecodeSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.Setting;
+import com.fongmi.android.tv.setting.SpeedSetting;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.BufferDialog;
+import com.fongmi.android.tv.ui.dialog.DisplaySettingDialog;
 import com.fongmi.android.tv.ui.dialog.MpvConfDialog;
+import com.fongmi.android.tv.ui.dialog.PlayerButtonsEditDialog;
+import com.fongmi.android.tv.ui.dialog.ScaleDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.github.catvod.utils.RuntimeModule;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class SettingPlayerFragment extends BaseFragment implements UaListener, BufferListener {
@@ -62,19 +70,38 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
     protected void initView() {
         if (embedded) mBinding.toolbar.setVisibility(View.GONE);
         setVisible();
-        setPlaybackModeText();
+        render = ResUtil.getStringArray(R.array.select_render);
+        mBinding.renderText.setText(render[PlayerSetting.getRender()]);
         mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));
         mBinding.libassText.setText(Setting.getSwitch(PlayerSetting.isLibass()));
         mBinding.bufferText.setText(String.valueOf(PlayerSetting.getBuffer()));
         setMpvOptions();
-                    mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
-                mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
+        mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
+        mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
+        refreshEngineCard();
+        refreshDecodeCard();
+        refreshLongPressText();
+        refreshScaleText();
     }
 
     @Override
     protected void initEvent() {
-        mBinding.engine.setOnClickListener(this::setEngine);
-        mBinding.decode.setOnClickListener(this::onDecode);
+        mBinding.engineGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) return;
+            if (checkedId == R.id.engineExo) selectEngine(PlayerSetting.ENGINE_EXO);
+            else if (checkedId == R.id.engineMpv) selectEngine(PlayerSetting.ENGINE_MPV);
+        });
+        mBinding.decodeGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) return;
+            if (checkedId == R.id.decodeAuto) selectDecodeMode(DecoderMode.AUTO);
+            else if (checkedId == R.id.decodeHardware) selectDecodeMode(DecoderMode.HARDWARE);
+            else if (checkedId == R.id.decodeSoftware) selectDecodeMode(DecoderMode.SOFTWARE);
+        });
+        mBinding.decodeAdvanced.setOnClickListener(this::onDecode);
+        mBinding.displaySetting.setOnClickListener(v -> DisplaySettingDialog.create().show(requireActivity()));
+        mBinding.playerButtons.setOnClickListener(v -> PlayerButtonsEditDialog.create().show(requireActivity()));
+        mBinding.longPressSpeed.setOnClickListener(this::onLongPressSpeed);
+        mBinding.scale.setOnClickListener(v -> ScaleDialog.create().onChanged(this::refreshScaleText).show(requireActivity()));
         mBinding.adblock.setOnClickListener(this::setAdblock);
         mBinding.libass.setOnClickListener(this::setLibass);
         mBinding.mpvConf.setOnClickListener(this::onMpvConf);
@@ -87,7 +114,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.buffer.setOnClickListener(this::onBuffer);
         mBinding.preload.setOnClickListener(this::onPreload);
         mBinding.ua.setOnClickListener(this::onUa);
-                mBinding.incognito.setOnClickListener(this::setIncognito);
+        mBinding.incognito.setOnClickListener(this::setIncognito);
     }
 
     private void setVisible() {
@@ -104,12 +131,59 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.buffer.setVisibility(exo ? View.VISIBLE : View.GONE);
     }
 
-    private void setEngine(View view) {
-        int index = (PlayerSetting.getEngine() + 1) % PlayerSetting.getEngineCount();
+    private void refreshEngineCard() {
+        engine = ResUtil.getStringArray(R.array.select_engine);
+        boolean mpvInstalled = RuntimeModule.MPV.isInstalled();
+        mBinding.engineMpv.setVisibility(mpvInstalled ? View.VISIBLE : View.GONE);
+        mBinding.engineGroup.check(PlayerSetting.isExo() ? R.id.engineExo : R.id.engineMpv);
+        mBinding.engineSubtitle.setText(getString(R.string.player_kernel_current, PlayerSetting.isExo() ? "ExoPlayer" : "MPV"));
+    }
+
+    private void selectEngine(int index) {
+        if (index == PlayerSetting.getEngine()) return;
         if (index == PlayerSetting.ENGINE_MPV && !MpvUtil.checkInstalled()) return;
         PlayerSetting.putEngine(index);
-        setPlaybackModeText();
+        refreshEngineCard();
+        refreshDecodeCard();
         setVisible();
+    }
+
+    private void refreshDecodeCard() {
+        engine = ResUtil.getStringArray(R.array.select_engine);
+        mBinding.decodeTitle.setText(getString(R.string.player_decode_setting) + "（" + engine[PlayerSetting.getEngine()] + "）");
+        mBinding.decodeSoftware.setVisibility(PlayerSetting.isMpv() ? View.GONE : View.VISIBLE);
+        DecoderMode mode = DecodeSetting.getDecoderMode(PlayerSetting.getEngine(), C.TRACK_TYPE_VIDEO);
+        int checkedId = mode == DecoderMode.AUTO ? R.id.decodeAuto : mode == DecoderMode.HARDWARE ? R.id.decodeHardware : mode == DecoderMode.SOFTWARE ? R.id.decodeSoftware : 0;
+        if (checkedId != 0) mBinding.decodeGroup.check(checkedId);
+    }
+
+    private void selectDecodeMode(DecoderMode mode) {
+        if (mode == DecodeSetting.getDecoderMode(PlayerSetting.getEngine(), C.TRACK_TYPE_VIDEO)) return;
+        DecodeSetting.putDecoderMode(PlayerSetting.getEngine(), C.TRACK_TYPE_VIDEO, mode);
+        refreshDecodeCard();
+    }
+
+    private void refreshLongPressText() {
+        mBinding.longPressSpeedText.setText(SpeedSetting.format(SpeedSetting.getLongPress()));
+    }
+
+    private void refreshScaleText() {
+        mBinding.scaleText.setText(ResUtil.getStringArray(R.array.select_scale)[PlayerSetting.getScale()]);
+    }
+
+    private void onLongPressSpeed(View view) {
+        float[] speeds = {2.0f, 2.5f, 3.0f, 4.0f, 5.0f};
+        String[] items = new String[speeds.length];
+        int checked = 0;
+        for (int i = 0; i < speeds.length; i++) {
+            items[i] = SpeedSetting.format(speeds[i]);
+            if (speeds[i] == SpeedSetting.getLongPress()) checked = i;
+        }
+        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.player_long_press_speed).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(items, checked, (dialog, which) -> {
+            SpeedSetting.putLongPress(speeds[which]);
+            refreshLongPressText();
+            dialog.dismiss();
+        }).show();
     }
 
     private void onMpvConf(View view) {
@@ -167,13 +241,6 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
     private void setRender(View view) {
         int index = (PlayerSetting.getRender() + 1) % render.length;
         PlayerSetting.putRender(index);
-        setPlaybackModeText();
-    }
-
-    private void setPlaybackModeText() {
-        engine = ResUtil.getStringArray(R.array.select_engine);
-        render = ResUtil.getStringArray(R.array.select_render);
-        mBinding.engineText.setText(engine[PlayerSetting.getEngine()]);
         mBinding.renderText.setText(render[PlayerSetting.getRender()]);
     }
 
@@ -197,13 +264,13 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
 
     private void setAdblock(View view) {
         Setting.putAdblock(!Setting.isAdblock());
-        mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));    
+        mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));
     }
-        
+
     private void setIncognito(View view) {
-                    Setting.putIncognito(!Setting.isIncognito());
-                    mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
-        }
+        Setting.putIncognito(!Setting.isIncognito());
+        mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
+    }
 
     private void setLibass(View view) {
         PlayerSetting.putLibass(!PlayerSetting.isLibass());
