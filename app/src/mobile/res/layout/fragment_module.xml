@@ -31,62 +31,89 @@
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:background="@drawable/shape_item"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:background="@drawable/shape_card"
+                android:orientation="vertical">
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/installedCount"
-                    android:layout_width="wrap_content"
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="18sp" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/moduleHint"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/module_hint"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="13sp" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/installedCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="18sp" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/moduleHint"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/module_hint"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <include
+                    android:id="@+id/mpv"
+                    layout="@layout/item_module"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <include
+                    android:id="@+id/python"
+                    layout="@layout/item_module"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <include
+                    android:id="@+id/nodejs"
+                    layout="@layout/item_module"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <include
+                    android:id="@+id/quickjs"
+                    layout="@layout/item_module"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <include
+                    android:id="@+id/thunder"
+                    layout="@layout/item_module"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
-
-            <include
-                android:id="@+id/mpv"
-                layout="@layout/item_module"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <include
-                android:id="@+id/python"
-                layout="@layout/item_module"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" />
-
-            <include
-                android:id="@+id/nodejs"
-                layout="@layout/item_module"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" />
-
-            <include
-                android:id="@+id/quickjs"
-                layout="@layout/item_module"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" />
-
-            <include
-                android:id="@+id/thunder"
-                layout="@layout/item_module"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.core.widget.NestedScrollView>
