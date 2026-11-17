@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.text.format.DateFormat;
 import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -358,6 +359,52 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     }
 
     /**
+     * 常驻屏显：直接叠在画面上的信息层，不跟随控制栏一起隐藏。
+     * 标题 / 分辨率在左上，时钟在右上，当前 / 总时长在左下，网速在右下。
+     */
+    private void updateOsd() {
+        boolean hasVideo = service() != null && player() != null && !player().isEmpty();
+        boolean title = hasVideo && DisplaySetting.isTitle() && !TextUtils.isEmpty(mBinding.osd.osdTitle.getText());
+        boolean resolution = hasVideo && DisplaySetting.isResolution() && !TextUtils.isEmpty(mBinding.osd.osdResolution.getText());
+        mBinding.osd.osdTitle.setVisibility(title ? View.VISIBLE : View.GONE);
+        mBinding.osd.osdResolution.setVisibility(resolution ? View.VISIBLE : View.GONE);
+        mBinding.osd.osdTitleBlock.setVisibility(title || resolution ? View.VISIBLE : View.GONE);
+        mBinding.osd.osdClock.setVisibility(hasVideo && DisplaySetting.isTime() ? View.VISIBLE : View.GONE);
+        mBinding.osd.osdTime.setVisibility(hasVideo && DisplaySetting.isTime() ? View.VISIBLE : View.GONE);
+        mBinding.osd.osdSpeed.setVisibility(hasVideo && DisplaySetting.isSpeed() ? View.VISIBLE : View.GONE);
+        boolean any = title || resolution || (hasVideo && (DisplaySetting.isTime() || DisplaySetting.isSpeed()));
+        mBinding.osd.getRoot().setVisibility(any ? View.VISIBLE : View.GONE);
+    }
+
+    private void updateOsdTitle() {
+        CharSequence title = mBinding.control.title.getText();
+        CharSequence subtitle = mBinding.control.subtitle.getText();
+        mBinding.osd.osdTitle.setText(TextUtils.isEmpty(subtitle) ? String.valueOf(title) : title + " " + subtitle);
+    }
+
+    private void updateOsdResolution() {
+        int width = 0, height = 0;
+        if (service() != null && player() != null) {
+            width = player().getVideoWidth();
+            height = player().getVideoHeight();
+        }
+        mBinding.osd.osdResolution.setText(width > 0 && height > 0 ? width + " x " + height : "");
+    }
+
+    private void updateOsdTime() {
+        if (service() == null || player() == null || player().isEmpty()) return;
+        mBinding.osd.osdClock.setText(DateFormat.format("HH:mm:ss", System.currentTimeMillis()));
+        long position = getPlayerPosition(), duration = getPlayerDuration();
+        if (position >= 0 && duration > 0) mBinding.osd.osdTime.setText(formatOsdTime(position) + " / " + formatOsdTime(duration));
+    }
+
+    private String formatOsdTime(long ms) {
+        long totalSeconds = ms / 1000;
+        long hours = totalSeconds / 3600, minutes = totalSeconds % 3600 / 60, seconds = totalSeconds % 60;
+        return hours > 0 ? hours + ":" + String.format("%02d:%02d", minutes, seconds) : String.format("%02d:%02d", minutes, seconds);
+    }
+
+    /**
      * 迷你进度条：控制栏隐藏时显示在画面底部。
      */
     private void updateMiniProgressValue(long position, long duration) {
@@ -448,6 +495,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         checkDanmakuImg();
         setRecyclerView();
         setVideoView();
+        updateOsd();
         setViewModel();
         showProgress();
         setAnimator();
@@ -467,7 +515,6 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         mBinding.name.setOnLongClickListener(view -> onChange());
         mBinding.content.setOnLongClickListener(view -> onCopy());
         mBinding.control.back.setOnClickListener(view -> onBack());
-        mBinding.control.cast.setOnClickListener(view -> onCast());
         mBinding.control.info.setOnClickListener(view -> onInfo());
         mBinding.control.keep.setOnClickListener(view -> onKeep());
         mBinding.control.play.setOnClickListener(view -> checkPlay());
@@ -901,6 +948,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         mBinding.control.title.setSelected(true);
         mBinding.control.subtitle.setText(metadata.subtitle);
         mBinding.control.subtitle.setVisibility(TextUtils.isEmpty(metadata.subtitle) ? View.GONE : View.VISIBLE);
+        updateOsdTitle();
+        updateOsd();
     }
 
     @Override
@@ -1397,7 +1446,6 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         mBinding.control.right.lock.setVisibility(isFullscreen() ? View.VISIBLE : View.GONE);
         mBinding.control.action.parse.setVisibility(isUseParse() ? View.VISIBLE : View.GONE);
         mBinding.control.info.setVisibility(player().isEmpty() ? View.GONE : View.VISIBLE);
-        mBinding.control.cast.setVisibility(player().isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.center.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.bottom.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         updateFullscreenIcon();
@@ -1407,6 +1455,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         applyPlayerButtons();
         applySeekDisplay();
         updateResolutionBadge();
+        updateOsd();
         updateMiniProgressValue(getPlayerPosition(), getPlayerDuration());
         setR1Callback();
     }
@@ -1436,8 +1485,11 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     }
 
     private void setTraffic() {
-        if (DisplaySetting.isSpeed()) Traffic.setSpeed(mBinding.progress.traffic);
-        else mBinding.progress.traffic.setVisibility(View.GONE);
+        boolean hasVideo = service() != null && player() != null && !player().isEmpty();
+        if (hasVideo && DisplaySetting.isSpeed()) Traffic.setSpeed(mBinding.osd.osdSpeed);
+        else mBinding.osd.osdSpeed.setVisibility(View.GONE);
+        updateOsdTime();
+        updateOsd();
         App.post(mR2, 1000);
     }
 
@@ -1714,6 +1766,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         changeHeight(size);
         checkOrientation(size);
         updateResolutionBadge();
+        updateOsdResolution();
+        updateOsd();
     }
 
     @Override
