@@ -31,19 +31,29 @@ import java.util.Set;
  */
 public final class PlayerButtonsEditDialog {
 
+    private Runnable onChanged;
+
     public static PlayerButtonsEditDialog create() {
         return new PlayerButtonsEditDialog();
+    }
+
+    public PlayerButtonsEditDialog onChanged(Runnable onChanged) {
+        this.onChanged = onChanged;
+        return this;
     }
 
     public void show(FragmentActivity activity) {
         FragmentManager manager = activity.getSupportFragmentManager();
         if (manager.isStateSaved()) return;
         for (Fragment fragment : manager.getFragments()) if (fragment instanceof BottomSheet) return;
-        new BottomSheet().show(manager, null);
+        BottomSheet sheet = new BottomSheet();
+        sheet.onChanged = onChanged;
+        sheet.show(manager, null);
     }
 
     public static final class BottomSheet extends BaseBottomSheetDialog {
 
+        private Runnable onChanged;
         private DialogPlayerButtonsBinding binding;
         private Adapter adapter;
         private List<String> order = new ArrayList<>();
@@ -79,6 +89,7 @@ public final class PlayerButtonsEditDialog {
             binding.confirm.setOnClickListener(v -> {
                 PlayerButtonsSetting.putOrder(order);
                 PlayerButtonsSetting.putHidden(hidden);
+                if (onChanged != null) onChanged.run();
                 dismiss();
             });
         }
@@ -126,6 +137,10 @@ public final class PlayerButtonsEditDialog {
                 String id = order.get(position);
                 holder.binding.name.setText(nameRes(id));
                 holder.binding.eye.setImageResource(hidden.contains(id) ? R.drawable.ic_display_eye_off : R.drawable.ic_display_eye);
+                holder.binding.up.setEnabled(position > 0);
+                holder.binding.up.setAlpha(position > 0 ? 1f : 0.3f);
+                holder.binding.down.setEnabled(position < order.size() - 1);
+                holder.binding.down.setAlpha(position < order.size() - 1 ? 1f : 0.3f);
                 holder.binding.eye.setOnClickListener(v -> {
                     if (hidden.contains(id)) hidden.remove(id);
                     else hidden.add(id);
