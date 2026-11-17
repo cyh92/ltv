@@ -150,6 +150,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     private Runnable mR2;
     private Runnable mR3;
     private Runnable mR4;
+    private Runnable mR5;
     private History mHistory;
     private boolean fullscreen;
     private boolean webFullscreen;
@@ -364,15 +365,17 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
      */
     private void updateOsd() {
         boolean hasVideo = service() != null && player() != null && !player().isEmpty();
-        boolean title = hasVideo && DisplaySetting.isTitle() && !TextUtils.isEmpty(mBinding.osd.osdTitle.getText());
-        boolean resolution = hasVideo && DisplaySetting.isResolution() && !TextUtils.isEmpty(mBinding.osd.osdResolution.getText());
+        boolean controlsHidden = mBinding.control.getRoot().getVisibility() != View.VISIBLE;
+        boolean show = hasVideo && controlsHidden;
+        boolean title = show && DisplaySetting.isTitle() && !TextUtils.isEmpty(mBinding.osd.osdTitle.getText());
+        boolean resolution = show && DisplaySetting.isResolution() && !TextUtils.isEmpty(mBinding.osd.osdResolution.getText());
         mBinding.osd.osdTitle.setVisibility(title ? View.VISIBLE : View.GONE);
         mBinding.osd.osdResolution.setVisibility(resolution ? View.VISIBLE : View.GONE);
         mBinding.osd.osdTitleBlock.setVisibility(title || resolution ? View.VISIBLE : View.GONE);
-        mBinding.osd.osdClock.setVisibility(hasVideo && DisplaySetting.isTime() ? View.VISIBLE : View.GONE);
-        mBinding.osd.osdTime.setVisibility(hasVideo && DisplaySetting.isTime() ? View.VISIBLE : View.GONE);
-        mBinding.osd.osdSpeed.setVisibility(hasVideo && DisplaySetting.isSpeed() ? View.VISIBLE : View.GONE);
-        boolean any = title || resolution || (hasVideo && (DisplaySetting.isTime() || DisplaySetting.isSpeed()));
+        mBinding.osd.osdClock.setVisibility(show && DisplaySetting.isTime() ? View.VISIBLE : View.GONE);
+        mBinding.osd.osdTime.setVisibility(show && DisplaySetting.isTime() ? View.VISIBLE : View.GONE);
+        mBinding.osd.osdSpeed.setVisibility(show && DisplaySetting.isSpeed() ? View.VISIBLE : View.GONE);
+        boolean any = title || resolution || (show && (DisplaySetting.isTime() || DisplaySetting.isSpeed()));
         mBinding.osd.getRoot().setVisibility(any ? View.VISIBLE : View.GONE);
     }
 
@@ -491,6 +494,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         mR2 = this::setTraffic;
         mR3 = this::setOrient;
         mR4 = this::showEmpty;
+        mR5 = this::updateOsdTick;
+        App.post(mR5, 0);
         mPiP = new PiP();
         checkDanmakuImg();
         setRecyclerView();
@@ -1463,6 +1468,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     private void hideControl() {
         mBinding.control.getRoot().setVisibility(View.GONE);
         updateMiniProgressValue(getPlayerPosition(), getPlayerDuration());
+        updateOsd();
         App.removeCallbacks(mR1);
     }
 
@@ -1485,12 +1491,22 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     }
 
     private void setTraffic() {
+        if (DisplaySetting.isSpeed()) Traffic.setSpeed(mBinding.progress.traffic);
+        else mBinding.progress.traffic.setVisibility(View.GONE);
+        App.post(mR2, 1000);
+    }
+
+    /**
+     * 常驻屏显的心跳：每秒刷新网速、时钟、当前 / 总时长和可见性。
+     * 不能复用 setTraffic 的循环——hideProgress() 会在播放开始时停掉它。
+     */
+    private void updateOsdTick() {
         boolean hasVideo = service() != null && player() != null && !player().isEmpty();
         if (hasVideo && DisplaySetting.isSpeed()) Traffic.setSpeed(mBinding.osd.osdSpeed);
         else mBinding.osd.osdSpeed.setVisibility(View.GONE);
         updateOsdTime();
         updateOsd();
-        App.post(mR2, 1000);
+        App.post(mR5, 1000);
     }
 
     private void setOrient() {
@@ -2139,7 +2155,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         Timer.get().reset();
         if (isBindingOwner()) DanmakuApi.cancel();
         RefreshEvent.keep();
-        App.removeCallbacks(mR1, mR2, mR3, mR4);
+        App.removeCallbacks(mR1, mR2, mR3, mR4, mR5);
         super.onDestroy();
     }
 }
