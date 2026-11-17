@@ -14,7 +14,7 @@ public class PlayerSetting {
     public static final int RENDER_SURFACE = 0;
     public static final int RENDER_TEXTURE = 1;
     public static final int MIN_SCALE = 0;
-    public static final int MAX_SCALE = 2;
+    public static final int MAX_SCALE = 4;
     private static final int MIN_SIZE = 0;
     private static final int MAX_SIZE = 3;
     private static final int MIN_BUFFER = 1;
@@ -134,6 +134,13 @@ public class PlayerSetting {
 
     public static int getScaleMode(int index) {
         return index == 1 ? RESIZE_MODE_FILL : index == 2 ? RESIZE_MODE_ZOOM : RESIZE_MODE_FIT;
+    }
+
+    /**
+     * 固定宽高比：3 是 16:9，4 是 4:3，其余不固定（返回 0）。
+     */
+    public static float getAspectRatio(int index) {
+        return index == 3 ? 16f / 9f : index == 4 ? 4f / 3f : 0f;
     }
 
     public static int getBackground() {
