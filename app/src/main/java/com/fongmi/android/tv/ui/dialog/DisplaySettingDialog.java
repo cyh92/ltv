@@ -22,19 +22,29 @@ import com.fongmi.android.tv.utils.ResUtil;
  */
 public final class DisplaySettingDialog {
 
+    private Runnable onChanged;
+
     public static DisplaySettingDialog create() {
         return new DisplaySettingDialog();
+    }
+
+    public DisplaySettingDialog onChanged(Runnable onChanged) {
+        this.onChanged = onChanged;
+        return this;
     }
 
     public void show(FragmentActivity activity) {
         FragmentManager manager = activity.getSupportFragmentManager();
         if (manager.isStateSaved()) return;
         for (Fragment fragment : manager.getFragments()) if (fragment instanceof BottomSheet) return;
-        new BottomSheet().show(manager, null);
+        BottomSheet sheet = new BottomSheet();
+        sheet.onChanged = onChanged;
+        sheet.show(manager, null);
     }
 
     public static final class BottomSheet extends BaseBottomSheetDialog {
 
+        private Runnable onChanged;
         private DialogDisplaySettingBinding binding;
 
         @Override
@@ -93,6 +103,7 @@ public final class DisplaySettingDialog {
             setEye(binding.eyeSpeed, DisplaySetting.isSpeed());
             setEye(binding.eyeMini, DisplaySetting.isMini());
             setEye(binding.eyeParams, DisplaySetting.isParams());
+            if (onChanged != null) onChanged.run();
         }
 
         private void setEye(ImageView eye, boolean on) {
