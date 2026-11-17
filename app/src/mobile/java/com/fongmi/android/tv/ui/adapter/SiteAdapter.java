@@ -1,6 +1,8 @@
 package com.fongmi.android.tv.ui.adapter;
 
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -9,7 +11,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.AdapterSiteBinding;
+import com.fongmi.android.tv.utils.CheckStore;
+import com.fongmi.android.tv.utils.ConfigManager;
 import com.fongmi.android.tv.utils.SiteOrder;
+import com.fongmi.android.tv.utils.SourceChecker;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -112,6 +117,14 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         holder.binding.text.setSelected(item.isSelected());
         holder.binding.edit.setSelected(item.isSelected());
         holder.binding.close.setSelected(item.isSelected());
+        // 检测色点：绿=优质，黄=慢或部分失效，红=失效；没测过的不显示。
+        int grade = CheckStore.getSiteGrade(item.getKey());
+        if (grade == SourceChecker.GRADE_NONE) {
+            String activeId = ConfigManager.getActiveId();
+            if (activeId != null && !activeId.isEmpty()) grade = CheckStore.getSiteGrade(activeId + "|" + item.getKey());
+        }
+        holder.binding.dot.setVisibility(grade == SourceChecker.GRADE_NONE ? View.GONE : View.VISIBLE);
+        if (grade != SourceChecker.GRADE_NONE) holder.binding.dot.setBackgroundTintList(ColorStateList.valueOf(SourceChecker.gradeColor(grade)));
         holder.binding.getRoot().setOnClickListener(v -> listener.onTextClick(item));
         holder.binding.edit.setOnClickListener(v -> listener.onEditClick(item));
         holder.binding.close.setOnClickListener(v -> listener.onDeleteClick(item));
