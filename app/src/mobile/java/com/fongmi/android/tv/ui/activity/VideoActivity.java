@@ -1185,7 +1185,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     }
 
     private void onSetting() {
-        ControlDialog.create().parent(mBinding).parse(isUseParse()).player(player()).show(this);
+        ControlDialog.create().parent(mBinding).player(player()).show(this);
     }
 
     private void onLock() {
@@ -1947,6 +1947,11 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     @Override
     public void onParse(Parse item) {
         mVod.selectParse(item);
+    }
+
+    @Override
+    public void onScaleChanged() {
+        setScale(getScale());
     }
 
     @Override
