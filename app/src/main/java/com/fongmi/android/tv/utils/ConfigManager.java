@@ -182,14 +182,8 @@ public class ConfigManager {
         return active == null ? null : active.name;
     }
 
-    /** 打开一个点播订阅：在线接口/本地包会加载成当前配置，文件夹/单文件会切成当前接口。 */
+    /** 打开一个点播订阅：在线接口/本地包会加载成当前配置，文件夹/单文件会切成当前接口；开关互不影响，多个接口可以同时开着。 */
     public static void activateVod(Sub sub, Callback callback) {
-        if (sub.isInterface()) {
-            for (Sub item : getSubs(TAB_VOD)) if (item.isInterface() && !item.id.equals(sub.id) && item.enabled) {
-                item.enabled = false;
-                update(item);
-            }
-        }
         sub.enabled = true;
         update(sub);
         setActiveId(sub.id);
@@ -197,31 +191,42 @@ public class ConfigManager {
         else reloadVod(callback);
     }
 
-    /** 关掉一个点播订阅：是在用的接口就回到只有本地源。 */
+    /** 关掉一个点播订阅：是在用的，就切到另一个还开着的接口；没有就回到只有本地源。 */
     public static void deactivateVod(Sub sub, Callback callback) {
         sub.enabled = false;
         update(sub);
         boolean wasActive = sub.id.equals(getActiveId());
-        if (wasActive) setActiveId("");
+        if (wasActive) {
+            for (Sub item : getSubs(TAB_VOD)) {
+                if (item.isInterface() && item.enabled) {
+                    setActiveId(item.id);
+                    VodConfig.load(Config.find(item.getConfigUrl(), 0), callback);
+                    return;
+                }
+            }
+            setActiveId("");
+        }
         if (sub.isInterface() && wasActive) VodConfig.load(Config.vod(), callback);
         else reloadVod(callback);
     }
 
-    /** 打开一个直播源（一次只用一个）。 */
+    /** 打开一个直播源；开关互不影响，多个可以同时开着（最后打开的是当前用的）。 */
     public static void activateLive(Sub sub, Callback callback) {
-        for (Sub item : getSubs(TAB_LIVE)) if (!item.id.equals(sub.id) && item.enabled) {
-            item.enabled = false;
-            update(item);
-        }
         sub.enabled = true;
         update(sub);
         LiveConfig.load(Config.find(sub.getConfigUrl(), 1), callback);
     }
 
-    /** 关掉在用的直播源，回到默认直播配置。 */
+    /** 关掉一个直播源：还有开着的就切过去，没有就回到默认直播配置。 */
     public static void deactivateLive(Sub sub, Callback callback) {
         sub.enabled = false;
         update(sub);
+        for (Sub item : getSubs(TAB_LIVE)) {
+            if (item.enabled) {
+                LiveConfig.load(Config.find(item.getConfigUrl(), 1), callback);
+                return;
+            }
+        }
         LiveConfig.load(Config.live(), callback);
     }
 
