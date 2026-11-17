@@ -85,6 +85,7 @@ import com.fongmi.android.tv.setting.DanmakuSetting;
 import com.fongmi.android.tv.setting.DisplaySetting;
 import com.fongmi.android.tv.setting.PlayerButtonsSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
+import com.fongmi.android.tv.setting.SpeedSetting;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
 import com.fongmi.android.tv.ui.adapter.FlagAdapter;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
@@ -297,6 +298,11 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         float ratio = PlayerSetting.getAspectRatio(scale);
         AspectRatioFrameLayout frame = mBinding.player.findViewById(androidx.media3.ui.R.id.exo_content_frame);
         if (frame != null) frame.setAspectRatio(ratio);
+    }
+
+    private void updateSpeedButton() {
+        float speed = service() == null || player() == null ? PlayerSetting.getSpeed() : player().getSpeed();
+        mBinding.control.action.speed.setText(Math.abs(speed - SpeedSetting.NORMAL) < 0.001f ? getString(R.string.play_speed) : SpeedSetting.format(speed));
     }
 
     /**
@@ -1262,6 +1268,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
 
     private boolean onSpeedLong() {
         PlaybackAction.toggleSpeed(player(), mBinding.widget.message);
+        updateSpeedButton();
         setR1Callback();
         return true;
     }
@@ -1459,6 +1466,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         applyPlayerButtons();
+        updateSpeedButton();
         applySeekDisplay();
         updateResolutionBadge();
         updateOsd();
@@ -1507,6 +1515,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         else mBinding.osd.osdSpeed.setVisibility(View.GONE);
         updateOsdTime();
         updateOsd();
+        if (hasVideo && isVisible(mBinding.control.getRoot())) updateSpeedButton();
         App.post(mR5, 1000);
     }
 
@@ -1954,6 +1963,11 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     @Override
     public void onScaleChanged() {
         setScale(PlayerSetting.getScale());
+    }
+
+    @Override
+    public void onSpeedChanged() {
+        updateSpeedButton();
     }
 
     @Override
