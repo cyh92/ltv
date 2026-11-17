@@ -346,7 +346,7 @@
 
     <!-- Player -->
     <string name="player">Player</string>
-    <string name="player_engine">Engine</string>
+    <string name="player_engine">Player core</string>
     <string name="player_debug">Debug</string>
     <string name="player_render">Video output</string>
     <string name="player_libass">libass</string>
@@ -359,7 +359,7 @@
     <string name="player_adblock">Remove ads</string>
     <string name="player_tunnel">Tunnel mode</string>
     <string name="player_buffer">Buffer time</string>
-    <string name="player_decode_setting">Decode setting</string>
+    <string name="player_decode_setting">Decoder mode</string>
     <string name="player_preload_setting">Preload setting</string>
     <string name="player_preload">Preload</string>
     <string name="player_preload_next">Preload next episode</string>
@@ -500,6 +500,8 @@
         <item>Original</item>
         <item>Fill</item>
         <item>Zoom</item>
+        <item>16:9</item>
+        <item>4:3</item>
     </string-array>
 
     <string-array name="audio_effect_stability_levels">
@@ -542,7 +544,7 @@
     <string name="subtitle_offset_reset">Reset subtitle timing</string>
     <string name="subtitle_offset_limit">Subtitle delay must stay within ±300 seconds.</string>
 
-    <string name="decoder_setting">Decoder settings</string>
+    <string name="decoder_setting">Decoder mode</string>
     <string name="decoder_action">Decode</string>
     <string name="decoder_tab_video">Video</string>
     <string name="decoder_tab_audio">Audio</string>
@@ -555,6 +557,24 @@
     <string name="decoder_mode_ffmpeg">Software</string>
     <string name="decoder_mode_ffmpeg_detail">FFmpeg software decoding</string>
     <string name="decoder_mode_unavailable">This engine has no selectable decoder modes.</string>
+
+    <string name="player_kernel_current">Installed (Plugins) · Current: %1$s</string>
+    <string name="player_decode_hint">Auto (hardware first, falls back on failure) · Applies on next playback</string>
+    <string name="player_decode_advanced">Advanced decoder settings</string>
+    <string name="decoder_mode_hw">Hardware</string>
+    <string name="player_display_setting">On-screen display</string>
+    <string name="player_buttons_setting">Player buttons</string>
+    <string name="player_buttons_visible">%1$d/%2$d shown</string>
+    <string name="player_buttons_reset">Reset</string>
+    <string name="player_long_press_speed">Long-press speed</string>
+    <string name="player_scale_title">Aspect ratio</string>
+    <string name="display_item_title">Title</string>
+    <string name="display_item_resolution">Resolution</string>
+    <string name="display_item_time">Time</string>
+    <string name="display_item_progress">Progress</string>
+    <string name="display_item_speed">Network speed</string>
+    <string name="display_item_mini">Mini bar</string>
+    <string name="display_item_params">Playback params</string>
 
     <string name="dialog_action_search_subtitles">Search subtitles</string>
     <string name="dialog_action_load_subtitles">Load subtitles</string>
