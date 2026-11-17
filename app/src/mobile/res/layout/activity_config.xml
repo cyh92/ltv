@@ -31,16 +31,17 @@
             android:paddingRight="16dp"
             android:paddingBottom="8dp">
 
-            <com.google.android.material.textview.MaterialTextView
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/checkAll"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:minWidth="180dp"
                 android:text="@string/config_check_all"
-                android:textColor="?attr/colorPrimary"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                app:cornerRadius="20dp" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/importLocal"
