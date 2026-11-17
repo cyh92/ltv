@@ -509,6 +509,13 @@ public class PlayerManager implements ParseCallback {
     }
 
     public float setSpeed(float speed) {
+        float applied = applySpeed(speed);
+        PlayerSetting.putSpeed(applied);
+        return applied;
+    }
+
+    /** 只改当下播放速度，不存盘（长按临时加速、换内容重置走这里）。 */
+    private float applySpeed(float speed) {
         if (!player.isCommandAvailable(Player.COMMAND_SET_SPEED_AND_PITCH)) return getSpeed();
         player.setPlaybackParameters(player.getPlaybackParameters().withSpeed(SpeedSetting.clamp(speed)));
         return getSpeed();
@@ -517,7 +524,7 @@ public class PlayerManager implements ParseCallback {
     public boolean startSpeedPress(float speed) {
         if (!player.isCommandAvailable(Player.COMMAND_SET_SPEED_AND_PITCH)) return false;
         if (Float.isNaN(speedBeforePress)) speedBeforePress = getSpeed();
-        setSpeed(speed);
+        applySpeed(speed);
         return true;
     }
 
@@ -633,7 +640,7 @@ public class PlayerManager implements ParseCallback {
     }
 
     private void resetPlaybackSettings() {
-        setSpeed(SpeedSetting.NORMAL);
+        applySpeed(SpeedSetting.NORMAL);
         setDanmakuConfig(DanmakuSetting.getConfig());
     }
 
