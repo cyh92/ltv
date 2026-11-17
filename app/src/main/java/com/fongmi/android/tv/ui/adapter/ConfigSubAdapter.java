@@ -83,7 +83,7 @@ public class ConfigSubAdapter extends RecyclerView.Adapter<ConfigSubAdapter.View
         } else {
             holder.binding.status.setVisibility(View.VISIBLE);
             holder.binding.status.setText(status.text);
-            holder.binding.status.setTextColor(MaterialColors.getColor(holder.itemView, status.ok ? com.google.android.material.R.attr.colorPrimary : com.google.android.material.R.attr.colorError));
+            holder.binding.status.setTextColor(MaterialColors.getColor(holder.itemView, status.ok ? androidx.appcompat.R.attr.colorPrimary : androidx.appcompat.R.attr.colorError));
         }
         holder.binding.toggle.setOnCheckedChangeListener(null);
         holder.binding.toggle.setChecked(item.enabled);
