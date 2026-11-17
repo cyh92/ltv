@@ -326,6 +326,14 @@
     <string name="module_removing">移除中…</string>
     <string name="module_confirm_remove">请在系统画面确认移除</string>
     <string name="module_removed">已移除</string>
+    <string name="module_installed_count">已装 %1$d 个插件</string>
+    <string name="module_hint">点插件卡查看详情；打开安装，关闭卸载</string>
+    <string name="module_remove_confirm">关闭将卸载 %1$s，相关源将无法使用，确定吗？</string>
+    <string name="module_desc_mpv">全功能 MPV 播放内核：超分、截图、更多协议；播放器内核选 MPV 时用它播放。</string>
+    <string name="module_desc_python">本地 Python 爬虫源的执行引擎，.py 源靠它运行。</string>
+    <string name="module_desc_quickjs">JS 爬虫源的执行引擎，.js 源靠它运行。</string>
+    <string name="module_desc_nodejs">Node.js 爬虫源的执行引擎，.js 源在 QuickJS 跑不了时用它。</string>
+    <string name="module_desc_thunder">迅雷引擎，用于迅雷协议的下载与播放。</string>
 
     <!-- Backup & Restore -->
     <string name="restore_select">选择备份</string>
