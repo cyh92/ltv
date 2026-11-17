@@ -89,14 +89,20 @@ final class SpeedSettingPanel {
         speed = SpeedSetting.clamp(speed);
         this.speed = player.setSpeed(speed);
         updateSpeedValue();
+        updatePresets();
         updateLongPressSpeedNextFocus();
         return true;
+    }
+
+    private void updatePresets() {
+        for (int i = 0; i < presetViews.length; i++) presetViews[i].setSelected(Math.abs(presets[i] - speed) < 0.001f);
     }
 
     private void syncControls() {
         speed = getSpeed();
         syncSpeedSlider();
         syncLongPressSpeedSlider();
+        updatePresets();
         updateSkipSilenceSwitch();
     }
 
