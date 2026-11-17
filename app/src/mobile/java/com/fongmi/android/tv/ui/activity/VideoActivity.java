@@ -35,6 +35,7 @@ import androidx.media3.common.DiscMenuState;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.common.VideoSize;
+import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerSeekView;
 import androidx.media3.ui.PlayerView;
 import androidx.recyclerview.widget.RecyclerView;
@@ -80,6 +81,8 @@ import com.fongmi.android.tv.player.media.MediaItemFactory;
 import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.DanmakuSetting;
+import com.fongmi.android.tv.setting.DisplaySetting;
+import com.fongmi.android.tv.setting.PlayerButtonsSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
 import com.fongmi.android.tv.ui.adapter.FlagAdapter;
@@ -120,8 +123,11 @@ import com.github.catvod.utils.UriUtil;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class VideoActivity extends PlaybackActivity implements Clock.Callback, TouchInput.Listener, ControlDialog.Listener, ParseDialog.Listener, VodPlaybackHost, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
 
@@ -280,7 +286,88 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     private void setScale(int scale) {
         mVod.setScale(scale);
         mBinding.player.setResizeMode(PlayerSetting.getScaleMode(scale));
+        setPlayerAspectRatio(scale);
         mBinding.control.action.scale.setText(ResUtil.getStringArray(R.array.select_scale)[scale]);
+    }
+
+    private void setPlayerAspectRatio(int scale) {
+        float ratio = PlayerSetting.getAspectRatio(scale);
+        AspectRatioFrameLayout frame = mBinding.player.findViewById(androidx.media3.ui.R.id.exo_content_frame);
+        if (frame != null) frame.setAspectRatio(ratio);
+    }
+
+    /**
+     * 按播放器按钮配置应用控制栏：显隐 + 顺序。
+     */
+    private void applyPlayerButtons() {
+        Map<String, View> views = new HashMap<>();
+        views.put("episodes", mBinding.control.action.episodes);
+        views.put("parse", mBinding.control.action.parse);
+        views.put("player", mBinding.control.action.player);
+        views.put("decoder", mBinding.control.action.decoder);
+        views.put("reset", mBinding.control.action.reset);
+        views.put("replay", mBinding.control.action.replay);
+        views.put("repeat", mBinding.control.action.repeat);
+        views.put("speed", mBinding.control.action.speed);
+        views.put("scale", mBinding.control.action.scale);
+        views.put("text", mBinding.control.action.text);
+        views.put("audio", mBinding.control.action.audio);
+        views.put("video", mBinding.control.action.video);
+        views.put("danmaku", mBinding.control.action.danmaku);
+        views.put("edition", mBinding.control.action.edition);
+        views.put("chapter", mBinding.control.action.chapter);
+        views.put("disc_menu", mBinding.control.action.discMenu);
+        views.put("opening", mBinding.control.action.opening);
+        views.put("ending", mBinding.control.action.ending);
+        Set<String> hidden = PlayerButtonsSetting.getHidden();
+        for (Map.Entry<String, View> entry : views.entrySet()) {
+            boolean visible = !hidden.contains(entry.getKey());
+            if ("danmaku".equals(entry.getKey())) visible = visible && DanmakuSetting.isLoad();
+            if ("parse".equals(entry.getKey())) visible = visible && isUseParse();
+            entry.getValue().setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+        ViewGroup container = mBinding.control.action.container;
+        container.removeAllViews();
+        for (String id : PlayerButtonsSetting.getOrder()) {
+            View view = views.get(id);
+            if (view != null) container.addView(view);
+        }
+    }
+
+    /**
+     * 按屏显设置应用时间文字与进度条。
+     */
+    private void applySeekDisplay() {
+        View position = mBinding.control.seek.findViewById(androidx.media3.ui.R.id.exo_position);
+        View duration = mBinding.control.seek.findViewById(androidx.media3.ui.R.id.exo_duration);
+        View progress = mBinding.control.seek.findViewById(androidx.media3.ui.R.id.exo_progress);
+        if (position != null) position.setVisibility(DisplaySetting.isTime() ? View.VISIBLE : View.GONE);
+        if (duration != null) duration.setVisibility(DisplaySetting.isTime() ? View.VISIBLE : View.GONE);
+        if (progress != null) progress.setVisibility(DisplaySetting.isProgress() ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * 分辨率角标：只在全屏顶栏标题下显示。
+     */
+    private void updateResolutionBadge() {
+        int height = 0;
+        if (service() != null && player() != null) height = player().getVideoHeight();
+        String text = height >= 2160 ? "4K" : height >= 1440 ? "1440p" : height >= 1080 ? "1080p" : height >= 720 ? "720p" : height > 0 ? height + "p" : "";
+        mBinding.control.resolution.setText(text);
+        mBinding.control.resolution.setVisibility(DisplaySetting.isResolution() && !text.isEmpty() ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * 迷你进度条：控制栏隐藏时显示在画面底部。
+     */
+    private void updateMiniProgressValue(long position, long duration) {
+        if (!DisplaySetting.isMini()) {
+            mBinding.miniProgress.setVisibility(View.GONE);
+            return;
+        }
+        boolean hidden = mBinding.control.getRoot().getVisibility() != View.VISIBLE;
+        mBinding.miniProgress.setVisibility(hidden && duration > 0 ? View.VISIBLE : View.GONE);
+        if (duration > 0) mBinding.miniProgress.setProgress((int) (position * 1000 / duration));
     }
 
     @Override
@@ -1223,7 +1310,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         if (isLand() && !player().isPortrait()) setTransition();
         setVideoView(true);
         setRequestedOrientation(PlaybackOrientation.getEnterFullscreenOrientation(player().isPortrait()));
-        mBinding.control.heading.setVisibility(View.VISIBLE);
+        mBinding.control.heading.setVisibility(DisplaySetting.isTitle() ? View.VISIBLE : View.INVISIBLE);
         setRotate(player().isPortrait());
         mInput.resetScale();
         App.post(mR3, 2000);
@@ -1317,11 +1404,16 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         mBinding.control.back.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
+        applyPlayerButtons();
+        applySeekDisplay();
+        updateResolutionBadge();
+        updateMiniProgressValue(getPlayerPosition(), getPlayerDuration());
         setR1Callback();
     }
 
     private void hideControl() {
         mBinding.control.getRoot().setVisibility(View.GONE);
+        updateMiniProgressValue(getPlayerPosition(), getPlayerDuration());
         App.removeCallbacks(mR1);
     }
 
@@ -1344,7 +1436,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     }
 
     private void setTraffic() {
-        Traffic.setSpeed(mBinding.progress.traffic);
+        if (DisplaySetting.isSpeed()) Traffic.setSpeed(mBinding.progress.traffic);
+        else mBinding.progress.traffic.setVisibility(View.GONE);
         App.post(mR2, 1000);
     }
 
@@ -1620,6 +1713,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     protected void onSizeChanged(VideoSize size) {
         changeHeight(size);
         checkOrientation(size);
+        updateResolutionBadge();
     }
 
     @Override
@@ -1629,6 +1723,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         long duration = getPlayerDuration();
         if (position < 0) return;
         mVod.onTimeChanged(time, position, duration);
+        updateMiniProgressValue(position, duration);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
