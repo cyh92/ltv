@@ -71,104 +71,120 @@
                 app:alignItems="center"
                 app:flexWrap="wrap">
 
-                <com.google.android.material.chip.Chip
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/preset01"
-                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="4dp"
-                    android:checkable="false"
+                    android:background="@drawable/shape_chip"
+                    android:gravity="center"
+                    android:textColor="@color/selector_chip_text"
+                    android:textSize="14sp"
                     android:fontFeatureSettings="tnum"
                     android:text="@string/speed_value_05"
                     android:textAlignment="center"
                     app:layout_flexGrow="1"
                     app:layout_flexShrink="0" />
 
-                <com.google.android.material.chip.Chip
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/preset02"
-                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="4dp"
-                    android:checkable="false"
+                    android:background="@drawable/shape_chip"
+                    android:gravity="center"
+                    android:textColor="@color/selector_chip_text"
+                    android:textSize="14sp"
                     android:fontFeatureSettings="tnum"
                     android:text="@string/speed_value_08"
                     android:textAlignment="center"
                     app:layout_flexGrow="1"
                     app:layout_flexShrink="0" />
 
-                <com.google.android.material.chip.Chip
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/preset03"
-                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="4dp"
-                    android:checkable="false"
+                    android:background="@drawable/shape_chip"
+                    android:gravity="center"
+                    android:textColor="@color/selector_chip_text"
+                    android:textSize="14sp"
                     android:fontFeatureSettings="tnum"
                     android:text="@string/speed_value_10"
                     android:textAlignment="center"
                     app:layout_flexGrow="1"
                     app:layout_flexShrink="0" />
 
-                <com.google.android.material.chip.Chip
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/preset04"
-                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="4dp"
-                    android:checkable="false"
+                    android:background="@drawable/shape_chip"
+                    android:gravity="center"
+                    android:textColor="@color/selector_chip_text"
+                    android:textSize="14sp"
                     android:fontFeatureSettings="tnum"
                     android:text="@string/speed_value_12"
                     android:textAlignment="center"
                     app:layout_flexGrow="1"
                     app:layout_flexShrink="0" />
 
-                <com.google.android.material.chip.Chip
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/preset05"
-                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="4dp"
-                    android:checkable="false"
+                    android:background="@drawable/shape_chip"
+                    android:gravity="center"
+                    android:textColor="@color/selector_chip_text"
+                    android:textSize="14sp"
                     android:fontFeatureSettings="tnum"
                     android:text="@string/speed_value_15"
                     android:textAlignment="center"
                     app:layout_flexGrow="1"
                     app:layout_flexShrink="0" />
 
-                <com.google.android.material.chip.Chip
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/preset06"
-                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="4dp"
-                    android:checkable="false"
+                    android:background="@drawable/shape_chip"
+                    android:gravity="center"
+                    android:textColor="@color/selector_chip_text"
+                    android:textSize="14sp"
                     android:fontFeatureSettings="tnum"
                     android:text="@string/speed_value_20"
                     android:textAlignment="center"
                     app:layout_flexGrow="1"
                     app:layout_flexShrink="0" />
 
-                <com.google.android.material.chip.Chip
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/preset07"
-                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="4dp"
-                    android:checkable="false"
+                    android:background="@drawable/shape_chip"
+                    android:gravity="center"
+                    android:textColor="@color/selector_chip_text"
+                    android:textSize="14sp"
                     android:fontFeatureSettings="tnum"
                     android:text="@string/speed_value_30"
                     android:textAlignment="center"
                     app:layout_flexGrow="1"
                     app:layout_flexShrink="0" />
 
-                <com.google.android.material.chip.Chip
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/preset08"
-                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="4dp"
-                    android:checkable="false"
+                    android:background="@drawable/shape_chip"
+                    android:gravity="center"
+                    android:textColor="@color/selector_chip_text"
+                    android:textSize="14sp"
                     android:fontFeatureSettings="tnum"
                     android:text="@string/speed_value_50"
                     android:textAlignment="center"
