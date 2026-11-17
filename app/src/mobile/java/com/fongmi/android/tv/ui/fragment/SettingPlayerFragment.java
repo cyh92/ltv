@@ -19,6 +19,8 @@ import com.fongmi.android.tv.impl.BufferListener;
 import com.fongmi.android.tv.impl.UaListener;
 import com.fongmi.android.tv.player.mpv.MpvUtil;
 import com.fongmi.android.tv.setting.DecodeSetting;
+import com.fongmi.android.tv.setting.DisplaySetting;
+import com.fongmi.android.tv.setting.PlayerButtonsSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.setting.SpeedSetting;
@@ -34,6 +36,9 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.utils.RuntimeModule;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.util.List;
+import java.util.Set;
 
 public class SettingPlayerFragment extends BaseFragment implements UaListener, BufferListener {
 
@@ -80,6 +85,8 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
         refreshEngineCard();
         refreshDecodeCard();
+        refreshDisplayText();
+        refreshButtonsText();
         refreshLongPressText();
         refreshScaleText();
     }
@@ -98,8 +105,8 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
             else if (checkedId == R.id.decodeSoftware) selectDecodeMode(DecoderMode.SOFTWARE);
         });
         mBinding.decodeAdvanced.setOnClickListener(this::onDecode);
-        mBinding.displaySetting.setOnClickListener(v -> DisplaySettingDialog.create().show(requireActivity()));
-        mBinding.playerButtons.setOnClickListener(v -> PlayerButtonsEditDialog.create().show(requireActivity()));
+        mBinding.displaySetting.setOnClickListener(v -> DisplaySettingDialog.create().onChanged(this::refreshDisplayText).show(requireActivity()));
+        mBinding.playerButtons.setOnClickListener(v -> PlayerButtonsEditDialog.create().onChanged(this::refreshButtonsText).show(requireActivity()));
         mBinding.longPressSpeed.setOnClickListener(this::onLongPressSpeed);
         mBinding.scale.setOnClickListener(v -> ScaleDialog.create().onChanged(this::refreshScaleText).show(requireActivity()));
         mBinding.adblock.setOnClickListener(this::setAdblock);
@@ -161,6 +168,18 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         if (mode == DecodeSetting.getDecoderMode(PlayerSetting.getEngine(), C.TRACK_TYPE_VIDEO)) return;
         DecodeSetting.putDecoderMode(PlayerSetting.getEngine(), C.TRACK_TYPE_VIDEO, mode);
         refreshDecodeCard();
+    }
+
+    private void refreshDisplayText() {
+        mBinding.displaySettingText.setText(DisplaySetting.getSummaryText(requireContext()));
+    }
+
+    private void refreshButtonsText() {
+        List<String> order = PlayerButtonsSetting.getOrder();
+        Set<String> hidden = PlayerButtonsSetting.getHidden();
+        int visible = 0;
+        for (String id : order) if (!hidden.contains(id)) visible++;
+        mBinding.playerButtonsText.setText(getString(R.string.player_buttons_visible, visible, order.size()));
     }
 
     private void refreshLongPressText() {
