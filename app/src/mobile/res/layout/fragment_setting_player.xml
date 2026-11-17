@@ -177,6 +177,15 @@
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
 
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/displaySettingText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"
+                    tools:text="标题 / 分辨率 / 时间 / 进度" />
+
             </androidx.appcompat.widget.LinearLayoutCompat>
 
             <androidx.appcompat.widget.LinearLayoutCompat
@@ -194,6 +203,15 @@
                     android:text="@string/player_buttons_setting"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/playerButtonsText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="16sp"
+                    tools:text="显示 18/18" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
