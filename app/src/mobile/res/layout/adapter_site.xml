@@ -8,6 +8,15 @@
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
+    <View
+        android:id="@+id/dot"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="6dp"
+        android:background="@drawable/shape_dot"
+        android:visibility="gone" />
+
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/text"
         android:layout_width="0dp"
