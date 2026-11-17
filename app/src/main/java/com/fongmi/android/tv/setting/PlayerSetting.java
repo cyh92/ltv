@@ -132,6 +132,18 @@ public class PlayerSetting {
         Prefers.put("scale", Math.clamp(scale, MIN_SCALE, MAX_SCALE));
     }
 
+    /**
+     * 播放倍速：全局保存，换集/重进后在 onPrepare 里恢复。
+     * 键用 speed_normal——SpeedSetting.getLongPress() 拿 "speed" 当长按倍速的 fallback，复用会改掉长按默认值。
+     */
+    public static float getSpeed() {
+        return SpeedSetting.clamp(Prefers.getFloat("speed_normal", SpeedSetting.NORMAL));
+    }
+
+    public static void putSpeed(float speed) {
+        Prefers.put("speed_normal", SpeedSetting.clamp(speed));
+    }
+
     public static int getScaleMode(int index) {
         return index == 1 ? RESIZE_MODE_FILL : index == 2 ? RESIZE_MODE_ZOOM : RESIZE_MODE_FIT;
     }
