@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         app:contentInsetEnd="16dp"
-        app:navigationIconTint="@android:color/white">
+        app:navigationIconTint="?attr/colorOnSurface">
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/title"
