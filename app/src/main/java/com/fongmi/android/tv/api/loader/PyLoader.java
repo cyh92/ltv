@@ -1,9 +1,9 @@
 package com.fongmi.android.tv.api.loader;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.chaquo.RuntimeEntry;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.runtime.PythonRuntime;
-import com.github.catvod.utils.RuntimeModule;
 
 import java.util.Map;
 
@@ -13,7 +13,7 @@ public class PyLoader extends SpiderLoader {
     private volatile String recent;
 
     public PyLoader() {
-        this(RuntimeModule.PYTHON.entry(PythonRuntime.class));
+        this(new RuntimeEntry());
     }
 
     PyLoader(PyLoader previous) {
