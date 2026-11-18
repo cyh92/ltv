@@ -10,6 +10,8 @@ import com.github.catvod.utils.UriUtil;
 import com.google.common.net.HttpHeaders;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UrlUtil {
 
@@ -39,6 +41,41 @@ public class UrlUtil {
             case "file" -> Server.get().getAddress("/file/") + Uri.encode(url.substring((prefix).length()), "/");
             default -> url;
         };
+    }
+
+    /**
+     * Resolve a relative spider/api path ("./" or "../") against the config file's location,
+     * so a config can keep its jar/py/js files next to it. Absolute URLs (http/file/assets/proxy)
+     * and csp_* names are returned unchanged.
+     */
+    public static String resolveRelative(String base, String url) {
+        if (TextUtils.isEmpty(url) || TextUtils.isEmpty(base)) return url;
+        if (!url.startsWith("./") && !url.startsWith("../")) return url;
+        int slash = base.lastIndexOf('/');
+        if (slash < 0) return url;
+        return normalizePath(base.substring(0, slash + 1) + url);
+    }
+
+    private static String normalizePath(String path) {
+        int schemeEnd = path.indexOf("://");
+        String head = schemeEnd >= 0 ? path.substring(0, schemeEnd + 3) : "";
+        String rest = schemeEnd >= 0 ? path.substring(schemeEnd + 3) : path;
+        String[] parts = rest.split("/", -1);
+        List<String> kept = new ArrayList<>();
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i];
+            if (i == 0) {
+                kept.add(part);
+                continue;
+            }
+            if (part.equals(".")) continue;
+            if (part.equals("..")) {
+                if (kept.size() > 1) kept.remove(kept.size() - 1);
+                continue;
+            }
+            kept.add(part);
+        }
+        return head + TextUtils.join("/", kept);
     }
 
     public static String fixHeader(String key) {
