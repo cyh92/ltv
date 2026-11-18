@@ -34,7 +34,6 @@ chaquopy {
 }
 
 dependencies {
-    api "com.chaquo.python.runtime:chaquopy_java:${libs.versions.python.get()}@jar"
     compileOnly project(':catvod')
     coreLibraryDesugaring libs.desugar
 }
