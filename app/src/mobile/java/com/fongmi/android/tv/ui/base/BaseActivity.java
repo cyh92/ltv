@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.base;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -101,7 +102,9 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     private void enableEdgeToEdge() {
-        EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT), SystemBarStyle.dark(Color.TRANSPARENT));
+        boolean night = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        SystemBarStyle style = night ? SystemBarStyle.dark(Color.TRANSPARENT) : SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT);
+        EdgeToEdge.enable(this, style, style);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             getWindow().setStatusBarContrastEnforced(false);
             getWindow().setNavigationBarContrastEnforced(false);
