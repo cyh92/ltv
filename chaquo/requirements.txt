@@ -4,7 +4,7 @@ pyquery==2.1.0
 requests==2.34.2
 cachetools==7.2.1
 pycryptodome==3.21.0
-cryptography==50.0.2
+cryptography==42.0.8
 cffi==2.0.0
 pycparser==3.11
 chaquopy-libffi==3.3
