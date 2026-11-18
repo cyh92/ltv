@@ -61,13 +61,11 @@ public class BaseLoader {
     }
 
     private synchronized JsLoader getJsLoader() {
-        RuntimeModule.QUICKJS.require();
         if (jsLoader == null) jsLoader = new JsLoader();
         return jsLoader;
     }
 
     private synchronized PyLoader getPyLoader() {
-        RuntimeModule.PYTHON.require();
         if (pyLoader == null) pyLoader = new PyLoader();
         return pyLoader;
     }
@@ -172,8 +170,6 @@ public class BaseLoader {
         if (uri == null) return;
         String key = uri.getQueryParameter("siteKey");
         if (key != null) requireSite(key);
-        else if ("py".equals(uri.getQueryParameter("do"))) RuntimeModule.PYTHON.require();
-        else if ("js".equals(uri.getQueryParameter("do"))) RuntimeModule.QUICKJS.require();
     }
 
     private Uri getProxyUri(String url) {
@@ -194,8 +190,6 @@ public class BaseLoader {
 
     private void requireRuntime(String api) {
         if (isNode(api)) RuntimeModule.NODEJS.require();
-        else if (isPy(api)) RuntimeModule.PYTHON.require();
-        else if (isJs(api)) RuntimeModule.QUICKJS.require();
     }
 
     public void parseJar(String jar, boolean recent) {
