@@ -11,10 +11,9 @@ import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.server.SpiderSource;
 import com.fongmi.android.tv.server.impl.Process;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.chaquo.RuntimeEntry;
 import com.github.catvod.crawler.SpiderDebug;
-import com.github.catvod.runtime.PythonRuntime;
 import com.github.catvod.utils.Path;
-import com.github.catvod.utils.RuntimeModule;
 import com.github.catvod.utils.Task;
 
 import org.json.JSONArray;
@@ -126,7 +125,7 @@ public final class SpiderTest implements Process, AutoCloseable {
     private static JSONObject formatPython(JSONObject body) throws Exception {
         String text = body.getString("text");
         if (text.getBytes(StandardCharsets.UTF_8).length > SpiderSource.MAX_BYTES) throw new IllegalArgumentException("Source exceeds 2 MiB");
-        return new JSONObject().put("text", RuntimeModule.PYTHON.entry(PythonRuntime.class).format(text));
+        return new JSONObject().put("text", new RuntimeEntry().format(text));
     }
 
     private synchronized JSONObject create() throws Exception {
