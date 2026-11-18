@@ -5,15 +5,17 @@ import android.util.LruCache;
 
 import com.fongmi.quickjs.ModuleBytecodeCache;
 import com.fongmi.quickjs.QuickJS;
+import com.github.catvod.Runtime;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.Net;
 import com.github.catvod.net.NetOptions;
 import com.github.catvod.utils.PackageAbi;
 import com.github.catvod.utils.Path;
-import com.github.catvod.utils.RuntimeModule;
 import com.github.catvod.utils.UriUtil;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -43,7 +45,7 @@ public class Module implements QuickJS.ModuleLoader {
     private ModuleBytecodeCache createBytecodeCache() {
         String abi = PackageAbi.get();
         File directory = new File(Path.cache(), "quickjs-bytecode");
-        String identity = RuntimeModule.QUICKJS.getCompatibilityId() + '\0' + abi;
+        String identity = "fongmi-quickjs-ng-0.17-v13" + '\0' + abi;
         return new ModuleBytecodeCache(directory, identity, MAX_BYTECODE_BYTES, MAX_BYTECODE_FILES, SpiderDebug::log);
     }
 
@@ -118,8 +120,18 @@ public class Module implements QuickJS.ModuleLoader {
 
     private CompletableFuture<String> read(String name, Net client) {
         if (name.startsWith("http")) return client.requestAsync(name, new NetOptions()).thenApply(this::readResponse);
-        if (name.startsWith("assets")) return CompletableFuture.completedFuture(RuntimeModule.QUICKJS.readAsset(name));
+        if (name.startsWith("assets")) return CompletableFuture.completedFuture(readHostAsset(name));
         throw new IllegalArgumentException("Unsupported module URL: " + name);
+    }
+
+    private static String readHostAsset(String name) {
+        String path = name.replace("assets://", "");
+        if (path.startsWith("assets/")) path = path.substring("assets/".length());
+        try (InputStream input = Runtime.context().getAssets().open(path)) {
+            return Path.readOrThrow(input);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to read QuickJS asset: " + name, e);
+        }
     }
 
     private String readResponse(Net.Result result) {
