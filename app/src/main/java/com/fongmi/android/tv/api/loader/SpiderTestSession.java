@@ -11,7 +11,6 @@ import com.github.catvod.net.NetOptions;
 import com.github.catvod.net.NetTrace;
 import com.github.catvod.utils.Crypto;
 import com.github.catvod.utils.Path;
-import com.github.catvod.utils.RuntimeModule;
 import com.github.catvod.utils.Task;
 
 import org.json.JSONArray;
@@ -323,7 +322,6 @@ public final class SpiderTestSession implements AutoCloseable {
             if (api.startsWith("csp_")) {
                 created = JarLoader.newSpider(key, api, dex);
             } else if (python) {
-                RuntimeModule.PYTHON.require();
                 created = new PyLoader().newSpider(key, api);
             } else {
                 created = createJavaScript(api, dex);
@@ -332,7 +330,6 @@ public final class SpiderTestSession implements AutoCloseable {
         }
 
         private Spider createJavaScript(String api, DexClassLoader dex) {
-            RuntimeModule.QUICKJS.require();
             JsLoader loader = new JsLoader();
             synchronized (this) {
                 if (closed) {
