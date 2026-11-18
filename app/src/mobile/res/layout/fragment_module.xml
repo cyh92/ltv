@@ -75,43 +75,11 @@
                     android:background="?attr/colorOutlineVariant" />
 
                 <include
-                    android:id="@+id/python"
-                    layout="@layout/item_module"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/colorOutlineVariant" />
-
-                <include
                     android:id="@+id/nodejs"
                     layout="@layout/item_module"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/colorOutlineVariant" />
-
-                <include
-                    android:id="@+id/quickjs"
-                    layout="@layout/item_module"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/colorOutlineVariant" />
-
-                <include
-                    android:id="@+id/thunder"
-                    layout="@layout/item_module"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
