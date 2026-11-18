@@ -148,7 +148,9 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
     private void refreshEngineCard() {
         engine = ResUtil.getStringArray(R.array.select_engine);
         boolean mpvInstalled = RuntimeModule.MPV.isInstalled();
-        mBinding.engineMpv.setVisibility(mpvInstalled ? View.VISIBLE : View.GONE);
+        if (mpvInstalled) {
+            if (mBinding.engineMpv.getParent() == null) mBinding.engineGroup.addView(mBinding.engineMpv);
+        } else if (mBinding.engineMpv.getParent() != null) mBinding.engineGroup.removeView(mBinding.engineMpv);
         mBinding.engineGroup.check(PlayerSetting.isExo() ? R.id.engineExo : R.id.engineMpv);
         mBinding.engineSubtitle.setText(getString(R.string.player_kernel_current, PlayerSetting.isExo() ? "ExoPlayer" : "MPV"));
     }
@@ -165,7 +167,9 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
     private void refreshDecodeCard() {
         engine = ResUtil.getStringArray(R.array.select_engine);
         mBinding.decodeTitle.setText(getString(R.string.player_decode_setting) + "（" + engine[PlayerSetting.getEngine()] + "）");
-        mBinding.decodeSoftware.setVisibility(PlayerSetting.isMpv() ? View.GONE : View.VISIBLE);
+        if (PlayerSetting.isMpv()) {
+            if (mBinding.decodeSoftware.getParent() != null) mBinding.decodeGroup.removeView(mBinding.decodeSoftware);
+        } else if (mBinding.decodeSoftware.getParent() == null) mBinding.decodeGroup.addView(mBinding.decodeSoftware);
         DecoderMode mode = DecodeSetting.getDecoderMode(PlayerSetting.getEngine(), C.TRACK_TYPE_VIDEO);
         int checkedId = mode == DecoderMode.AUTO ? R.id.decodeAuto : mode == DecoderMode.HARDWARE ? R.id.decodeHardware : mode == DecoderMode.SOFTWARE ? R.id.decodeSoftware : 0;
         if (checkedId != 0) mBinding.decodeGroup.check(checkedId);
