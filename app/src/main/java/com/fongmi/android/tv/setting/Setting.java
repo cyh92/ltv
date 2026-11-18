@@ -69,7 +69,7 @@ public class Setting {
     }
 
     public static int getThemeMode() {
-        return Math.clamp(Prefers.getInt("theme_mode", 1), 0, 2);
+        return Math.clamp(Prefers.getInt("theme_mode", 2), 0, 2);
     }
 
     public static void putThemeMode(int mode) {
