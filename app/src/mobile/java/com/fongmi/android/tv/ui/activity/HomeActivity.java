@@ -9,6 +9,8 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.io.IOException;
+
 import androidx.annotation.NonNull;
 import androidx.core.content.pm.ShortcutInfoCompat;
 import androidx.core.content.pm.ShortcutManagerCompat;
@@ -165,9 +167,13 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     private void checkPluginTip() {
         if (Prefers.getBoolean("plugin_tip_shown")) return;
         Prefers.put("plugin_tip_shown", true);
-        for (RuntimeModule module : RuntimeModule.values()) {
-            if (module == RuntimeModule.BDJ) continue;
-            if (module.getVersionCode() > 0) return;
+        try {
+            for (RuntimeModule module : RuntimeModule.values()) {
+                if (module == RuntimeModule.BDJ) continue;
+                if (module.getVersionCode() > 0) return;
+            }
+        } catch (IOException e) {
+            return;
         }
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.home_plugin_tip_title)
