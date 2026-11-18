@@ -29,6 +29,7 @@ dependencies {
     compileOnly project(':catvod')
     testImplementation project(':catvod')
     api files('libs/wrapper-java.jar')
+    api files('libs/runtime-release.aar')
     coreLibraryDesugaring libs.desugar
 }
 
