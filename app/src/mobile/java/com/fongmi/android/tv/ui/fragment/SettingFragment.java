@@ -34,6 +34,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     private static final String STATE_TAB = "tab";
 
+    public static int openTab = -1;
+
     private FragmentSettingBinding mBinding;
     private TextView[] mTabs;
     private int mTab;
@@ -65,6 +67,10 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         for (int i = 0; i < mTabs.length; i++) {
             int index = i;
             mTabs[i].setOnClickListener(v -> selectTab(index));
+        }
+        if (openTab >= 0) {
+            mTab = openTab;
+            openTab = -1;
         }
         selectTab(mTab);
     }
@@ -109,6 +115,11 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     @Override
     public void onHiddenChanged(boolean hidden) {
         if (hidden) return;
+        if (openTab >= 0) {
+            selectTab(openTab);
+            openTab = -1;
+            return;
+        }
         refreshTab(mTab);
     }
 
