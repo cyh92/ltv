@@ -2,9 +2,10 @@ package com.fongmi.chaquo;
 
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
+import com.chaquo.python.android.AndroidPlatform;
+import com.github.catvod.Runtime;
 import com.github.catvod.net.Net;
 import com.github.catvod.utils.Path;
-import com.github.catvod.utils.RuntimeModule;
 
 import java.util.function.Supplier;
 
@@ -13,9 +14,8 @@ public class Loader {
     private final PyObject app;
 
     public Loader() {
-        RuntimeModule.PYTHON.require();
         synchronized (Python.class) {
-            if (!Python.isStarted()) Python.start(Platform.create());
+            if (!Python.isStarted()) Python.start(new AndroidPlatform(Runtime.context()));
             app = Python.getInstance().getModule("app");
         }
     }
