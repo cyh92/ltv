@@ -14,6 +14,30 @@ public final class Js implements AutoCloseable {
     private final Set<CompletableFuture<String>> pending = new HashSet<>();
     private boolean closed;
 
+    // The QuickJS engine is bundled in the host APK (no runtime module).
+    // catvod cannot compile against :quickjs -- that would be a project
+    // cycle, since :quickjs already depends on :catvod -- so the entry
+    // is loaded by name, the same way RuntimeModule.entry() used to do.
+    private static volatile QuickJsRuntime embedded;
+
+    private static QuickJsRuntime embeddedEntry() {
+        QuickJsRuntime entry = embedded;
+        if (entry == null) {
+            synchronized (Js.class) {
+                entry = embedded;
+                if (entry == null) {
+                    try {
+                        entry = (QuickJsRuntime) Class.forName("com.fongmi.quickjs.RuntimeEntry").getConstructor().newInstance();
+                    } catch (ReflectiveOperationException e) {
+                        throw new IllegalStateException("Unable to load embedded QuickJS runtime", e);
+                    }
+                    embedded = entry;
+                }
+            }
+        }
+        return entry;
+    }
+
     public String eval(String source) throws Exception {
         return eval(source, "{}");
     }
@@ -35,7 +59,7 @@ public final class Js implements AutoCloseable {
 
     public synchronized CompletableFuture<String> evalAsync(String source, String options) {
         if (closed) throw new IllegalStateException("Script owner closed");
-        CompletableFuture<String> result = RuntimeModule.QUICKJS.entry(QuickJsRuntime.class).evaluate(source, options);
+        CompletableFuture<String> result = embeddedEntry().evaluate(source, options);
         pending.add(result);
         result.whenComplete((value, error) -> release(result));
         return result;
