@@ -33,9 +33,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import okhttp3.Call;
@@ -68,7 +73,27 @@ public class RuntimeInstaller {
     public static JSONObject getCatalog(CancellationSignal signal) throws IOException {
         signal.throwIfCanceled();
         String url = getCatalogUrl();
-        return url.isEmpty() ? null : getCatalog(url, signal);
+        if (!url.isEmpty()) {
+            try {
+                return getCatalog(url, signal);
+            } catch (IOException e) {
+                // Network catalog unreachable: fall back to the catalog bundled in the app.
+            }
+        }
+        signal.throwIfCanceled();
+        return getBundledCatalog();
+    }
+
+    private static JSONObject getBundledCatalog() throws IOException {
+        try (InputStream in = App.get().getBaseContext().getAssets().open("runtime/catalog.json")) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+            return new JSONObject(new String(out.toByteArray(), StandardCharsets.UTF_8));
+        } catch (JSONException e) {
+            throw new IOException("Invalid bundled runtime catalog", e);
+        }
     }
 
     private static String getCatalogUrl() throws IOException {
@@ -154,6 +179,24 @@ public class RuntimeInstaller {
         return new File(new File(Path.cache(), ApkCache.MODULE_DIRECTORY), version + "-" + getFileName(module));
     }
 
+    private static void copyBundledAsset(JSONObject asset, File file) {
+        String url = asset.optString("browser_download_url", "");
+        int slash = url.lastIndexOf('/');
+        if (slash < 0) return;
+        String name = url.substring(slash + 1);
+        if (name.isEmpty()) return;
+        try (InputStream in = App.get().getBaseContext().getAssets().open("runtime/" + name);
+             OutputStream out = new FileOutputStream(file)) {
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+        } catch (IOException | RuntimeException e) {
+            // No bundled asset for this module, or the copy failed:
+            // fall through to the network download below.
+            if (file.isFile()) file.delete();
+        }
+    }
+
     public static File download(RuntimeModule module, File directory, CancellationSignal signal, Downloader.ProgressListener progress) throws IOException {
         JSONObject asset = getAsset(module, signal);
         if (asset == null) throw new IOException(module.title + " APK is not published");
@@ -165,6 +208,7 @@ public class RuntimeInstaller {
         UpdatePackage update = getUpdatePackage(asset);
         if (!directory.isDirectory() && !directory.mkdirs()) throw new IOException("Unable to create runtime download directory");
         File file = new File(directory, asset.optLong("versionCode") + "-" + getFileName(module));
+        copyBundledAsset(asset, file);
         if (file.isFile()) {
             try {
                 verifyDownload(module, asset, update, file);
