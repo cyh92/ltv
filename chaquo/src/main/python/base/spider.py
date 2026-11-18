@@ -1,4 +1,5 @@
 import json
+import re
 from urllib.parse import urlencode
 
 from com.github.catvod import Proxy
@@ -78,6 +79,57 @@ class Spider:
 
     def loadModule(self, name):
         return self.runtime.load_reference(name)
+
+    def getName(self):
+        pass
+
+    def localProxy(self, param):
+        pass
+
+    def regStr(self, reg, src, group=1):
+        match = re.search(reg, src)
+        return match.group(group) if match else ''
+
+    def removeHtmlTags(self, src):
+        return re.sub('<.*?>', '', src)
+
+    def cleanText(self, src):
+        return re.sub('[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF]', '', src)
+
+    def fetch(self, url, params=None, cookies=None, headers=None, timeout=5, verify=True, stream=False, allow_redirects=True):
+        import requests
+
+        rsp = requests.get(url, params=params, cookies=cookies, headers=headers, timeout=timeout, verify=verify, stream=stream, allow_redirects=allow_redirects)
+        rsp.encoding = 'utf-8'
+        return rsp
+
+    def post(self, url, params=None, data=None, json=None, cookies=None, headers=None, timeout=5, verify=True, stream=False, allow_redirects=True):
+        import requests
+
+        rsp = requests.post(url, params=params, data=data, json=json, cookies=cookies, headers=headers, timeout=timeout, verify=verify, stream=stream, allow_redirects=allow_redirects)
+        rsp.encoding = 'utf-8'
+        return rsp
+
+    def html(self, content):
+        from lxml import etree
+
+        return etree.HTML(content)
+
+    @staticmethod
+    def str2json(str):
+        return json.loads(str)
+
+    @staticmethod
+    def json2str(str):
+        return json.dumps(str, ensure_ascii=False)
+
+    def getProxyUrl(self, params=None, local=True):
+        if isinstance(params, bool):
+            local, params = params, None
+        return self.proxyUrl(params, local)
+
+    def getDanmakuUrl(self, id):
+        return self.danmakuUrl(id)
 
     def proxyUrl(self, params=None, local=True):
         params = {} if params is None else params
