@@ -1,5 +1,6 @@
 plugins {
     alias libs.plugins.android.library
+    alias libs.plugins.chaquo.python
 }
 
 android {
@@ -17,6 +18,15 @@ android {
         coreLibraryDesugaringEnabled = true
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
+    }
+}
+
+chaquopy {
+    defaultConfig {
+        version = "3.10"
+        pip {
+            install("-r", "requirements.txt")
+        }
     }
 }
 
