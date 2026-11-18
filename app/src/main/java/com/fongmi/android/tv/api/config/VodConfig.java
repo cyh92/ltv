@@ -213,9 +213,13 @@ public class VodConfig extends BaseConfig {
     }
 
     private void initSite(Config config, JsonObject object) {
-        String spider = Json.safeString(object, "spider");
+        String spider = UrlUtil.resolveRelative(config.getUrl(), Json.safeString(object, "spider"));
         BaseLoader.get().parseJar(spider, true);
         setSites(Json.safeListElement(object, "sites").stream().map(e -> Site.objectFrom(e, spider)).distinct().collect(Collectors.toCollection(ArrayList::new)));
+        for (Site site : getSites()) {
+            site.setApi(UrlUtil.resolveRelative(config.getUrl(), site.getApi()));
+            site.setExt(UrlUtil.resolveRelative(config.getUrl(), site.getExt()));
+        }
         Set<String> keys = getSites().stream().map(Site::getKey).collect(Collectors.toSet());
         ScriptManager.get().scan().stream().filter(site -> keys.add(site.getKey())).forEach(site -> getSites().add(site));     
         getSites().removeIf(site -> SiteOrder.isRemoved(site.getKey()) || ConfigManager.isScriptDisabled(site) || !ConfigManager.isSiteVisible(site));
