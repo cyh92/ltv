@@ -186,7 +186,6 @@ public enum RuntimeModule {
         DexClassLoader loader = new PluginLoader(this, metadata.info.applicationInfo.sourceDir, optimizedDirectory(metadata), nativePath);
         state.loadedMetadata = metadata;
         Class<?> implementation = Class.forName(getEntryClass(), true, loader);
-        if (implementation.getClassLoader() != loader) throw new IOException("Runtime implementation is bundled in the host");
         return type.cast(implementation.getConstructor().newInstance());
     }
 
