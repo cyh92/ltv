@@ -14,6 +14,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.LruCache;
+import android.util.Patterns;
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -66,6 +67,7 @@ public class LocalFragment extends BaseFragment {
     private static final String KEY_HISTORY = "local_history";
     private static final String KEY_PRIVATE_PASSWORD = "local_private_password";
     private static final String KEY_PRIVATE_FOLDER = "local_private_folder";
+    private static final String KEY_PRIVATE_EMAIL = "local_private_email";
 
     private static final int SORT_TIME_NEW = 0;
     private static final int SORT_TITLE_AZ = 1;
@@ -484,7 +486,7 @@ public class LocalFragment extends BaseFragment {
 
     private void onPrivateClick() {
         if (getPref(KEY_PRIVATE_PASSWORD).isEmpty()) {
-            showSetPasswordDialog();
+            showSetPasswordDialog(this::pickPrivateFolder);
             return;
         }
         if (getPref(KEY_PRIVATE_FOLDER).isEmpty()) {
@@ -503,6 +505,7 @@ public class LocalFragment extends BaseFragment {
         currentFolder = getPref(KEY_PRIVATE_FOLDER);
         refreshAll();
         mBinding.recycler.scrollToPosition(0);
+        if (getPref(KEY_PRIVATE_EMAIL).isEmpty()) showBindEmailDialog();
     }
 
     private void lockPrivate() {
@@ -524,6 +527,14 @@ public class LocalFragment extends BaseFragment {
         return input;
     }
 
+    private EditText emailInput() {
+        EditText input = new EditText(requireContext());
+        input.setHint(R.string.local_private_email);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        input.setSingleLine(true);
+        return input;
+    }
+
     private LinearLayout passwordLayout(EditText... inputs) {
         LinearLayout layout = new LinearLayout(requireContext());
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -536,12 +547,14 @@ public class LocalFragment extends BaseFragment {
         return layout;
     }
 
-    private void showSetPasswordDialog() {
+    private void showSetPasswordDialog(Runnable onSaved) {
         EditText password = passwordInput(R.string.local_private_password);
         EditText confirm = passwordInput(R.string.local_private_confirm);
+        EditText email = emailInput();
+        email.setText(getPref(KEY_PRIVATE_EMAIL));
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
         builder.setTitle(R.string.local_private_set_password);
-        builder.setView(passwordLayout(password, confirm));
+        builder.setView(passwordLayout(password, confirm, email));
         builder.setPositiveButton(R.string.dialog_positive, null);
         builder.setNegativeButton(R.string.dialog_negative, null);
         AlertDialog dialog = builder.create();
@@ -549,6 +562,7 @@ public class LocalFragment extends BaseFragment {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String first = password.getText().toString();
             String second = confirm.getText().toString();
+            String mail = email.getText().toString().trim();
             if (first.isEmpty()) {
                 Notify.show(R.string.local_private_empty);
                 return;
@@ -557,9 +571,18 @@ public class LocalFragment extends BaseFragment {
                 Notify.show(R.string.local_private_mismatch);
                 return;
             }
+            if (mail.isEmpty()) {
+                Notify.show(R.string.local_private_email_required);
+                return;
+            }
+            if (!Patterns.EMAIL_ADDRESS.matcher(mail).matches()) {
+                Notify.show(R.string.local_private_email_invalid);
+                return;
+            }
             Prefers.put(KEY_PRIVATE_PASSWORD, first);
+            Prefers.put(KEY_PRIVATE_EMAIL, mail);
             dialog.dismiss();
-            pickPrivateFolder();
+            onSaved.run();
         });
     }
 
@@ -568,6 +591,7 @@ public class LocalFragment extends BaseFragment {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
         builder.setTitle(R.string.local_private_enter_password);
         builder.setView(passwordLayout(input));
+        builder.setNeutralButton(R.string.local_private_forgot, (d, which) -> showForgotPasswordDialog());
         builder.setPositiveButton(R.string.dialog_positive, null);
         builder.setNegativeButton(R.string.dialog_negative, null);
         AlertDialog dialog = builder.create();
@@ -580,6 +604,68 @@ public class LocalFragment extends BaseFragment {
                 Notify.show(R.string.local_private_wrong);
             }
         });
+    }
+
+    private void showForgotPasswordDialog() {
+        String saved = getPref(KEY_PRIVATE_EMAIL);
+        if (saved.isEmpty()) {
+            Notify.show(R.string.local_private_email_none);
+            return;
+        }
+        EditText email = emailInput();
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+        builder.setTitle(R.string.local_private_forgot);
+        builder.setMessage(getString(R.string.local_private_email_hint, maskEmail(saved)));
+        builder.setView(passwordLayout(email));
+        builder.setPositiveButton(R.string.dialog_positive, null);
+        builder.setNegativeButton(R.string.dialog_negative, null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            if (email.getText().toString().trim().equalsIgnoreCase(saved)) {
+                dialog.dismiss();
+                showSetPasswordDialog(() -> {
+                    if (getPref(KEY_PRIVATE_FOLDER).isEmpty()) pickPrivateFolder();
+                    else openPrivate();
+                });
+            } else {
+                Notify.show(R.string.local_private_email_wrong);
+            }
+        });
+    }
+
+    private void showBindEmailDialog() {
+        EditText email = emailInput();
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+        builder.setTitle(R.string.local_private_bind_email);
+        builder.setMessage(R.string.local_private_bind_hint);
+        builder.setView(passwordLayout(email));
+        builder.setPositiveButton(R.string.dialog_positive, null);
+        builder.setNegativeButton(R.string.dialog_negative, null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String mail = email.getText().toString().trim();
+            if (mail.isEmpty()) {
+                Notify.show(R.string.local_private_email_required);
+                return;
+            }
+            if (!Patterns.EMAIL_ADDRESS.matcher(mail).matches()) {
+                Notify.show(R.string.local_private_email_invalid);
+                return;
+            }
+            Prefers.put(KEY_PRIVATE_EMAIL, mail);
+            dialog.dismiss();
+        });
+    }
+
+    private static String maskEmail(String email) {
+        int at = email.indexOf('@');
+        if (at <= 0) return email;
+        String local = email.substring(0, at);
+        String domain = email.substring(at);
+        if (local.length() <= 1) return "*" + domain;
+        return local.charAt(0) + "***" + domain;
     }
 
     private static class LocalVideo {
