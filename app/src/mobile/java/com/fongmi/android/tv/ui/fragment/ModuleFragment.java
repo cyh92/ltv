@@ -1,6 +1,9 @@
 package com.fongmi.android.tv.ui.fragment;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -100,7 +103,7 @@ public class ModuleFragment extends BaseFragment {
         ModuleViewModel model = models[index];
         ModuleViewModel.State state = model.getState().getValue();
         if (checked) {
-            if (state.canInstall()) model.install();
+            if (state.canInstall()) tryInstall(index);
             else render(items[index], model, state);
         } else {
             if (state.canRemove()) confirmRemove(index);
@@ -122,8 +125,23 @@ public class ModuleFragment extends BaseFragment {
         ModuleViewModel model = models[index];
         ModuleViewModel.State state = model.getState().getValue();
         if (state.isPending()) confirmInstallation(model, state);
-        else if (state.canInstall()) model.install();
+        else if (state.canInstall()) tryInstall(index);
         else ModuleDialog.create(index).show(getRoot());
+    }
+
+    private void tryInstall(int index) {
+        ModuleViewModel model = models[index];
+        if (requireContext().getPackageManager().canRequestPackageInstalls()) {
+            model.install();
+            return;
+        }
+        render(items[index], model, model.getState().getValue());
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.module_install_permission_title)
+                .setMessage(R.string.module_install_permission_msg)
+                .setPositiveButton(R.string.module_install_permission_settings, (d, which) -> startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + requireContext().getPackageName()))))
+                .setNegativeButton(R.string.module_cancel, null)
+                .show();
     }
 
     private void confirmInstallation(ModuleViewModel model, ModuleViewModel.State state) {
@@ -148,6 +166,9 @@ public class ModuleFragment extends BaseFragment {
     }
 
     private String getInfoText(ModuleViewModel model, ModuleViewModel.State state) {
+        if (state.phase() == ModuleViewModel.Phase.FAILED && state.error() != null && !state.error().equals(getString(R.string.module_failed_title))) {
+            return state.error();
+        }
         ModuleViewModel.Status runtime = state.runtime();
         String status = getString(model.getStatusText(state));
         if (state.phase() == ModuleViewModel.Phase.INSTALLING && state.total() > 0 && state.downloaded() >= 0) {
