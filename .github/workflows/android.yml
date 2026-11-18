@@ -205,13 +205,6 @@ jobs:
           test -f app/src/main/java/androidx/media3/ui/libass/LibassPlayerViewController.java
           echo "stub check OK"
 
-      - name: Bundle runtime catalog + APKs into assets
-        run: |
-          set -euxo pipefail
-          mkdir -p app/src/main/assets/runtime
-          cp runtime/catalog.json runtime/apks/*.apk app/src/main/assets/runtime/
-          ls -la app/src/main/assets/runtime/
-
       - name: Build mobile debug APK
         run: |
           chmod +x gradlew
