@@ -44,7 +44,7 @@ class AbiApkPackaging {
     }
 
     private static void configureNativeLibraries(Project project, def variant, List<String> abis) {
-        variant.packaging.jniLibs.excludes.addAll((THUNDER_LIBRARIES + MPV_LIBRARIES + [RUNTIME_PROFILES.nodejs.library, RUNTIME_PROFILES.quickjs.library]).collect { "**/${it}".toString() })
+        variant.packaging.jniLibs.excludes.addAll((MPV_LIBRARIES + [RUNTIME_PROFILES.nodejs.library]).collect { "**/${it}".toString() })
         variant.packaging.jniLibs.keepDebugSymbols.add('**/libc++_shared.so')
         def validation = project.tasks.register("verify${variant.name.capitalize()}MpvNative", VerifyMpvNativeTask) { task ->
             task.mpvArchive.set(project.layout.projectDirectory.file('libs/lib-mpvplayer-release.aar'))
