@@ -3,7 +3,6 @@ package com.xunlei.downloadlib;
 import android.net.Uri;
 
 import com.github.catvod.utils.Path;
-import com.github.catvod.utils.RuntimeModule;
 import com.xunlei.downloadlib.parameter.BtSubTaskDetail;
 import com.xunlei.downloadlib.parameter.GetTaskId;
 import com.xunlei.downloadlib.parameter.TorrentFileInfo;
@@ -67,7 +66,6 @@ public class XLTaskHelper {
     }
 
     public synchronized GetTaskId parse(String url, File savePath) {
-        RuntimeModule.THUNDER.require();
         url = Uri.parse(url).normalizeScheme().toString();
         if (url.startsWith("file://")) return new GetTaskId(url, savePath);
         GetTaskId taskId = getFactory().parse(url, savePath);
@@ -77,7 +75,6 @@ public class XLTaskHelper {
     }
 
     public synchronized GetTaskId addThunderTask(String url, File savePath) {
-        RuntimeModule.THUNDER.require();
         url = Uri.parse(url).normalizeScheme().toString();
         if (!url.startsWith("ftp://") && !url.startsWith("ed2k://")) throw new IllegalArgumentException("Unsupported Thunder URL");
         XLTaskFactory factory = getFactory();
@@ -86,7 +83,6 @@ public class XLTaskHelper {
     }
 
     public synchronized GetTaskId addTorrentTask(File torrent, File savePath, int index) {
-        RuntimeModule.THUNDER.require();
         TorrentFileInfo[] files = getTorrentInfo(torrent).mSubFileInfo;
         checkIndex(files, index);
         XLTaskFactory factory = getFactory();
@@ -108,7 +104,6 @@ public class XLTaskHelper {
     }
 
     public synchronized TorrentInfo getTorrentInfo(File file) {
-        RuntimeModule.THUNDER.require();
         TorrentInfo torrentInfo = new TorrentInfo(file);
         getFactory().manager.getTorrentInfo(torrentInfo);
         return torrentInfo;
