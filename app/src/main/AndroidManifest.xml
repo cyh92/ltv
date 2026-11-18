@@ -21,10 +21,7 @@
 
     <queries>
         <package android:name="com.zhulong.runtime.bdj" />
-        <package android:name="com.zhulong.runtime.python" />
         <package android:name="com.zhulong.runtime.nodejs" />
-        <package android:name="com.zhulong.runtime.quickjs" />
-        <package android:name="com.zhulong.runtime.thunder" />
         <package android:name="com.zhulong.runtime.mpv" />
         <intent>
             <action android:name="android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION" />
