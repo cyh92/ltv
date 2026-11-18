@@ -15,8 +15,8 @@ import com.github.catvod.runtime.ThunderRuntime;
 import com.github.catvod.utils.Auth;
 import com.github.catvod.utils.Crypto;
 import com.github.catvod.utils.Path;
-import com.github.catvod.utils.RuntimeModule;
 import com.github.catvod.utils.UriUtil;
+import com.xunlei.downloadlib.RuntimeEntry;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class Thunder implements Source.Extractor {
     private ThunderRuntime.Task taskId;
 
     private ThunderRuntime runtime() {
-        if (runtime == null) runtime = RuntimeModule.THUNDER.entry(ThunderRuntime.class);
+        if (runtime == null) runtime = new RuntimeEntry();
         return runtime;
     }
 
@@ -261,7 +261,7 @@ public class Thunder implements Source.Extractor {
         }
 
         private List<Episode> parseEpisodes() throws Exception {
-            ThunderRuntime runtime = RuntimeModule.THUNDER.entry(ThunderRuntime.class);
+            ThunderRuntime runtime = new RuntimeEntry();
             File directory = Path.thunder(Crypto.md5(url));
             if (ContentResolver.SCHEME_CONTENT.equals(UriUtil.scheme(url))) return readEpisodes(runtime, importTorrent(directory));
             ThunderRuntime.Task taskId = runtime.parse(url, directory);
