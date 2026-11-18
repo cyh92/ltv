@@ -5,7 +5,6 @@ import android.os.Build;
 
 import com.github.catvod.Runtime;
 import com.github.catvod.utils.Prefers;
-import com.github.catvod.utils.RuntimeModule;
 import com.xunlei.downloadlib.android.XLUtil;
 import com.xunlei.downloadlib.parameter.BtIndexSet;
 import com.xunlei.downloadlib.parameter.BtSubTaskDetail;
@@ -40,7 +39,6 @@ public class XLDownloadManager {
     }
 
     public void init() {
-        RuntimeModule.THUNDER.require();
         InitParam param = new InitParam(context.getFilesDir().getPath());
         int code = loader.init(param.getSoKey(), "com.android.providers.downloads", param.mAppVersion, "", getPeerId(), XLUtil.getGuid(), param.mStatSavePath, param.mStatCfgSavePath, 0, param.mPermissionLevel, param.mQueryConfOnInit);
         checkErrorCode(code);
@@ -115,27 +113,22 @@ public class XLDownloadManager {
     }
 
     public int createP2spTask(P2spTaskParam param, GetTaskId taskId) {
-        RuntimeModule.THUNDER.require();
         return loader.createP2spTask(param.mUrl, param.mRefUrl, param.mCookie, param.mUser, param.mPass, param.mFilePath, param.mFileName, param.mCreateMode, param.mSeqId, taskId);
     }
 
     public int createBtMagnetTask(MagnetTaskParam param, GetTaskId taskId) {
-        RuntimeModule.THUNDER.require();
         return loader.createBtMagnetTask(param.mUrl, param.mFilePath, param.mFileName, taskId);
     }
 
     public int createEmuleTask(EmuleTaskParam param, GetTaskId taskId) {
-        RuntimeModule.THUNDER.require();
         return loader.createEmuleTask(param.mUrl, param.mFilePath, param.mFileName, param.mCreateMode, param.mSeqId, taskId);
     }
 
     public int createBtTask(BtTaskParam param, GetTaskId taskId) {
-        RuntimeModule.THUNDER.require();
         return loader.createBtTask(param.mTorrentPath, param.mFilePath, param.mMaxConcurrent, param.mCreateMode, param.mSeqId, taskId);
     }
 
     public void getTorrentInfo(TorrentInfo info) {
-        RuntimeModule.THUNDER.require();
         checkErrorCode(loader.getTorrentInfo(info.getFile().getAbsolutePath(), info));
     }
 
@@ -148,14 +141,12 @@ public class XLDownloadManager {
     }
 
     public String parserThunderUrl(String url) {
-        RuntimeModule.THUNDER.require();
         ThunderUrlInfo thunderUrlInfo = new ThunderUrlInfo();
         checkErrorCode(loader.parserThunderUrl(url, thunderUrlInfo));
         return thunderUrlInfo.mUrl;
     }
 
     public String getFileNameFromUrl(String url) {
-        RuntimeModule.THUNDER.require();
         GetFileName getFileName = new GetFileName();
         checkErrorCode(loader.getFileNameFromUrl(url, getFileName));
         return getFileName.getFileName();
