@@ -1,0 +1,200 @@
+<resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
+
+    <!-- App -->
+    <string name="app_keep">我的收藏</string>
+    <string name="app_history">最近观看</string>
+
+    <!-- Nav -->
+    <string name="nav_vod">首页</string>
+    <string name="nav_live">直播</string>
+    <string name="nav_local">本地</string>
+    <string name="nav_mine">我的</string>
+    <string name="nav_setting">设置</string>
+
+    <!-- Local -->
+    <string name="local_empty">没有找到本地视频</string>
+    <string name="local_no_permission">需要允许访问视频权限，点击重试</string>
+    <string name="local_title">视频</string>
+    <string name="local_history">本地播放历史</string>
+    <string name="local_folders">文件夹</string>
+    <string name="local_all_videos">全部视频</string>
+    <string name="local_search_hint">搜索本地视频</string>
+    <string name="local_search_result">搜索结果</string>
+    <string name="local_sort_title">排序</string>
+    <string name="local_sort_title_az">标题 A→Z</string>
+    <string name="local_sort_title_za">标题 Z→A</string>
+    <string name="local_sort_time_new">时间最新</string>
+    <string name="local_sort_time_old">时间最旧</string>
+    <string name="local_folder_videos">%1$d 个视频</string>
+    <string name="local_private_title">私密文件夹</string>
+    <string name="local_private_set_password">设置密码</string>
+    <string name="local_private_enter_password">输入密码</string>
+    <string name="local_private_password">密码</string>
+    <string name="local_private_confirm">再次输入密码</string>
+    <string name="local_private_empty">密码不能为空</string>
+    <string name="local_private_mismatch">两次输入的密码不一致</string>
+    <string name="local_private_wrong">密码错误</string>
+    <string name="local_private_no_videos">私密文件夹里没有视频</string>
+    <string name="local_folder_empty">这个文件夹里没有视频</string>
+
+    <!-- Menu -->
+    <string name="home_push">连接</string>
+    <string name="menu_sync">同步</string>
+    <string name="menu_delete">删除</string>
+    <string name="menu_search">搜索</string>
+    <string name="menu_site">站点</string>
+    <string name="menu_reset">重置</string>
+
+    <!-- Vod -->
+    <string name="vod_home">推荐</string>
+
+    <!-- Detail -->
+    <string name="detail_flag">线路</string>
+    <string name="detail_episode">选集</string>
+    <string name="detail_quality">画质</string>
+    <string name="detail_content">简介</string>
+    <string name="detail_search">快搜“<xliff:g name="name">%s</xliff:g>”</string>
+
+    <!-- Device -->
+    <string name="device_select">选择装置</string>
+    <string name="device_offline">装置已离线</string>
+    <string name="device_scan">请扫描影视 QRCode 进行绑定</string>
+
+    <!-- Control -->
+    <string name="seek_seconds">%+d 秒</string>
+    <string name="control_speed">倍速</string>
+    <string name="control_scale">缩放</string>
+    <string name="pinch_zoom">缩放 %1$d%%</string>
+    <string name="pinch_size">宽 %1$d%% · 高 %2$d%%</string>
+    <string name="control_track">轨道</string>
+    <string name="control_other">其它</string>
+
+    <!-- Dialog -->
+    <string name="dialog_delete_record">删除全部纪录？</string>
+    <string name="dialog_delete_keep">收藏纪录将会全部删除。</string>
+    <string name="dialog_delete_history">观看纪录将会全部删除。</string>
+
+    <!-- Timer -->
+    <string name="timer_5">5 分钟</string>
+    <string name="timer_15">15 分钟</string>
+    <string name="timer_30">30 分钟</string>
+    <string name="timer_60">1 小时</string>
+    <string name="timer_delay">延长 5 分钟</string>
+    <string name="timer_cancel">取消定时器</string>
+
+    <!-- Hint -->
+    <string name="shortcut"> 已于主萤幕新增捷径。</string>
+
+    <string-array name="select_background">
+        <item>关</item>
+        <item>开</item>
+        <item>画中画</item>
+    </string-array>
+
+    <string name="dialog_action_choose_file">选取文件</string>
+    <string name="dialog_action_delete_config">删除配置记录</string>
+    <string name="dialog_action_delete_backup">删除备份</string>
+    <string name="dialog_action_site_search">搜索</string>
+    <string name="dialog_action_site_change">换源</string>
+    <string name="dialog_action_live_password">密码保护</string>
+    <string name="dialog_action_live_boot">开机启动</string>
+    <string name="dialog_action_toggle_hint">%1$s：%2$s，长按应用到全部</string>
+    <string name="dialog_action_bulk_result">已批量设置%1$s：%2$s</string>
+    <string name="dialog_action_scan">扫描二维码</string>
+    <string name="dialog_action_sync_two">同步模式：双向</string>
+    <string name="dialog_action_sync_upload">同步模式：上传</string>
+    <string name="dialog_action_sync_download">同步模式：下载</string>
+
+    <string name="subtitle_search_api_title">Assrt</string>
+
+    <string name="config_manage">配置管理</string>
+    <string name="config_manage_desc">导入或删除订阅源</string>
+    <string name="config_vod">点播</string>
+    <string name="config_live">直播</string>
+    <string name="config_add_interface">添加接口</string>
+    <string name="config_scan_folder">扫描文件夹</string>
+    <string name="config_import_single">单源导入</string>
+    <string name="config_local_pack">本地包</string>
+    <string name="config_local_file">本地文件</string>
+    <string name="config_import_local_interface">本地接口导入</string>
+    <string name="config_import_folder">文件夹导入</string>
+    <string name="config_import_online">在线接口导入</string>
+    <string name="config_import_live_local">直播本地源导入</string>
+    <string name="config_import_live_online">直播在线源导入</string>
+    <string name="config_check_all">检测全部源</string>
+    <string name="config_checking">检测中 %1$d/%2$d</string>
+    <string name="config_checking_title">正在检测</string>
+    <string name="config_check_progress">%1$d/%2$d · 第 %3$d/%4$d 个接口</string>
+    <string name="config_check_progress_sub">第 %1$d/%2$d 个接口</string>
+    <string name="config_check_cancel">取消</string>
+    <string name="config_check_done">检测完成：优质 %1$d，偏慢 %2$d，失效 %3$d</string>
+    <string name="config_check_ok">有效</string>
+    <string name="config_check_ok_sites">有效 · %1$d 个站</string>
+    <string name="config_check_ok_channels">有效 · %1$d 个频道</string>
+    <string name="config_check_ok_sources">有效 · %1$d 个源</string>
+    <string name="config_check_fail">失效：%1$s</string>
+    <string name="config_check_slow">较慢</string>
+    <string name="config_check_slow_sites">较慢 · %1$d 个站</string>
+    <string name="config_check_slow_channels">较慢 · %1$d 个频道</string>
+    <string name="config_check_slow_sources">较慢 · %1$d 个源</string>
+    <string name="config_check_partial_sites">部分失效 · %1$d/%2$d 个站</string>
+    <string name="config_check_partial_sources">部分失效 · %1$d/%2$d 个源</string>
+    <string name="config_check_unverified">未验证</string>
+    <string name="config_reason_open_fail">打不开</string>
+    <string name="config_reason_timeout">连接超时</string>
+    <string name="config_reason_bad_format">不是有效的配置</string>
+    <string name="config_reason_no_file">文件不存在</string>
+    <string name="config_reason_empty">里面没有内容</string>
+    <string name="config_empty">暂无订阅，点击下方按钮添加</string>
+    <string name="config_edit_sub">编辑订阅</string>
+    <string name="config_edit">编辑</string>
+    <string name="config_delete">删除</string>
+    <string name="config_delete_confirm">确定删除“%1$s”吗？</string>
+    <string name="config_more">更多</string>
+    <string name="config_name">名字</string>
+    <string name="config_link">链接</string>
+    <string name="config_merged">已合并为本地接口，包含%1$d个源</string>
+    <string name="config_active">使用中</string>
+    <string name="config_all_interfaces">全部接口</string>
+    <string name="config_interface">切换接口</string>
+    <string name="config_kind_folder">文件夹</string>
+    <string name="config_kind_file">单源</string>
+    <string name="config_kind_url">在线接口</string>
+    <string name="config_kind_json">本地包</string>
+    <string name="config_kind_live_url">直播源</string>
+    <string name="config_kind_live_file">直播文件</string>
+    <string name="config_need_name">名称不能为空</string>
+    <string name="config_need_link">链接不能为空</string>
+    <string name="config_bad_single">请选择 .py 或 .js 文件</string>
+    <string name="config_bad_json">请选择 .json 文件</string>
+    <string name="config_bad_live">请选择 .txt 或 .m3u 文件</string>
+    <string name="config_folder_exists">该文件夹已添加</string>
+    <string name="config_file_exists">该文件已添加</string>
+    <string name="theme_setting">主题设置</string>
+    <string name="theme_setting_desc">主题模式、背景图、透明度</string>
+    <string name="theme_mode">主题模式</string>
+    <string name="theme_light">亮色</string>
+    <string name="theme_dark">暗色</string>
+    <string name="theme_system">跟随系统</string>
+    <string name="theme_bg">背景图</string>
+    <string name="theme_bg_alpha">背景透明度</string>
+    <string name="theme_bg_alpha_value">%1$d%%</string>
+    <string name="theme_bg_none">月白</string>
+    <string name="theme_bg_1">春日绿</string>
+    <string name="theme_bg_2">星空蓝</string>
+    <string name="theme_bg_3">晨雾</string>
+    <string name="theme_bg_4">暗夜</string>
+    <string name="theme_bg_5">晨雾粉</string>
+    <string name="theme_bg_6">暮春暖</string>
+    <string name="theme_bg_7">紫霞</string>
+    <string name="theme_bg_8">烛龙金</string>
+    <string name="setting_menu_interface">接口配置</string>
+    <string name="setting_menu_plugin">插件中心</string>
+    <string name="setting_menu_player">播放器</string>
+    <string name="setting_menu_appearance">外观</string>
+    <string name="setting_menu_data">数据中心</string>
+    <string name="setting_backup_restore">备份与恢复</string>
+    <string name="setting_history">历史</string>
+    <string name="home_all_types">分类</string>
+    <string name="section_all">全部 &gt;</string>
+</resources>
