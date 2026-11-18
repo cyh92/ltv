@@ -10,9 +10,10 @@ import com.fongmi.quickjs.host.Host;
 import com.fongmi.quickjs.method.Global;
 import com.fongmi.quickjs.method.Invocation;
 import com.fongmi.quickjs.utils.Module;
+import com.github.catvod.Runtime;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.utils.Json;
-import com.github.catvod.utils.RuntimeModule;
+import com.github.catvod.utils.Path;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,6 +21,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -307,7 +309,15 @@ public class Spider extends com.github.catvod.crawler.Spider {
     private void createObj() throws Exception {
         String content = module.load(api);
         evaluateModule(content, api);
-        evaluateModule(String.format(RuntimeModule.QUICKJS.readAsset("js/lib/spider.js"), JSONObject.quote(api)), api + "#spider");
+        evaluateModule(String.format(readHostAsset("js/lib/spider.js"), JSONObject.quote(api)), api + "#spider");
+    }
+
+    private static String readHostAsset(String path) {
+        try (InputStream input = Runtime.context().getAssets().open(path)) {
+            return Path.readOrThrow(input);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to read QuickJS asset: " + path, e);
+        }
     }
 
     private void evaluateModule(String source, String name) throws Exception {
