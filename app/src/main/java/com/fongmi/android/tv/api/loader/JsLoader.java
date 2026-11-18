@@ -1,9 +1,9 @@
 package com.fongmi.android.tv.api.loader;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.quickjs.RuntimeEntry;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.runtime.QuickJsRuntime;
-import com.github.catvod.utils.RuntimeModule;
 
 import java.util.Map;
 
@@ -16,7 +16,7 @@ public class JsLoader extends SpiderLoader {
     private volatile String recent;
 
     public JsLoader() {
-        this(RuntimeModule.QUICKJS.entry(QuickJsRuntime.class));
+        this(new RuntimeEntry());
     }
 
     JsLoader(JsLoader previous) {
