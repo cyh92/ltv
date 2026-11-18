@@ -168,10 +168,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         if (Prefers.getBoolean("plugin_tip_shown")) return;
         Prefers.put("plugin_tip_shown", true);
         try {
-            for (RuntimeModule module : RuntimeModule.values()) {
-                if (module == RuntimeModule.BDJ) continue;
-                if (module.getVersionCode() > 0) return;
-            }
+            if (RuntimeModule.MPV.getVersionCode() > 0) return;
         } catch (IOException e) {
             return;
         }
