@@ -67,8 +67,8 @@ public class ModuleFragment extends BaseFragment {
         if (embedded) mBinding.toolbar.setVisibility(View.GONE);
         mBinding.toolbar.getMenu().add(R.string.module_check).setIcon(R.drawable.ic_setting_refresh).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         mBinding.toolbar.setOnMenuItemClickListener(this::onCheck);
-        models = new ModuleViewModel[]{ModuleViewModel.get(getRoot(), RuntimeModule.PYTHON), ModuleViewModel.get(getRoot(), RuntimeModule.NODEJS), ModuleViewModel.get(getRoot(), RuntimeModule.QUICKJS), ModuleViewModel.get(getRoot(), RuntimeModule.THUNDER), ModuleViewModel.get(getRoot(), RuntimeModule.MPV)};
-        items = new ItemModuleBinding[]{mBinding.python, mBinding.nodejs, mBinding.quickjs, mBinding.thunder, mBinding.mpv};
+        models = new ModuleViewModel[]{ModuleViewModel.get(getRoot(), RuntimeModule.NODEJS), ModuleViewModel.get(getRoot(), RuntimeModule.MPV)};
+        items = new ItemModuleBinding[]{mBinding.nodejs, mBinding.mpv};
         for (int i = 0; i < items.length; i++) bind(items[i], models[i], i);
         updateCount();
     }
@@ -89,11 +89,8 @@ public class ModuleFragment extends BaseFragment {
 
     private int getDescRes(int index) {
         return switch (index) {
-            case 0 -> R.string.module_desc_python;
-            case 1 -> R.string.module_desc_nodejs;
-            case 2 -> R.string.module_desc_quickjs;
-            case 3 -> R.string.module_desc_thunder;
-            case 4 -> R.string.module_desc_mpv;
+            case 0 -> R.string.module_desc_nodejs;
+            case 1 -> R.string.module_desc_mpv;
             default -> 0;
         };
     }
@@ -126,7 +123,9 @@ public class ModuleFragment extends BaseFragment {
         ModuleViewModel.State state = model.getState().getValue();
         if (state.isPending()) confirmInstallation(model, state);
         else if (state.canInstall()) tryInstall(index);
-        else ModuleDialog.create(index).show(getRoot());
+        // ModuleDialog maps its argument via RuntimeModule.values()[index],
+        // so pass the module's enum ordinal, not the card position.
+        else ModuleDialog.create(models[index].getModule().ordinal()).show(getRoot());
     }
 
     private void tryInstall(int index) {
