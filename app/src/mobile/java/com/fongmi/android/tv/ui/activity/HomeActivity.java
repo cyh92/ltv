@@ -51,6 +51,9 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Prefers;
+import com.github.catvod.utils.RuntimeModule;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.navigation.NavigationBarView;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -107,6 +110,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         initFragment(savedInstanceState);
         Updater.get().start(this, false);
         checkPermission();
+        checkPluginTip();
     }
 
     @Override
@@ -156,6 +160,26 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
     private void checkPermission() {
         PermissionUtil.requestLocalNetwork(this, this::onNetworkPermissionResult);
+    }
+
+    private void checkPluginTip() {
+        if (Prefers.getBoolean("plugin_tip_shown")) return;
+        Prefers.put("plugin_tip_shown", true);
+        for (RuntimeModule module : RuntimeModule.values()) {
+            if (module == RuntimeModule.BDJ) continue;
+            if (module.getVersionCode() > 0) return;
+        }
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.home_plugin_tip_title)
+                .setMessage(R.string.home_plugin_tip_msg)
+                .setPositiveButton(R.string.home_plugin_tip_go, (d, which) -> openPluginCenter())
+                .setNegativeButton(R.string.home_plugin_tip_later, null)
+                .show();
+    }
+
+    private void openPluginCenter() {
+        SettingFragment.openTab = 1;
+        change(1);
     }
 
     private void onNetworkPermissionResult(boolean allGranted) {
