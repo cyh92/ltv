@@ -137,6 +137,10 @@ public final class ModuleViewModel extends AndroidViewModel {
         check();
     }
 
+    public RuntimeModule getModule() {
+        return module;
+    }
+
     public String getTitle() {
         if (module == RuntimeModule.THUNDER) return getApplication().getString(R.string.module_thunder);
         return module.title;
