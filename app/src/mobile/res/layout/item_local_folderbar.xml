@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/ic_local_folder"
+        android:tint="?attr/colorPrimary" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="14sp" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/close"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="4dp"
+        android:src="@drawable/ic_action_close"
+        android:tint="?attr/colorOnSurface" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>
