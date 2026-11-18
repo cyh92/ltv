@@ -6,12 +6,14 @@
         android:id="@+id/sync"
         android:icon="@drawable/ic_action_sync"
         android:title="@string/menu_sync"
+        app:iconTint="?attr/colorOnSurface"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/delete"
         android:icon="@drawable/ic_action_delete"
         android:title="@string/menu_delete"
+        app:iconTint="?attr/colorOnSurface"
         app:showAsAction="always" />
 
 </menu>
