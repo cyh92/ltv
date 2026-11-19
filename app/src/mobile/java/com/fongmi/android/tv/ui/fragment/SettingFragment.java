@@ -30,9 +30,7 @@ import com.fongmi.android.tv.impl.LiveListener;
 import com.fongmi.android.tv.impl.SiteListener;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.activity.HistoryActivity;
-import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.activity.KeepActivity;
-import com.fongmi.android.tv.ui.activity.SearchActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
@@ -84,10 +82,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.mineStatKeep.setOnClickListener(v -> KeepActivity.start(requireActivity()));
         mBinding.mineStatHistory.setOnClickListener(v -> HistoryActivity.start(requireActivity()));
         mBinding.mineStatSite.setOnClickListener(v -> selectTab(0));
-        mBinding.mineQuickSearch.setOnClickListener(v -> SearchActivity.start(requireActivity()));
-        mBinding.mineQuickLocal.setOnClickListener(v -> ((HomeActivity) requireActivity()).change(7));
-        mBinding.mineQuickConfig.setOnClickListener(v -> selectTab(0));
-        mBinding.mineQuickModule.setOnClickListener(v -> selectTab(1));
         mBinding.mineThemeMore.setOnClickListener(v -> selectTab(3));
         mBinding.mineBgRow.setOnClickListener(v -> selectTab(3));
         if (openTab >= 0) {
@@ -151,6 +145,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }
         }
         ft.commit();
+        mBinding.appBar.setExpanded(true, true);
         refreshTab(index);
     }
 
