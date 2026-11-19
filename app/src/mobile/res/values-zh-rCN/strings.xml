@@ -206,4 +206,6 @@
     <string name="setting_history">历史</string>
     <string name="home_all_types">分类</string>
     <string name="section_all">全部 &gt;</string>
+    <string name="theme_bg_mint">薄荷绿</string>
+    <string name="theme_bg_9">月白</string>
 </resources>
