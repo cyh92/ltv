@@ -19,6 +19,11 @@ import org.json.JSONObject;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -118,6 +123,23 @@ public class JarLoader extends SpiderLoader {
         }
     }
 
+    private static synchronized File copyLocalJar(String jar) {
+        File src = Path.local(jar);
+        File dst = Path.jar(jar);
+        if (Path.exists(dst) && Path.exists(src) && dst.length() == src.length() && dst.lastModified() >= src.lastModified()) return dst;
+        File tmp = new File(dst.getParent(), dst.getName() + ".tmp");
+        try (InputStream in = new FileInputStream(src); OutputStream out = new FileOutputStream(tmp)) {
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+            if (!tmp.renameTo(dst)) throw new IOException("Cannot move cached JAR into place");
+            return dst;
+        } catch (IOException | RuntimeException e) {
+            if (tmp.exists()) tmp.delete();
+            return src;
+        }
+    }
+
     private void loadJar(String key, String jar) {
         String[] texts = jar.split(";md5;");
         String md5 = texts.length > 1 ? texts[1].trim() : "";
@@ -125,7 +147,7 @@ public class JarLoader extends SpiderLoader {
         jar = texts[0];
         if (!md5.isEmpty() && Crypto.equals(Path.jar(jar), md5)) load(key, Path.jar(jar));
         else if (jar.startsWith("http")) load(key, Download.create(jar, Path.jar(jar)).get());
-        else if (jar.startsWith("file")) load(key, Path.local(jar));
+        else if (jar.startsWith("file")) load(key, copyLocalJar(jar));
     }
 
     public DexClassLoader dex(String jar) {
