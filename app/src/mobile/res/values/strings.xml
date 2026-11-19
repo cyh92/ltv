@@ -208,4 +208,6 @@
     <string name="section_all">All &gt;</string>
     <string name="theme_bg_mint">Mint green</string>
     <string name="theme_bg_9">Moon white</string>
+    <string name="mine_more_theme">More appearance settings ›</string>
+    <string name="mine_source">Sources</string>
 </resources>
