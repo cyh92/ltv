@@ -18,14 +18,21 @@ import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.bean.History;
+import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.FragmentSettingBinding;
+import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigListener;
 import com.fongmi.android.tv.impl.LiveListener;
 import com.fongmi.android.tv.impl.SiteListener;
 import com.fongmi.android.tv.setting.Setting;
+import com.fongmi.android.tv.ui.activity.HistoryActivity;
+import com.fongmi.android.tv.ui.activity.HomeActivity;
+import com.fongmi.android.tv.ui.activity.KeepActivity;
+import com.fongmi.android.tv.ui.activity.SearchActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
@@ -38,6 +45,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     private FragmentSettingBinding mBinding;
     private TextView[] mTabs;
+    private View[] mModeViews;
     private int mTab;
 
     public static SettingFragment newInstance() {
@@ -68,11 +76,64 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             int index = i;
             mTabs[i].setOnClickListener(v -> selectTab(index));
         }
+        mModeViews = new View[]{mBinding.mineModeLight, mBinding.mineModeDark, mBinding.mineModeSystem};
+        for (int i = 0; i < mModeViews.length; i++) {
+            int mode = i;
+            mModeViews[i].setOnClickListener(v -> setThemeMode(mode));
+        }
+        mBinding.mineStatKeep.setOnClickListener(v -> KeepActivity.start(requireActivity()));
+        mBinding.mineStatHistory.setOnClickListener(v -> HistoryActivity.start(requireActivity()));
+        mBinding.mineStatSite.setOnClickListener(v -> selectTab(0));
+        mBinding.mineQuickSearch.setOnClickListener(v -> SearchActivity.start(requireActivity()));
+        mBinding.mineQuickLocal.setOnClickListener(v -> ((HomeActivity) requireActivity()).change(7));
+        mBinding.mineQuickConfig.setOnClickListener(v -> selectTab(0));
+        mBinding.mineQuickModule.setOnClickListener(v -> selectTab(1));
+        mBinding.mineThemeMore.setOnClickListener(v -> selectTab(3));
+        mBinding.mineBgRow.setOnClickListener(v -> selectTab(3));
         if (openTab >= 0) {
             mTab = openTab;
             openTab = -1;
         }
+        refreshMine();
         selectTab(mTab);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshMine();
+    }
+
+    private void refreshMine() {
+        refreshStats();
+        updateMode();
+        updateBg();
+    }
+
+    private void refreshStats() {
+        if (mBinding == null) return;
+        mBinding.mineKeepNum.setText(String.valueOf(Keep.getVod().size() + Keep.getLive().size()));
+        mBinding.mineHistoryNum.setText(String.valueOf(History.get().size()));
+        mBinding.mineSiteNum.setText(String.valueOf(VodConfig.get().getSites().size()));
+    }
+
+    private void setThemeMode(int mode) {
+        Setting.putThemeMode(mode);
+        Setting.applyThemeMode();
+        updateMode();
+        RefreshEvent.theme();
+    }
+
+    private void updateMode() {
+        if (mBinding == null || mModeViews == null) return;
+        int mode = Setting.getThemeMode();
+        for (int i = 0; i < mModeViews.length; i++) mModeViews[i].setSelected(i == mode);
+    }
+
+    private void updateBg() {
+        if (mBinding == null) return;
+        mBinding.mineBgThumb.setImageResource(ThemeFragment.BGS[Setting.getWall()]);
+        mBinding.mineBgName.setText(ThemeFragment.BG_NAMES[Setting.getWall()]);
     }
 
     private void selectTab(int index) {
@@ -115,6 +176,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     @Override
     public void onHiddenChanged(boolean hidden) {
         if (hidden) return;
+        refreshMine();
         if (openTab >= 0) {
             selectTab(openTab);
             openTab = -1;
