@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInstaller;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.CancellationSignal;
 import android.os.OperationCanceledException;
 
@@ -293,10 +295,28 @@ public final class ModuleViewModel extends AndroidViewModel {
 
     private Status getInstalledStatus() throws IOException {
         RuntimeModule.refresh();
-        String installed = module.getVersionName();
+        String installed;
+        try {
+            installed = module.getVersionName();
+        } catch (IOException | RuntimeException e) {
+            // The package exists but failed verification (e.g. signer check).
+            // Keep the raw version for display so the toggle still reflects
+            // the installed package; loading the runtime still verifies.
+            installed = getRawInstalledVersionName();
+            if (installed == null) throw e;
+        }
         boolean restart = module == RuntimeModule.BDJ ? BdjRuntime.getStatus(getApplication()).restartRequired : module.isRestartRequired();
         boolean removable = installed != null;
         return new Status(RuntimeInstaller.getAbi(), installed, installed, false, restart, removable);
+    }
+
+    private String getRawInstalledVersionName() {
+        try {
+            PackageInfo info = getApplication().getPackageManager().getPackageInfo(module.getPackageName(), 0);
+            return info == null ? null : info.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            return null;
+        }
     }
 
     private Status mergeInstalledStatus(Status installed, Status cached) {
