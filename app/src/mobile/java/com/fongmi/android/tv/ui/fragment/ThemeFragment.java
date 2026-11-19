@@ -9,6 +9,7 @@ import android.widget.SeekBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -99,6 +100,7 @@ public class ThemeFragment extends BaseFragment {
         Setting.putThemeMode(mode);
         Setting.applyThemeMode();
         updateMode();
+        refreshParentMine();
         RefreshEvent.theme();
     }
 
@@ -112,6 +114,12 @@ public class ThemeFragment extends BaseFragment {
         Setting.putWallType(0);
         ConfigEvent.wall();
         updateBg();
+        refreshParentMine();
+    }
+
+    private void refreshParentMine() {
+        Fragment parent = getParentFragment();
+        if (parent instanceof SettingFragment) ((SettingFragment) parent).refreshMine();
     }
 
     private void updateBg() {
