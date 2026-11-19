@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.CancellationSignal;
+import android.os.OperationCanceledException;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
@@ -41,6 +42,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import okhttp3.Call;
@@ -73,15 +76,36 @@ public class RuntimeInstaller {
     public static JSONObject getCatalog(CancellationSignal signal) throws IOException {
         signal.throwIfCanceled();
         String url = getCatalogUrl();
+        IOException failure = null;
         if (!url.isEmpty()) {
-            try {
-                return getCatalog(url, signal);
-            } catch (IOException e) {
-                // Network catalog unreachable: fall back to the catalog bundled in the app.
+            for (String candidate : getMirrorUrls(url)) {
+                signal.throwIfCanceled();
+                try {
+                    return getCatalog(candidate, signal);
+                } catch (IOException e) {
+                    if (failure == null) failure = e;
+                }
             }
         }
         signal.throwIfCanceled();
-        return getBundledCatalog();
+        try {
+            return getBundledCatalog();
+        } catch (IOException e) {
+            // The bundled catalog is only a fallback: if the network also failed,
+            // report the network error, not the missing bundled file.
+            if (failure != null) throw failure;
+            throw e;
+        }
+    }
+
+    private static List<String> getMirrorUrls(String url) {
+        List<String> urls = new ArrayList<>();
+        urls.add(url);
+        if (url.contains("://cdn.jsdelivr.net/")) {
+            urls.add(url.replace("://cdn.jsdelivr.net/", "://fastly.jsdelivr.net/"));
+            urls.add(url.replace("://cdn.jsdelivr.net/", "://gcore.jsdelivr.net/"));
+        }
+        return urls;
     }
 
     private static JSONObject getBundledCatalog() throws IOException {
@@ -203,6 +227,24 @@ public class RuntimeInstaller {
         return download(module, asset, directory, signal, progress);
     }
 
+    private static void downloadFromMirrors(UpdatePackage update, File file, CancellationSignal signal, Downloader.ProgressListener progress) throws IOException {
+        IOException failure = null;
+        for (String url : getMirrorUrls(update.url())) {
+            signal.throwIfCanceled();
+            try {
+                Download.create(url, file).size(update.size()).get(signal, progress == null ? null : (total, downloaded, percent) -> progress.onProgress(update.size(), downloaded, 100f * downloaded / update.size()));
+                return;
+            } catch (OperationCanceledException e) {
+                throw e;
+            } catch (IOException | RuntimeException | Error e) {
+                if (failure == null) failure = e instanceof IOException ? (IOException) e : new IOException(String.valueOf(e.getMessage()), e);
+                if (file.exists()) file.delete();
+            }
+        }
+        if (failure == null) throw new IOException("Runtime download failed");
+        throw failure;
+    }
+
     public static File download(RuntimeModule module, JSONObject asset, File directory, CancellationSignal signal, Downloader.ProgressListener progress) throws IOException {
         signal.throwIfCanceled();
         UpdatePackage update = getUpdatePackage(asset);
@@ -221,7 +263,7 @@ public class RuntimeInstaller {
         boolean complete = false;
         Throwable failure = null;
         try {
-            Download.create(update.url(), file).size(update.size()).get(signal, progress == null ? null : (total, downloaded, percent) -> progress.onProgress(update.size(), downloaded, 100f * downloaded / update.size()));
+            downloadFromMirrors(update, file, signal, progress);
             signal.throwIfCanceled();
             verifyDownload(module, asset, update, file);
             signal.throwIfCanceled();
