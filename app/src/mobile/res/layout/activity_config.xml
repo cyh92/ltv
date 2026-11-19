@@ -57,7 +57,8 @@
                 android:paddingBottom="12dp"
                 android:text="@string/config_import_local_interface"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="16sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerLocal"
@@ -76,7 +77,8 @@
                 android:paddingBottom="12dp"
                 android:text="@string/config_import_folder"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="16sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerFolder"
@@ -95,7 +97,8 @@
                 android:paddingBottom="12dp"
                 android:text="@string/config_import_single"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="16sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerSingle"
@@ -114,7 +117,8 @@
                 android:paddingBottom="12dp"
                 android:text="@string/config_import_online"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="16sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerOnline"
@@ -133,7 +137,8 @@
                 android:paddingBottom="12dp"
                 android:text="@string/config_import_live_local"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="16sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerLiveLocal"
@@ -152,7 +157,8 @@
                 android:paddingBottom="12dp"
                 android:text="@string/config_import_live_online"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="16sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerLiveOnline"
