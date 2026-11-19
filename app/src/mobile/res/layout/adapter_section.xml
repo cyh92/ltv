@@ -51,7 +51,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:background="@color/black_20" />
+        android:background="@drawable/shape_section_placeholder" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
