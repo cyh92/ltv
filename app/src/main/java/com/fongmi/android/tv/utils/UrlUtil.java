@@ -44,16 +44,32 @@ public class UrlUtil {
     }
 
     /**
-     * Resolve a relative spider/api path ("./" or "../") against the config file's location,
-     * so a config can keep its jar/py/js files next to it. Absolute URLs (http/file/assets/proxy)
-     * and csp_* names are returned unchanged.
+     * Resolve a relative spider/api path against the config file's location,
+     * so a config can keep its jar/py/js files next to it. Handles "./", "../"
+     * and bare relative paths ("py/x.py", "jar/vox.jar", "x.py"). Absolute URLs
+     * (http/file/assets/proxy), csp_* names and JSON ext strings are returned
+     * unchanged. A "file://" base that is relative to the external storage
+     * root ("file://Download/...") is made absolute, so the jar/py/js loaders
+     * can open the real file.
      */
     public static String resolveRelative(String base, String url) {
         if (TextUtils.isEmpty(url) || TextUtils.isEmpty(base)) return url;
-        if (!url.startsWith("./") && !url.startsWith("../")) return url;
+        if (!isRelativePath(url)) return url;
         int slash = base.lastIndexOf('/');
         if (slash < 0) return url;
-        return normalizePath(base.substring(0, slash + 1) + url);
+        String resolved = normalizePath(base.substring(0, slash + 1) + url);
+        if (resolved.startsWith("file://") && !resolved.startsWith("file:///")) {
+            resolved = "file://" + Path.rootPath() + "/" + resolved.substring("file://".length());
+        }
+        return resolved;
+    }
+
+    private static boolean isRelativePath(String url) {
+        if (url.startsWith("./") || url.startsWith("../")) return true;
+        if (url.startsWith("/") || url.startsWith("csp_") || url.startsWith("node:") || url.startsWith("{") || url.startsWith("[")) return false;
+        int colon = url.indexOf(':');
+        if (colon > 0 && url.substring(0, colon).matches("[a-zA-Z][a-zA-Z0-9+.-]*")) return false;
+        return url.contains("/") || url.endsWith(".py") || url.endsWith(".js") || url.endsWith(".jar") || url.endsWith(".json");
     }
 
     private static String normalizePath(String path) {
