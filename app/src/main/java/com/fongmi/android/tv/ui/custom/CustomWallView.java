@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.custom;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -38,8 +39,8 @@ import pl.droidsonroids.gif.GifDrawable;
 
 public class CustomWallView extends FrameLayout implements DefaultLifecycleObserver {
 
-    private static final int[] WALL_PAPERS = {0, R.drawable.wallpaper_1, R.drawable.wallpaper_2, R.drawable.wallpaper_3, R.drawable.wallpaper_4, R.drawable.wallpaper_5, R.drawable.wallpaper_6, R.drawable.wallpaper_7, R.drawable.wallpaper_8};
-    private static final int[] WALL_COLORS = {0, 0xFF40C090, 0xFF4870E0, 0xFF48B0C0, 0xFF404040, 0xFFF0A8C0, 0xFFFFB060, 0xFFB080E0, 0xFFD8A030};
+    private static final int[] WALL_PAPERS = {R.drawable.wallpaper_0, R.drawable.wallpaper_1, R.drawable.wallpaper_2, R.drawable.wallpaper_3, R.drawable.wallpaper_4, R.drawable.wallpaper_5, R.drawable.wallpaper_6, R.drawable.wallpaper_7, R.drawable.wallpaper_8, R.drawable.wallpaper_9};
+    private static final int[] WALL_COLORS = {0xFF34B183, 0xFF40C090, 0xFF4870E0, 0xFF48B0C0, 0xFF404040, 0xFFF0A8C0, 0xFFFFB060, 0xFFB080E0, 0xFFD8A030, 0xFFF8F8F8};
     private static final int TYPE_RES = 0;
     private static final int TYPE_GIF = 1;
     private static final int TYPE_VIDEO = 2;
@@ -92,8 +93,10 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     private void load() {
         int wall = Setting.getWall();
         int type = Setting.getWallType();
-        if (wall == 0 && type == TYPE_RES) binding.image.setImageDrawable(null);
-            else if (isBuiltIn(wall, type)) loadRes(WALL_PAPERS[wall]);
+        if (wall == 0 && type == TYPE_RES) {
+            if (isNight()) binding.image.setImageDrawable(null);
+            else loadRes(WALL_PAPERS[wall]);
+        } else if (isBuiltIn(wall, type)) loadRes(WALL_PAPERS[wall]);
         else if (type == TYPE_VIDEO) loadVideo(Path.wall(wall));
         else if (type == TYPE_GIF) loadGif(Path.wall(wall));
         else loadImage();
@@ -193,7 +196,11 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     }
 
     private boolean isBuiltIn(int wall, int type) {
-        return type == TYPE_RES && wall > 0 && wall < WALL_PAPERS.length;
+        return type == TYPE_RES && wall >= 0 && wall < WALL_PAPERS.length;
+    }
+
+    private boolean isNight() {
+        return (getContext().getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
 
     @Override
