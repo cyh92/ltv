@@ -1,34 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBar"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/settingToolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        app:elevation="0dp">
+        android:layout_height="?attr/actionBarSize"
+        app:navigationIconTint="?attr/colorOnSurface"
+        app:titleTextColor="?attr/colorOnSurface"
+        app:title="@string/nav_mine"
+        app:titleTextAppearance="@style/ToolbarTextAppearance" />
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/settingToolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIconTint="?attr/colorOnSurface"
-            app:titleTextColor="?attr/colorOnSurface"
-            app:title="@string/nav_mine"
-            app:titleTextAppearance="@style/ToolbarTextAppearance" />
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/scrollWrap"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/headerWrap"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:paddingTop="12dp"
-            app:layout_scrollFlags="scroll|enterAlways|snap">
+            android:paddingTop="12dp">
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
@@ -324,73 +325,82 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="12dp"
             android:layout_marginEnd="16dp"
-            android:orientation="horizontal"
-            android:padding="4dp">
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tabConfig"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
                 android:background="@drawable/selector_setting_tab_bg"
                 android:gravity="center"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
                 android:text="@string/setting_menu_interface"
                 android:textColor="@color/selector_setting_tab_text"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tabModule"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/selector_setting_tab_bg"
                 android:gravity="center"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
                 android:text="@string/setting_menu_plugin"
                 android:textColor="@color/selector_setting_tab_text"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tabPlayer"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/selector_setting_tab_bg"
                 android:gravity="center"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
                 android:text="@string/setting_menu_player"
                 android:textColor="@color/selector_setting_tab_text"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tabTheme"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/selector_setting_tab_bg"
                 android:gravity="center"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
                 android:text="@string/setting_menu_appearance"
                 android:textColor="@color/selector_setting_tab_text"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tabData"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/selector_setting_tab_bg"
                 android:gravity="center"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
                 android:text="@string/setting_menu_data"
                 android:textColor="@color/selector_setting_tab_text"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
-    </com.google.android.material.appbar.AppBarLayout>
+        <FrameLayout
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="12dp" />
 
-    <FrameLayout
-        android:id="@+id/container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="12dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>
