@@ -140,4 +140,6 @@
     <string name="section_all">全部 &gt;</string>
     <string name="theme_bg_mint">薄荷綠</string>
     <string name="theme_bg_9">月白</string>
+    <string name="mine_more_theme">更多外觀設置 ›</string>
+    <string name="mine_source">源</string>
 </resources>
