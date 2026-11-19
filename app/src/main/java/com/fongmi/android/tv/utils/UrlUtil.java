@@ -54,6 +54,9 @@ public class UrlUtil {
      */
     public static String resolveRelative(String base, String url) {
         if (TextUtils.isEmpty(url) || TextUtils.isEmpty(base)) return url;
+        url = url.trim();
+        base = base.trim();
+        if (url.isEmpty() || base.isEmpty()) return url;
         if (!isRelativePath(url)) return url;
         int slash = base.lastIndexOf('/');
         if (slash < 0) return url;
