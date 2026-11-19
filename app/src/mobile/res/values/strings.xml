@@ -206,4 +206,6 @@
     <string name="setting_history">History</string>
     <string name="home_all_types">Categories</string>
     <string name="section_all">All &gt;</string>
+    <string name="theme_bg_mint">Mint green</string>
+    <string name="theme_bg_9">Moon white</string>
 </resources>
