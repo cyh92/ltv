@@ -29,8 +29,8 @@ public class ThemeFragment extends BaseFragment {
         return fragment;
     }
 
-    private static final int[] BGS = {0, R.drawable.wallpaper_1, R.drawable.wallpaper_2, R.drawable.wallpaper_3, R.drawable.wallpaper_4, R.drawable.wallpaper_5, R.drawable.wallpaper_6, R.drawable.wallpaper_7, R.drawable.wallpaper_8};
-    private static final int[] BG_NAMES = {R.string.theme_bg_none, R.string.theme_bg_1, R.string.theme_bg_2, R.string.theme_bg_3, R.string.theme_bg_4, R.string.theme_bg_5, R.string.theme_bg_6, R.string.theme_bg_7, R.string.theme_bg_8};
+    private static final int[] BGS = {R.drawable.wallpaper_0, R.drawable.wallpaper_1, R.drawable.wallpaper_2, R.drawable.wallpaper_3, R.drawable.wallpaper_4, R.drawable.wallpaper_5, R.drawable.wallpaper_6, R.drawable.wallpaper_7, R.drawable.wallpaper_8, R.drawable.wallpaper_9};
+    private static final int[] BG_NAMES = {R.string.theme_bg_mint, R.string.theme_bg_1, R.string.theme_bg_2, R.string.theme_bg_3, R.string.theme_bg_4, R.string.theme_bg_5, R.string.theme_bg_6, R.string.theme_bg_7, R.string.theme_bg_8, R.string.theme_bg_9};
 
     private ActivityThemeBinding mBinding;
     private View[] mModeViews;
