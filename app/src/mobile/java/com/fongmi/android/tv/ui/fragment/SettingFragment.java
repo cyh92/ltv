@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -46,7 +47,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private TextView[] mTabs;
     private View[] mModeViews;
     private NestedScrollView mTabScroll;
-    private boolean mHeaderExpanded = true;
+    private int mOffset;
+    private int mContainerBaseMargin = -1;
     private int mTab;
 
     public static SettingFragment newInstance() {
@@ -91,6 +93,9 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             mTab = openTab;
             openTab = -1;
         }
+        mOffset = 0;
+        mContainerBaseMargin = -1;
+        mTabScroll = null;
         refreshMine();
         selectTab(mTab);
     }
@@ -99,6 +104,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     public void onResume() {
         super.onResume();
         refreshMine();
+        attachScrollListener(mTab, 0);
     }
 
     public void refreshMine() {
@@ -133,17 +139,34 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.mineBgName.setText(ThemeFragment.BG_NAMES[Setting.getWall()]);
     }
 
-    private final NestedScrollView.OnScrollChangeListener mScrollListener = (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+    private final NestedScrollView.OnScrollChangeListener mScrollListener = (v, scrollX, scrollY, oldScrollX, oldScrollY) -> applyOffset(scrollY);
+
+    private void applyOffset(int scrollY) {
         if (mBinding == null) return;
-        int dy = scrollY - oldScrollY;
-        if (dy > 0 && mHeaderExpanded) {
-            mHeaderExpanded = false;
-            mBinding.appBar.setExpanded(false, true);
-        } else if (dy < 0 && !mHeaderExpanded) {
-            mHeaderExpanded = true;
-            mBinding.appBar.setExpanded(true, true);
+        int headerH = mBinding.headerWrap.getHeight();
+        if (headerH <= 0) return;
+        if (mContainerBaseMargin < 0) mContainerBaseMargin = ((LinearLayout.LayoutParams) mBinding.container.getLayoutParams()).topMargin;
+        int offset = Math.min(scrollY, headerH);
+        if (offset == mOffset) return;
+        mOffset = offset;
+        mBinding.headerWrap.setTranslationY(-offset);
+        mBinding.tabRow.setTranslationY(-offset);
+        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mBinding.container.getLayoutParams();
+        lp.topMargin = mContainerBaseMargin - offset;
+        mBinding.container.setLayoutParams(lp);
+    }
+
+    private void resetOffset() {
+        if (mBinding == null) return;
+        mOffset = 0;
+        mBinding.headerWrap.setTranslationY(0);
+        mBinding.tabRow.setTranslationY(0);
+        if (mContainerBaseMargin >= 0) {
+            LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mBinding.container.getLayoutParams();
+            lp.topMargin = mContainerBaseMargin;
+            mBinding.container.setLayoutParams(lp);
         }
-    };
+    }
 
     private void attachScrollListener(int index, int retry) {
         if (mBinding == null) return;
@@ -157,6 +180,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         if (mTabScroll != null && mTabScroll != scroll) mTabScroll.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) null);
         mTabScroll = scroll;
         mTabScroll.setOnScrollChangeListener(mScrollListener);
+        applyOffset(scroll.getScrollY());
     }
 
     private void selectTab(int index) {
@@ -174,8 +198,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }
         }
         ft.commit();
-        mHeaderExpanded = true;
-        mBinding.appBar.setExpanded(true, true);
+        resetOffset();
         mBinding.container.post(() -> attachScrollListener(index, 0));
         refreshTab(index);
     }
@@ -208,6 +231,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             openTab = -1;
             return;
         }
+        if (mBinding != null) mBinding.container.post(() -> attachScrollListener(mTab, 0));
         refreshTab(mTab);
     }
 
