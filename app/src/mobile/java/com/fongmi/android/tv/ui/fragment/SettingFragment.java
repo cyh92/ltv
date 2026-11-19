@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -44,6 +45,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private FragmentSettingBinding mBinding;
     private TextView[] mTabs;
     private View[] mModeViews;
+    private NestedScrollView mTabScroll;
+    private boolean mHeaderExpanded = true;
     private int mTab;
 
     public static SettingFragment newInstance() {
@@ -98,7 +101,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         refreshMine();
     }
 
-    private void refreshMine() {
+    public void refreshMine() {
         refreshStats();
         updateMode();
         updateBg();
@@ -130,6 +133,32 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.mineBgName.setText(ThemeFragment.BG_NAMES[Setting.getWall()]);
     }
 
+    private final NestedScrollView.OnScrollChangeListener mScrollListener = (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+        if (mBinding == null) return;
+        int dy = scrollY - oldScrollY;
+        if (dy > 0 && mHeaderExpanded) {
+            mHeaderExpanded = false;
+            mBinding.appBar.setExpanded(false, true);
+        } else if (dy < 0 && !mHeaderExpanded) {
+            mHeaderExpanded = true;
+            mBinding.appBar.setExpanded(true, true);
+        }
+    };
+
+    private void attachScrollListener(int index, int retry) {
+        if (mBinding == null) return;
+        Fragment f = getChildFragmentManager().findFragmentByTag("tab" + index);
+        if (f == null || !f.isAdded() || f.getView() == null) {
+            if (index == mTab && retry < 2) mBinding.container.post(() -> attachScrollListener(index, retry + 1));
+            return;
+        }
+        NestedScrollView scroll = f.getView().findViewById(R.id.tabScroll);
+        if (scroll == null) return;
+        if (mTabScroll != null && mTabScroll != scroll) mTabScroll.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) null);
+        mTabScroll = scroll;
+        mTabScroll.setOnScrollChangeListener(mScrollListener);
+    }
+
     private void selectTab(int index) {
         mTab = index;
         for (int i = 0; i < mTabs.length; i++) mTabs[i].setSelected(i == index);
@@ -145,7 +174,9 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }
         }
         ft.commit();
+        mHeaderExpanded = true;
         mBinding.appBar.setExpanded(true, true);
+        mBinding.container.post(() -> attachScrollListener(index, 0));
         refreshTab(index);
     }
 
