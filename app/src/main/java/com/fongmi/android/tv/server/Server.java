@@ -5,6 +5,8 @@ import com.github.catvod.Proxy;
 import com.github.catvod.utils.Task;
 import com.github.catvod.utils.Util;
 
+import java.io.IOException;
+
 public class Server {
 
     private volatile PlaybackService service;
@@ -44,14 +46,11 @@ public class Server {
 
     public synchronized boolean start() {
         if (nano != null) return true;
-        for (int i = 9978; i < 9999; i++) if (start(i)) return true;
-        return false;
-    }
-
-    private boolean start(int port) {
         try {
-            nano = new Nano(port, this);
+            nano = new Nano(0, this);
             nano.start(500);
+            int port = nano.getListeningPort();
+            if (port <= 0) throw new IOException("No listening port");
             Proxy.set(port);
             return true;
         } catch (Throwable e) {
