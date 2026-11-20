@@ -1,10 +1,16 @@
 package com.fongmi.android.tv.ui.fragment;
 
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.os.Bundle;
+import android.util.StateSet;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -36,6 +42,10 @@ import com.fongmi.android.tv.ui.activity.KeepActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
+import com.google.android.material.color.MaterialColors;
+import com.google.android.material.shape.CornerFamily;
+import com.google.android.material.shape.MaterialShapeDrawable;
+import com.google.android.material.shape.ShapeAppearanceModel;
 
 public class SettingFragment extends BaseFragment implements ConfigListener, SiteListener, LiveListener {
 
@@ -45,11 +55,16 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     private FragmentSettingBinding mBinding;
     private TextView[] mTabs;
+    private TextView[] mTabsTop;
     private View[] mModeViews;
-    private NestedScrollView mTabScroll;
-    private int mOffset;
-    private int mContainerBaseMargin = -1;
     private int mTab;
+
+    private final NestedScrollView.OnScrollChangeListener mScrollListener = (v, scrollX, scrollY, oldScrollX, oldScrollY) -> updateStickyTab(scrollY);
+
+    private final ViewTreeObserver.OnGlobalLayoutListener mLayoutListener = () -> {
+        updateBottomSpace();
+        disableInnerScrolls();
+    };
 
     public static SettingFragment newInstance() {
         return new SettingFragment();
@@ -75,10 +90,15 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     @Override
     protected void initView() {
         mTabs = new TextView[]{mBinding.tabConfig, mBinding.tabModule, mBinding.tabPlayer, mBinding.tabTheme, mBinding.tabData};
+        mTabsTop = new TextView[]{mBinding.tabConfigTop, mBinding.tabModuleTop, mBinding.tabPlayerTop, mBinding.tabThemeTop, mBinding.tabDataTop};
         for (int i = 0; i < mTabs.length; i++) {
             int index = i;
             mTabs[i].setOnClickListener(v -> selectTab(index));
+            mTabsTop[i].setOnClickListener(v -> selectTab(index));
         }
+        setTabBackgrounds();
+        mBinding.pageScroll.setOnScrollChangeListener(mScrollListener);
+        mBinding.pageContent.getViewTreeObserver().addOnGlobalLayoutListener(mLayoutListener);
         mModeViews = new View[]{mBinding.mineModeLight, mBinding.mineModeDark, mBinding.mineModeSystem};
         for (int i = 0; i < mModeViews.length; i++) {
             int mode = i;
@@ -93,9 +113,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             mTab = openTab;
             openTab = -1;
         }
-        mOffset = 0;
-        mContainerBaseMargin = -1;
-        mTabScroll = null;
         refreshMine();
         selectTab(mTab);
     }
@@ -104,7 +121,13 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     public void onResume() {
         super.onResume();
         refreshMine();
-        attachScrollListener(mTab, 0);
+        refreshTab(mTab);
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (mBinding != null) mBinding.pageContent.getViewTreeObserver().removeOnGlobalLayoutListener(mLayoutListener);
+        super.onDestroyView();
     }
 
     public void refreshMine() {
@@ -139,53 +162,73 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.mineBgName.setText(ThemeFragment.BG_NAMES[Setting.getWall()]);
     }
 
-    private final NestedScrollView.OnScrollChangeListener mScrollListener = (v, scrollX, scrollY, oldScrollX, oldScrollY) -> applyOffset(scrollY);
+    private void setTabBackgrounds() {
+        for (int i = 0; i < mTabs.length; i++) {
+            mTabs[i].setBackground(createTabBackground());
+            mTabsTop[i].setBackground(createTabBackground());
+        }
+    }
 
-    private void applyOffset(int scrollY) {
+    private Drawable createTabBackground() {
+        float cut = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+        ShapeAppearanceModel shape = new ShapeAppearanceModel.Builder().setAllCorners(CornerFamily.CUT, cut).build();
+        MaterialShapeDrawable selected = new MaterialShapeDrawable(shape);
+        selected.setFillColor(ColorStateList.valueOf(Color.parseColor("#F1BB6C")));
+        MaterialShapeDrawable normal = new MaterialShapeDrawable(shape);
+        normal.setFillColor(ColorStateList.valueOf(MaterialColors.getColor(requireContext(), R.attr.colorSurface, Color.WHITE)));
+        StateListDrawable bg = new StateListDrawable();
+        bg.addState(new int[]{android.R.attr.state_selected}, selected);
+        bg.addState(StateSet.WILD_CARD, normal);
+        return bg;
+    }
+
+    private void updateStickyTab(int scrollY) {
         if (mBinding == null) return;
         int headerH = mBinding.headerWrap.getHeight();
-        if (headerH <= 0) return;
-        if (mContainerBaseMargin < 0) mContainerBaseMargin = ((LinearLayout.LayoutParams) mBinding.container.getLayoutParams()).topMargin;
-        int offset = Math.min(scrollY, headerH);
-        if (offset == mOffset) return;
-        mOffset = offset;
-        mBinding.headerWrap.setTranslationY(-offset);
-        mBinding.tabRow.setTranslationY(-offset);
-        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mBinding.container.getLayoutParams();
-        lp.topMargin = mContainerBaseMargin - offset;
-        mBinding.container.setLayoutParams(lp);
+        boolean show = headerH > 0 && scrollY >= headerH;
+        mBinding.tabRowTop.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
-    private void resetOffset() {
-        if (mBinding == null) return;
-        mOffset = 0;
-        mBinding.headerWrap.setTranslationY(0);
-        mBinding.tabRow.setTranslationY(0);
-        if (mContainerBaseMargin >= 0) {
-            LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mBinding.container.getLayoutParams();
-            lp.topMargin = mContainerBaseMargin;
-            mBinding.container.setLayoutParams(lp);
+    private void updateBottomSpace() {
+        if (mBinding == null || !isAdded()) return;
+        int headerH = mBinding.headerWrap.getHeight();
+        int viewportH = mBinding.pageScroll.getHeight();
+        int contentH = mBinding.pageContent.getHeight();
+        if (headerH <= 0 || viewportH <= 0 || contentH <= 0) return;
+        View space = mBinding.bottomSpace;
+        int oldH = space.getLayoutParams().height;
+        int total = contentH - oldH;
+        int need = Math.max(0, headerH + viewportH - total);
+        if (need != oldH) {
+            ViewGroup.LayoutParams lp = space.getLayoutParams();
+            lp.height = need;
+            space.setLayoutParams(lp);
         }
     }
 
-    private void attachScrollListener(int index, int retry) {
-        if (mBinding == null) return;
-        Fragment f = getChildFragmentManager().findFragmentByTag("tab" + index);
-        if (f == null || !f.isAdded() || f.getView() == null) {
-            if (index == mTab && retry < 2) mBinding.container.post(() -> attachScrollListener(index, retry + 1));
-            return;
+    private void disableInnerScrolls() {
+        if (!isAdded()) return;
+        FragmentManager fm = getChildFragmentManager();
+        for (int i = 0; i < 5; i++) {
+            Fragment f = fm.findFragmentByTag("tab" + i);
+            if (f == null || f.getView() == null) continue;
+            NestedScrollView scroll = f.getView().findViewById(R.id.tabScroll);
+            if (scroll == null) continue;
+            if (scroll.isNestedScrollingEnabled()) scroll.setNestedScrollingEnabled(false);
+            ViewGroup.LayoutParams lp = scroll.getLayoutParams();
+            if (lp.height != ViewGroup.LayoutParams.WRAP_CONTENT) {
+                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                scroll.setLayoutParams(lp);
+            }
         }
-        NestedScrollView scroll = f.getView().findViewById(R.id.tabScroll);
-        if (scroll == null) return;
-        if (mTabScroll != null && mTabScroll != scroll) mTabScroll.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) null);
-        mTabScroll = scroll;
-        mTabScroll.setOnScrollChangeListener(mScrollListener);
-        applyOffset(scroll.getScrollY());
     }
 
     private void selectTab(int index) {
         mTab = index;
-        for (int i = 0; i < mTabs.length; i++) mTabs[i].setSelected(i == index);
+        for (int i = 0; i < mTabs.length; i++) {
+            mTabs[i].setSelected(i == index);
+            mTabsTop[i].setSelected(i == index);
+        }
         FragmentManager fm = getChildFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         for (int i = 0; i < mTabs.length; i++) {
@@ -198,8 +241,10 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }
         }
         ft.commit();
-        resetOffset();
-        mBinding.container.post(() -> attachScrollListener(index, 0));
+        mBinding.pageScroll.post(() -> {
+            if (mBinding == null) return;
+            mBinding.pageScroll.scrollTo(0, 0);
+        });
         refreshTab(index);
     }
 
@@ -231,7 +276,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             openTab = -1;
             return;
         }
-        if (mBinding != null) mBinding.container.post(() -> attachScrollListener(mTab, 0));
         refreshTab(mTab);
     }
 
