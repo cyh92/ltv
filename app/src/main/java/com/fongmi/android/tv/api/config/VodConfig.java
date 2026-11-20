@@ -141,7 +141,7 @@ public class VodConfig extends BaseConfig {
         NodeRuntimeApi.LoadedConfig loaded = null;
         try {
             if (node) loaded = runtime.loadConfig(config.getUrl());
-            String json = node ? loaded.json() : Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
+            String json = node ? loaded.json() : isLocalFile(config.getUrl()) ? readLocalText(config.getUrl()) : Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
             runtime.prune(loaded, Config.getAll(VOD).stream().map(Config::getUrl).toList(), config.getUrl());
             checkJson(config, Json.parse(json).getAsJsonObject(), loaded);
         } catch (Throwable e) {
