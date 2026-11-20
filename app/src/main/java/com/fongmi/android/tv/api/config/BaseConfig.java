@@ -14,13 +14,20 @@ import com.github.catvod.bean.Header;
 import com.github.catvod.bean.Proxy;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
+import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Task;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
@@ -147,6 +154,20 @@ abstract class BaseConfig {
         return canceled && !timedOut;
     }
 
+    protected static boolean isLocalFile(String url) {
+        return !TextUtils.isEmpty(url) && url.startsWith("file");
+    }
+
+    protected static String readLocalText(String url) throws IOException {
+        File file = Path.local(url);
+        try (InputStream is = new FileInputStream(file); ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            int len;
+            while ((len = is.read(buffer)) != -1) os.write(buffer, 0, len);
+            return new String(os.toByteArray(), StandardCharsets.UTF_8);
+        }
+    }
+
     protected JsonArray fetchArray(JsonObject object, String key) {
         if (!object.has(key)) return new JsonArray();
         JsonElement element = object.get(key);
@@ -162,7 +183,8 @@ abstract class BaseConfig {
 
     private JsonArray fetch(String url) {
         try {
-            JsonElement parsed = Json.parse(OkHttp.string(UrlUtil.convert(url)));
+            String text = isLocalFile(url) ? readLocalText(url) : OkHttp.string(UrlUtil.convert(url));
+            JsonElement parsed = Json.parse(text);
             return parsed.isJsonArray() ? parsed.getAsJsonArray() : new JsonArray();
         } catch (Exception e) {
             return new JsonArray();
