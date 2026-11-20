@@ -175,7 +175,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         MaterialShapeDrawable selected = new MaterialShapeDrawable(shape);
         selected.setFillColor(ColorStateList.valueOf(Color.parseColor("#F1BB6C")));
         MaterialShapeDrawable normal = new MaterialShapeDrawable(shape);
-        normal.setFillColor(ColorStateList.valueOf(MaterialColors.getColor(requireContext(), R.attr.colorSurface, Color.WHITE)));
+        normal.setFillColor(ColorStateList.valueOf(MaterialColors.getColor(requireContext(), com.google.android.material.R.attr.colorSurface, Color.WHITE)));
         StateListDrawable bg = new StateListDrawable();
         bg.addState(new int[]{android.R.attr.state_selected}, selected);
         bg.addState(StateSet.WILD_CARD, normal);
