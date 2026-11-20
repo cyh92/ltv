@@ -158,7 +158,7 @@ public class LiveConfig extends BaseConfig {
         parseText(config, text, null);
     }
 
-    private void parseText(Config config, String text, Auth auth) {
+    private void parseText(Config config, String text, Auth.Context auth) {
         Live live = new Live(UriUtil.getName(config.getUrl()), config.getUrl()).sync();
         live.setAuth(auth);
         lives = new ArrayList<>(List.of(live));
