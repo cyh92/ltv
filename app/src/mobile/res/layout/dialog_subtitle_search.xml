@@ -27,7 +27,7 @@
             android:maxLength="255"
             android:nextFocusDown="@id/recycler"
             android:singleLine="true"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <com.fongmi.android.tv.ui.custom.DialogActionView
             android:id="@+id/setting"

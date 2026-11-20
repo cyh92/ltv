@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
         android:textColor="@color/white"
-        android:textSize="16sp" />
+        android:textSize="14sp" />
 
     <com.fongmi.android.tv.ui.custom.CustomRecyclerView
         android:id="@+id/recycler"

@@ -80,7 +80,7 @@
         android:ellipsize="end"
         android:singleLine="true"
         android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="16sp" />
+        android:textSize="13sp" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/desc"
@@ -89,6 +89,6 @@
         android:layout_marginTop="2dp"
         android:paddingStart="36dp"
         android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="16sp" />
+        android:textSize="13sp" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

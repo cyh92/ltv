@@ -49,7 +49,7 @@
                         android:maxWidth="110dp"
                         android:text="@string/config_all_interfaces"
                         android:textColor="@color/selector_control"
-                        android:textSize="16sp" />
+                        android:textSize="13sp" />
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:layout_width="16dp"
@@ -85,7 +85,7 @@
                         android:maxLines="1"
                         android:text="@string/app_name"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="13sp" />
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:layout_width="16dp"

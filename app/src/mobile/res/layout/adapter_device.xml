@@ -30,7 +30,7 @@
             android:ellipsize="end"
             android:singleLine="true"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="16sp"
+            android:textSize="14sp"
             tools:text="TCL Smart TV Pro" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -41,7 +41,7 @@
             android:ellipsize="end"
             android:singleLine="true"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="16sp"
+            android:textSize="12sp"
             tools:text="192.168.68.74" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>

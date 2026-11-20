@@ -25,7 +25,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/selector_control"
-        android:textSize="16sp"
+        android:textSize="12sp"
         tools:text="4K咕噜[py]" />
 
     <com.fongmi.android.tv.ui.custom.DialogActionView
