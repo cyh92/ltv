@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 思源宋体只在 API 26+ 生效：可变字体要 API 26+ 才认 fontVariationSettings，
+         26 以下会按文件默认字重（ExtraLight 200）渲染太细，所以 24/25 保持系统字体。
+         Theme.Base 只在 values/styles.xml 里定义过一次，这里是 26+ 的同名覆盖，
+         values-night / values-v27 只覆盖 Theme.App / Theme.Splash，不影响它。 -->
+    <style name="Theme.Base" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/transparent</item>
+        <item name="android:navigationBarColor">@color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fontFamily">@font/noto_serif_sc</item>
+        <item name="fontFamily">@font/noto_serif_sc</item>
+    </style>
+
+</resources>
