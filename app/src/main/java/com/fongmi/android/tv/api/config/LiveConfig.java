@@ -116,6 +116,12 @@ public class LiveConfig extends BaseConfig {
 
     @Override
     protected void load(Config config) throws Throwable {
+        if (isLocalFile(config.getUrl())) {
+            String text = readLocalText(config.getUrl());
+            if (Json.isObj(text)) checkJson(config, Json.parse(text).getAsJsonObject());
+            else parseText(config, text);
+            return;
+        }
         Decoder.Content content = Decoder.load(UrlUtil.convert(config.getUrl()), TAG, Auth.Context.NONE);
         String json = content.text();
         if (Json.isObj(json)) checkJson(config, Json.parse(json).getAsJsonObject());
@@ -145,10 +151,18 @@ public class LiveConfig extends BaseConfig {
     }
 
     private void parseText(Config config, Decoder.Content content) {
+        parseText(config, content.text(), content.successful() ? Auth.capture(config.getUrl(), Map.of(), content.url(), content.authorization()) : null);
+    }
+
+    private void parseText(Config config, String text) {
+        parseText(config, text, null);
+    }
+
+    private void parseText(Config config, String text, Auth auth) {
         Live live = new Live(UriUtil.getName(config.getUrl()), config.getUrl()).sync();
-        live.setAuth(content.successful() ? Auth.capture(config.getUrl(), Map.of(), content.url(), content.authorization()) : null);
+        live.setAuth(auth);
         lives = new ArrayList<>(List.of(live));
-        LiveParser.text(live, content.text());
+        LiveParser.text(live, text);
         setHome(config, live, false);
     }
 
