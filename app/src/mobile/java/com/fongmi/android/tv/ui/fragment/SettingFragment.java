@@ -170,8 +170,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     }
 
     private Drawable createTabBackground() {
-        float cut = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-        ShapeAppearanceModel shape = new ShapeAppearanceModel.Builder().setAllCorners(CornerFamily.CUT, cut).build();
+        float radius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16, getResources().getDisplayMetrics());
+        ShapeAppearanceModel shape = new ShapeAppearanceModel.Builder().setAllCorners(CornerFamily.ROUNDED, radius).build();
         MaterialShapeDrawable selected = new MaterialShapeDrawable(shape);
         selected.setFillColor(ColorStateList.valueOf(Color.parseColor("#F1BB6C")));
         MaterialShapeDrawable normal = new MaterialShapeDrawable(shape);
