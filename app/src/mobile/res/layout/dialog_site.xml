@@ -25,7 +25,7 @@
             android:inputType="text"
             android:maxLines="1"
             android:singleLine="true"
-            android:textSize="14sp" />
+            android:textSize="16sp" />
 
         <com.fongmi.android.tv.ui.custom.DialogActionView
             android:id="@+id/layoutToggle"

@@ -38,7 +38,7 @@
             android:shadowRadius="4"
             android:singleLine="true"
             android:textColor="@color/white_80"
-            android:textSize="12sp" />
+            android:textSize="16sp" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -85,6 +85,6 @@
         android:shadowDy="1"
         android:shadowRadius="4"
         android:textColor="@color/white"
-        android:textSize="12sp" />
+        android:textSize="16sp" />
 
 </RelativeLayout>

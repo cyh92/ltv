@@ -23,7 +23,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="20sp" />
+                android:textSize="18sp" />
 
             <FrameLayout
                 android:layout_width="48dp"
@@ -79,7 +79,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:visibility="gone" />
 
         <com.google.android.material.textview.MaterialTextView
@@ -88,7 +88,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:visibility="gone" />
 
         <com.google.android.material.button.MaterialButton
@@ -107,7 +107,7 @@
             android:layout_marginTop="8dp"
             android:accessibilityLiveRegion="polite"
             android:textColor="?attr/colorError"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:visibility="gone" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>

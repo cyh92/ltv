@@ -63,7 +63,7 @@
         android:paddingBottom="24dp"
         android:text="@string/device_empty"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="14sp"
+        android:textSize="16sp"
         android:visibility="gone" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
@@ -91,7 +91,7 @@
             android:layout_weight="1"
             android:accessibilityLiveRegion="polite"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="14sp" />
+            android:textSize="16sp" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

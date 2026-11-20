@@ -55,7 +55,7 @@
                         android:layout_marginTop="4dp"
                         android:text="@string/module_hint"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="13sp" />
+                        android:textSize="16sp" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 

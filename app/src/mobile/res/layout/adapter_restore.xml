@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:singleLine="true"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="14sp" />
+            android:textSize="16sp" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/time"
@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:singleLine="true"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="12sp" />
+            android:textSize="16sp" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

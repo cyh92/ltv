@@ -16,7 +16,7 @@
         android:ellipsize="middle"
         android:singleLine="true"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="14sp"
+        android:textSize="16sp"
         app:backgroundTint="@color/selector_button"
         app:strokeColor="@color/selector_stroke"
         tools:text="https://fongmi.github.io/cat.json" />
