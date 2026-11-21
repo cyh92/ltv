@@ -46,6 +46,8 @@
                 android:text="@string/config_check_all"
                 android:textColor="?attr/colorOnSurface"
                 android:textSize="14sp"
+                android:textStyle="bold"
+                android:textAppearance="@style/TextAppearance.Zhulong.ButtonBold"
                 app:backgroundTint="?attr/colorSurfaceVariant"
                 app:cornerRadius="8dp" />
 

@@ -8,8 +8,8 @@
     android:paddingBottom="12dp">
 
     <androidx.appcompat.widget.AppCompatImageView
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:src="@drawable/ic_local_folder"
         android:tint="?attr/colorOnSurface" />
 
