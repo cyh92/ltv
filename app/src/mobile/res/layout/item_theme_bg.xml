@@ -22,6 +22,6 @@
         android:layout_marginTop="4dp"
         android:gravity="center"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="13sp" />
+        android:textSize="16sp" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

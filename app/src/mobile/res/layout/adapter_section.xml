@@ -40,7 +40,7 @@
             android:paddingBottom="4dp"
             android:text="@string/section_all"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="13sp" />
+            android:textSize="16sp" />
 
     </LinearLayout>
 

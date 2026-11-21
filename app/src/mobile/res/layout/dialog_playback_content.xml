@@ -110,7 +110,7 @@
                 android:minHeight="48dp"
                 android:nextFocusDown="@id/recycler"
                 android:singleLine="true"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:visibility="gone" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -120,7 +120,7 @@
                 android:paddingHorizontal="@dimen/playback_dialog_inset"
                 android:paddingVertical="@dimen/playback_dialog_spacing"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="12sp"
+                android:textSize="16sp"
                 android:visibility="gone" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
@@ -153,7 +153,7 @@
             android:padding="@dimen/playback_dialog_inset"
             android:text="@string/content_empty"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="14sp" />
+            android:textSize="16sp" />
 
     </FrameLayout>
 

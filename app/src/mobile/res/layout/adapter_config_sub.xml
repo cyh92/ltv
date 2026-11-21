@@ -36,7 +36,7 @@
                 android:layout_marginLeft="8dp"
                 android:text="@string/config_active"
                 android:textColor="?attr/colorPrimary"
-                android:textSize="12sp"
+                android:textSize="16sp"
                 android:visibility="gone" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -45,7 +45,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="8dp"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="12sp" />
+                android:textSize="16sp" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -57,7 +57,7 @@
             android:ellipsize="middle"
             android:maxLines="1"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="13sp" />
+            android:textSize="16sp" />
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/status"
@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:maxLines="1"
-            android:textSize="12sp"
+            android:textSize="16sp"
             android:visibility="gone" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
