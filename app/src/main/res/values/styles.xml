@@ -11,6 +11,11 @@
         <item name="cornerSizeTopRight">16dp</item>
     </style>
 
+    <style name="Vod.ThemeBg">
+        <item name="cornerSizeTopLeft">8dp</item>
+        <item name="cornerSizeTopRight">8dp</item>
+    </style>
+
     <style name="Vod.Grid.Large">
         <item name="cornerSize">16dp</item>
     </style>
