@@ -31,7 +31,6 @@ import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.FragmentSettingBinding;
-import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigListener;
 import com.fongmi.android.tv.impl.LiveListener;
@@ -56,7 +55,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private FragmentSettingBinding mBinding;
     private TextView[] mTabs;
     private TextView[] mTabsTop;
-    private View[] mModeViews;
     private int mTab;
 
     private final NestedScrollView.OnScrollChangeListener mScrollListener = (v, scrollX, scrollY, oldScrollX, oldScrollY) -> updateStickyTab(scrollY);
@@ -99,16 +97,9 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         setTabBackgrounds();
         mBinding.pageScroll.setOnScrollChangeListener(mScrollListener);
         mBinding.pageContent.getViewTreeObserver().addOnGlobalLayoutListener(mLayoutListener);
-        mModeViews = new View[]{mBinding.mineModeLight, mBinding.mineModeDark, mBinding.mineModeSystem};
-        for (int i = 0; i < mModeViews.length; i++) {
-            int mode = i;
-            mModeViews[i].setOnClickListener(v -> setThemeMode(mode));
-        }
         mBinding.mineStatKeep.setOnClickListener(v -> KeepActivity.start(requireActivity()));
         mBinding.mineStatHistory.setOnClickListener(v -> HistoryActivity.start(requireActivity()));
         mBinding.mineStatSite.setOnClickListener(v -> selectTab(0));
-        mBinding.mineThemeMore.setOnClickListener(v -> selectTab(3));
-        mBinding.mineBgRow.setOnClickListener(v -> selectTab(3));
         if (openTab >= 0) {
             mTab = openTab;
             openTab = -1;
@@ -132,8 +123,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     public void refreshMine() {
         refreshStats();
-        updateMode();
-        updateBg();
     }
 
     private void refreshStats() {
@@ -141,25 +130,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.mineKeepNum.setText(String.valueOf(Keep.getVod().size() + Keep.getLive().size()));
         mBinding.mineHistoryNum.setText(String.valueOf(History.get().size()));
         mBinding.mineSiteNum.setText(String.valueOf(VodConfig.get().getSites().size()));
-    }
-
-    private void setThemeMode(int mode) {
-        Setting.putThemeMode(mode);
-        Setting.applyThemeMode();
-        updateMode();
-        RefreshEvent.theme();
-    }
-
-    private void updateMode() {
-        if (mBinding == null || mModeViews == null) return;
-        int mode = Setting.getThemeMode();
-        for (int i = 0; i < mModeViews.length; i++) mModeViews[i].setSelected(i == mode);
-    }
-
-    private void updateBg() {
-        if (mBinding == null) return;
-        mBinding.mineBgThumb.setImageResource(ThemeFragment.BGS[Setting.getWall()]);
-        mBinding.mineBgName.setText(ThemeFragment.BG_NAMES[Setting.getWall()]);
     }
 
     private void setTabBackgrounds() {
