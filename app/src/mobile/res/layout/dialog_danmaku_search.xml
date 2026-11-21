@@ -26,7 +26,7 @@
             android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
             android:maxLength="255"
             android:singleLine="true"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <com.fongmi.android.tv.ui.custom.DialogActionView
             android:id="@+id/setting"

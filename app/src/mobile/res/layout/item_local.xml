@@ -21,12 +21,12 @@
         android:maxLines="1"
         android:paddingTop="4dp"
         android:singleLine="true"
-        android:textSize="16sp" />
+        android:textSize="12sp" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/duration"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp" />
+        android:textSize="12sp" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

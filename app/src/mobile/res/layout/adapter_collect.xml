@@ -11,5 +11,5 @@
     android:padding="8dp"
     android:singleLine="true"
     android:textColor="?attr/colorOnSurface"
-    android:textSize="16sp"
+    android:textSize="14sp"
     tools:text="泥巴" />

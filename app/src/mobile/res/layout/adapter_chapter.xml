@@ -8,5 +8,5 @@
     android:ellipsize="marquee"
     android:singleLine="true"
     android:textColor="@color/selector_control"
-    android:textSize="16sp"
+    android:textSize="14sp"
     tools:text="Chapter 1" />

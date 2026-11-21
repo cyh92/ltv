@@ -24,7 +24,7 @@
         android:background="@drawable/shape_vod_year"
         android:singleLine="true"
         android:textColor="@color/text_year"
-        android:textSize="16sp"
+        android:textSize="12sp"
         android:visibility="gone"
         tools:text="2022"
         tools:visibility="visible" />
@@ -36,7 +36,7 @@
         android:background="@drawable/shape_vod_site"
         android:singleLine="true"
         android:textColor="@color/text_site"
-        android:textSize="16sp"
+        android:textSize="12sp"
         android:visibility="gone"
         tools:text="泥巴"
         tools:visibility="visible" />
@@ -50,7 +50,7 @@
         android:background="@drawable/shape_vod_remark"
         android:singleLine="true"
         android:textColor="@color/text_remark"
-        android:textSize="16sp"
+        android:textSize="12sp"
         tools:text="1080p" />
 
     <com.google.android.material.textview.MaterialTextView
