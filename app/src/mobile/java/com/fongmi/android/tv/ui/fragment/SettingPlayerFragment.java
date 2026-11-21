@@ -14,6 +14,7 @@ import androidx.media3.common.DecoderMode;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.databinding.FragmentSettingPlayerBinding;
 import com.fongmi.android.tv.impl.BufferListener;
 import com.fongmi.android.tv.impl.UaListener;
@@ -25,6 +26,7 @@ import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.setting.SpeedSetting;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
+import com.fongmi.android.tv.ui.activity.ParseActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.BufferDialog;
 import com.fongmi.android.tv.ui.dialog.DisplaySettingDialog;
@@ -33,6 +35,7 @@ import com.fongmi.android.tv.ui.dialog.PlayerButtonsEditDialog;
 import com.fongmi.android.tv.ui.dialog.ScaleDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ParseStore;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.utils.RuntimeModule;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -89,6 +92,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         refreshButtonsText();
         refreshLongPressText();
         refreshScaleText();
+        refreshParseText();
     }
 
     @Override
@@ -121,6 +125,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.buffer.setOnClickListener(this::onBuffer);
         mBinding.preload.setOnClickListener(this::onPreload);
         mBinding.ua.setOnClickListener(this::onUa);
+        mBinding.parseManage.setOnClickListener(v -> ParseActivity.start(requireActivity()));
         mBinding.incognito.setOnClickListener(this::setIncognito);
     }
 
@@ -199,6 +204,18 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
 
     private void refreshScaleText() {
         mBinding.scaleText.setText(ResUtil.getStringArray(R.array.select_scale)[PlayerSetting.getScale()]);
+    }
+
+    private void refreshParseText() {
+        if (mBinding == null) return;
+        int count = ParseStore.getUserParses().size();
+        if (count == 0) {
+            mBinding.parseManageText.setText(R.string.parse_manage_empty);
+            return;
+        }
+        String name = VodConfig.get().getParse().getName();
+        if (name.isEmpty()) name = getString(R.string.parse_god);
+        mBinding.parseManageText.setText(getString(R.string.parse_manage_count, count, name));
     }
 
     private void onLongPressSpeed(View view) {
@@ -331,5 +348,11 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
     @Override
     public void onHiddenChanged(boolean hidden) {
         if (!hidden) initView();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshParseText();
     }
 }

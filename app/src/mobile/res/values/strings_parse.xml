@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Parse -->
+    <string name="parse_manage">Parse Manager</string>
+    <string name="parse_manage_empty">No parser added</string>
+    <string name="parse_manage_count">%1$d added · Default: %2$s</string>
+    <string name="parse_add">Add parser</string>
+    <string name="parse_edit">Edit parser</string>
+    <string name="parse_name">Name</string>
+    <string name="parse_url">Parse API URL</string>
+    <string name="parse_type">Parse method</string>
+    <string name="parse_type_json">JSON direct</string>
+    <string name="parse_type_web">Web sniffing</string>
+    <string name="parse_type_json_ext">JSON extended</string>
+    <string name="parse_type_json_mix">JSON mixed</string>
+    <string name="parse_platform">Supported platforms</string>
+    <string name="parse_platform_hint">Leave empty to support all platforms</string>
+    <string name="parse_platform_custom">Custom platform ID, e.g. youku</string>
+    <string name="parse_platform_add">Add</string>
+    <string name="parse_header">Request headers</string>
+    <string name="parse_header_hint">JSON object, e.g. {"User-Agent": "..."}</string>
+    <string name="parse_need_name">Name cannot be empty</string>
+    <string name="parse_need_url">Parse API URL cannot be empty</string>
+    <string name="parse_bad_url">Parse API URL must start with http</string>
+    <string name="parse_bad_header">Request headers must be a valid JSON object</string>
+    <string name="parse_name_exists">A parser with this name already exists</string>
+    <string name="parse_delete_confirm">Delete "%1$s"?</string>
+
+</resources>

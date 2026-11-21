@@ -33,6 +33,7 @@ import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
 import com.fongmi.android.tv.utils.ResUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CollectFragment extends BaseFragment implements MenuProvider, CollectAdapter.OnClickListener, SearchAdapter.OnClickListener, CustomScroller.Callback {
@@ -43,6 +44,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     private CustomScroller mScroller;
     private SiteViewModel mViewModel;
     private List<Site> mSites;
+    private final List<Collect> mTabs = new ArrayList<>();
 
     public static CollectFragment newInstance(String keyword) {
         Bundle args = new Bundle();
@@ -129,7 +131,9 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
 
     private void search() {
         if (mSites.isEmpty()) return;
-        mCollectAdapter.setItems(List.of(Collect.all()), () -> mViewModel.searchContent(mSites, getKeyword(), false));
+        mTabs.clear();
+        mTabs.add(Collect.all());
+        mCollectAdapter.setItems(new ArrayList<>(mTabs), () -> mViewModel.searchContent(mSites, getKeyword(), false));
     }
 
     private int getCount() {
@@ -140,17 +144,21 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
 
     private void setCollect(Result result) {
         if (result == null || result.getList().isEmpty()) return;
-        if (mCollectAdapter.getPosition() == 0) mSearchAdapter.addAll(result.getList());
-        mCollectAdapter.add(Collect.create(result.getList()));
-        mCollectAdapter.add(result.getList());
+        mTabs.get(0).getList().addAll(result.getList());
+        mTabs.add(Collect.create(result.getList()));
+        mCollectAdapter.setItems(new ArrayList<>(mTabs));
+        if (mCollectAdapter.getPosition() == 0) mSearchAdapter.setItems(new ArrayList<>(mTabs.get(0).getList()));
     }
 
     private void setSearch(Result result) {
         if (result == null) return;
         mScroller.endLoading(result);
         boolean same = !result.getList().isEmpty() && mCollectAdapter.getActivated().getSite().equals(result.getVod().getSite());
-        if (same) mCollectAdapter.getActivated().getList().addAll(result.getList());
-        if (same) mSearchAdapter.addAll(result.getList());
+        if (!same) return;
+        Collect activated = mCollectAdapter.getActivated();
+        activated.getList().addAll(result.getList());
+        if (!"all".equals(activated.getSite().getKey())) mTabs.get(0).getList().addAll(result.getList());
+        mSearchAdapter.setItems(new ArrayList<>(activated.getList()));
     }
 
     @Override

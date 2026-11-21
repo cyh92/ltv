@@ -192,6 +192,10 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout" />
 
         <activity
+            android:name=".ui.activity.ParseActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout" />
+
+        <activity
             android:name=".ui.activity.ThemeActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout" />
 

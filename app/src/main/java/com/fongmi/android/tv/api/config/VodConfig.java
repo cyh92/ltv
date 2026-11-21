@@ -14,6 +14,7 @@ import com.fongmi.android.tv.event.ConfigEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.utils.ConfigManager;
+import com.fongmi.android.tv.utils.ParseStore;
 import com.fongmi.android.tv.utils.ScriptManager;
 import com.fongmi.android.tv.utils.SiteOrder;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -46,6 +47,7 @@ public class VodConfig extends BaseConfig {
     private List<String> ads;
     private List<String> flags;
     private List<Parse> parses;
+    private List<Parse> configParses;
 
     public static VodConfig get() {
         return Loader.INSTANCE;
@@ -102,6 +104,7 @@ public class VodConfig extends BaseConfig {
         flags = null;
         rules = null;
         parses = null;
+        configParses = null;
         if (exiting) BaseLoader.get().destroy();
         else BaseLoader.get().clear();
         RuleConfig.get().invalidate();
@@ -230,8 +233,23 @@ public class VodConfig extends BaseConfig {
     }
 
     private void initParse(Config config, JsonObject object) {
-        setParses(Json.safeListElement(object, "parses").stream().map(Parse::objectFrom).distinct().collect(Collectors.toCollection(ArrayList::new)));
+        configParses = Json.safeListElement(object, "parses").stream().map(Parse::objectFrom).distinct().collect(Collectors.toCollection(ArrayList::new));
+        rebuildParses();
         setParse(config, getParses().isEmpty() ? new Parse() : getParses().stream().filter(item -> item.getName().equals(config.getParse())).findFirst().orElse(getParses().get(0)), false);
+    }
+
+    private void rebuildParses() {
+        List<Parse> items = new ArrayList<>(configParses == null ? Collections.emptyList() : configParses);
+        for (Parse item : ParseStore.getUserParses()) if (!items.contains(item)) items.add(item);
+        setParses(items);
+    }
+
+    public void updateParses() {
+        rebuildParses();
+        if (getConfig() == null) return;
+        Parse current = getParse();
+        Parse selected = getParses().isEmpty() ? new Parse() : getParses().stream().filter(item -> item.getName().equals(current.getName())).findFirst().orElse(getParses().get(0));
+        setParse(getConfig(), selected, !selected.getName().equals(current.getName()));
     }
 
     public List<Site> getSites() {

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Parse -->
+    <string name="parse_manage">解析管理</string>
+    <string name="parse_manage_empty">未添加解析器</string>
+    <string name="parse_manage_count">已添加 %1$d 個 · 預設：%2$s</string>
+    <string name="parse_add">添加解析器</string>
+    <string name="parse_edit">編輯解析器</string>
+    <string name="parse_name">名稱</string>
+    <string name="parse_url">解析接口地址</string>
+    <string name="parse_type">解析方式</string>
+    <string name="parse_type_json">JSON 直解</string>
+    <string name="parse_type_web">網頁嗅探</string>
+    <string name="parse_type_json_ext">JSON 擴展</string>
+    <string name="parse_type_json_mix">JSON 混合</string>
+    <string name="parse_platform">支持平台</string>
+    <string name="parse_platform_hint">不選表示支持全部平台</string>
+    <string name="parse_platform_custom">自訂平台標識，如 youku</string>
+    <string name="parse_platform_add">添加</string>
+    <string name="parse_header">請求頭</string>
+    <string name="parse_header_hint">JSON 對象，例如：{"User-Agent": "..."}</string>
+    <string name="parse_need_name">名稱不能為空</string>
+    <string name="parse_need_url">解析接口地址不能為空</string>
+    <string name="parse_bad_url">解析接口地址要以 http 開頭</string>
+    <string name="parse_bad_header">請求頭不是有效的 JSON 對象</string>
+    <string name="parse_name_exists">已有同名解析器</string>
+    <string name="parse_delete_confirm">確定刪除「%1$s」嗎？</string>
+
+</resources>

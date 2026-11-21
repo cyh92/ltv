@@ -141,7 +141,7 @@ public class SearchFragment extends BaseFragment implements MenuProvider, WordAd
     private void collect(String keyword) {
         FragmentManager fm = requireActivity().getSupportFragmentManager();
         String collectTag = CollectFragment.class.getSimpleName();
-        if (fm.findFragmentByTag(collectTag) != null) return;
+        if (fm.findFragmentByTag(collectTag) != null) fm.popBackStackImmediate();
         String searchTag = SearchFragment.class.getSimpleName();
         FragmentTransaction ft = fm.beginTransaction().setTransition(TRANSIT_FRAGMENT_OPEN);
         ft.add(R.id.container, CollectFragment.newInstance(keyword), collectTag);

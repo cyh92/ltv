@@ -33,8 +33,9 @@ public class Parse implements Diffable<Parse> {
     @SerializedName("ext")
     private Ext ext;
 
-    private boolean selected;
-    private String click;
+    // Runtime only, never persisted by ParseStore
+    private transient boolean selected;
+    private transient String click;
 
     public static Parse objectFrom(JsonElement element) {
         return App.gson().fromJson(element, Parse.class);
