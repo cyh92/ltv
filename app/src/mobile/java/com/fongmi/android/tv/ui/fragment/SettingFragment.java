@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -41,7 +42,6 @@ import com.fongmi.android.tv.ui.activity.KeepActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
-import com.google.android.material.color.MaterialColors;
 import com.google.android.material.shape.CornerFamily;
 import com.google.android.material.shape.MaterialShapeDrawable;
 import com.google.android.material.shape.ShapeAppearanceModel;
@@ -145,7 +145,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         MaterialShapeDrawable selected = new MaterialShapeDrawable(shape);
         selected.setFillColor(ColorStateList.valueOf(Color.parseColor("#F1BB6C")));
         MaterialShapeDrawable normal = new MaterialShapeDrawable(shape);
-        normal.setFillColor(ColorStateList.valueOf(MaterialColors.getColor(requireContext(), com.google.android.material.R.attr.colorSurface, Color.WHITE)));
+        normal.setFillColor(ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.card_bg)));
         StateListDrawable bg = new StateListDrawable();
         bg.addState(new int[]{android.R.attr.state_selected}, selected);
         bg.addState(StateSet.WILD_CARD, normal);
