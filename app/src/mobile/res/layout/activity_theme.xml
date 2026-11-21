@@ -36,7 +36,8 @@
                 android:layout_marginRight="16dp"
                 android:text="@string/theme_mode"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="16sp" />
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
@@ -55,7 +56,8 @@
                     android:gravity="center"
                     android:text="@string/theme_light"
                     android:textColor="@color/selector_control"
-                    android:textSize="15sp" />
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/mode_dark"
@@ -67,7 +69,8 @@
                     android:gravity="center"
                     android:text="@string/theme_dark"
                     android:textColor="@color/selector_control"
-                    android:textSize="15sp" />
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/mode_system"
@@ -79,7 +82,8 @@
                     android:gravity="center"
                     android:text="@string/theme_system"
                     android:textColor="@color/selector_control"
-                    android:textSize="15sp" />
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -91,7 +95,8 @@
                 android:layout_marginRight="16dp"
                 android:text="@string/theme_bg"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="16sp" />
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <GridLayout
                 android:id="@+id/bg_grid"
@@ -110,7 +115,8 @@
                 android:layout_marginRight="16dp"
                 android:text="@string/theme_bg_alpha"
                 android:textColor="?attr/colorOnSurface"
-                android:textSize="16sp" />
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
@@ -133,7 +139,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="end"
                     android:textColor="?attr/colorOnSurface"
-                    android:textSize="15sp" />
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 

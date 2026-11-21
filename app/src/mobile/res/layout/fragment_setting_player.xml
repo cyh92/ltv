@@ -52,7 +52,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/player_engine"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/engineSubtitle"
@@ -75,6 +76,8 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/engineExo"
                             style="@style/PlaybackDialogTab"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -84,6 +87,8 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/engineMpv"
                             style="@style/PlaybackDialogTab"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -115,7 +120,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/player_decode_setting"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
@@ -137,6 +143,8 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/decodeAuto"
                             style="@style/PlaybackDialogTab"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -146,6 +154,8 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/decodeHardware"
                             style="@style/PlaybackDialogTab"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -155,6 +165,8 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/decodeSoftware"
                             style="@style/PlaybackDialogTab"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -174,7 +186,8 @@
                         android:paddingVertical="4dp"
                         android:text="@string/player_decode_advanced"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -200,7 +213,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_display_setting"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/displaySettingText"
@@ -208,7 +222,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="标题 / 分辨率 / 时间 / 进度" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -235,7 +250,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_buttons_setting"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/playerButtonsText"
@@ -243,7 +259,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="显示 18/18" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -270,7 +287,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_long_press_speed"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/longPressSpeedText"
@@ -278,7 +296,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="2.0x" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -305,7 +324,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_scale_title"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/scaleText"
@@ -313,7 +333,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="原始" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -340,7 +361,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_render"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/renderText"
@@ -348,7 +370,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="Surface" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -375,7 +398,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_preload_setting"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -401,7 +425,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_adblock"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/adblockText"
@@ -409,7 +434,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="開" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -436,7 +462,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_background"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/backgroundText"
@@ -444,7 +471,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="畫中畫" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -472,7 +500,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_libass"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/libassText"
@@ -480,7 +509,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="開" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -508,7 +538,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_buffer"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/bufferText"
@@ -517,7 +548,8 @@
                         android:layout_weight="1"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="1" />
 
                     <com.google.android.material.textview.MaterialTextView
@@ -526,7 +558,8 @@
                         android:layout_marginStart="4dp"
                         android:text="@string/times"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -554,7 +587,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_mpv_conf"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -582,7 +616,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_mpv_gpu_next"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/mpvGpuNextText"
@@ -590,7 +625,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="Off" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -619,7 +655,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_mpv_vulkan"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/mpvVulkanText"
@@ -627,7 +664,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="Off" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -655,7 +693,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_mpv_motion"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/exoMotionText"
@@ -663,7 +702,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="Off" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -692,7 +732,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_mpv_motion"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/mpvMotionText"
@@ -700,7 +741,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="Off" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -727,7 +769,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/player_ua"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -753,7 +796,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/setting_incognito"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/incognitoText"
@@ -761,7 +805,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="Off" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>

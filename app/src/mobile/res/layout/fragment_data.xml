@@ -43,7 +43,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/setting_backup_restore"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -69,7 +70,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/setting_cache"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/cacheText"
@@ -77,7 +79,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="1.0 MB" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
@@ -103,7 +106,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/keep"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -128,7 +132,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/setting_history"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -154,7 +159,8 @@
                         android:layout_marginEnd="16dp"
                         android:text="@string/setting_version"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/versionText"
@@ -162,7 +168,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="?attr/colorOnSurface"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
                         tools:text="1.2.1" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
