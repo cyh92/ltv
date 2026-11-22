@@ -534,10 +534,6 @@ public class VodPlaybackController {
         return true;
     }
 
-    public void skipEndingNow(long duration) {
-        if (!skipToEnd(currentHistory(), duration) && duration > 0) host.seekPlayback(duration);
-    }
-
     public long startPositionMs() {
         History history = state.getHistory();
         return VodSkipPolicy.startPositionMs(history, state.getQuality(), history == null ? C.TIME_UNSET : history.getPosition());

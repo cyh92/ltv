@@ -1297,7 +1297,6 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         long position = player().getPosition();
         long duration = player().getDuration();
         if (player().canSetEnding(position, duration)) setEnding(duration - position);
-        else mVod.skipEndingNow(duration);
         setR1Callback();
     }
 

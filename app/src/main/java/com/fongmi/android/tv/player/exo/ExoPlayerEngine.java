@@ -223,7 +223,9 @@ public class ExoPlayerEngine implements PlayerEngine, AnalyticsListener {
 
     @Override
     public boolean isEndingManaged() {
-        return endingSource != null && endingSource.isEndTrimActive();
+        // EndTrimMediaSource 在 from-source 构建里只是桩（.github/stubs-media.zip），只存值不裁剪时间线，
+        // 引擎实际不管片尾；返回 false，让 VodPlaybackController 的按时跳过接管，否则两边互相推诿、永远不跳。
+        return false;
     }
 
     @Override
