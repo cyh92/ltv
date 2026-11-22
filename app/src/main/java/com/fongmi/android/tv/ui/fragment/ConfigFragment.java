@@ -59,6 +59,9 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
     private static final int PICK_SINGLE = 0;
     private static final int PICK_LOCAL = 1;
 
+    private boolean pickingEditPath;
+    private EditText editLinkInput;
+
     private final ActivityResultLauncher<Intent> folderLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         boolean edit = pickingEditPath;
         pickingEditPath = false;
@@ -87,8 +90,6 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
     private ConfigSubAdapter mAdapterLiveOnline;
     private int tab = ConfigManager.TAB_VOD;
     private int pickMode = PICK_SINGLE;
-    private boolean pickingEditPath;
-    private EditText editLinkInput;
     private boolean embedded;
     private ExecutorService checkExecutor;
     private volatile boolean checkCancelled;
