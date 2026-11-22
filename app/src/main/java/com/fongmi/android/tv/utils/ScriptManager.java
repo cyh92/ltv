@@ -86,16 +86,7 @@ public class ScriptManager {
     public List<File> scanFiles() {
         List<File> files = new ArrayList<>();
         Set<String> seen = new HashSet<>();
-        for (String folder : getFolders()) {
-            File dir = new File(folder);
-            File[] children = dir.isDirectory() ? dir.listFiles() : null;
-            if (children == null) continue;
-            for (File file : children) {
-                if (!file.isFile()) continue;
-                String lower = file.getName().toLowerCase();
-                if ((lower.endsWith(".py") || lower.endsWith(".js")) && seen.add(file.getAbsolutePath())) files.add(file);
-            }
-        }
+        for (String folder : getFolders()) collectFiles(new File(folder), files, seen, 0);
         for (String path : getFiles()) {
             File file = new File(path);
             if (!file.isFile()) continue;
@@ -104,6 +95,20 @@ public class ScriptManager {
         }
         files.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
         return files;
+    }
+
+    /** 递归扫子文件夹（最多 2 层：js/、py/、api/ 这种布局）；跳过 . 开头的隐藏目录。 */
+    private void collectFiles(File dir, List<File> files, Set<String> seen, int depth) {
+        File[] children = dir.isDirectory() ? dir.listFiles() : null;
+        if (children == null) return;
+        for (File file : children) {
+            if (file.isDirectory()) {
+                if (depth < 2 && !file.getName().startsWith(".")) collectFiles(file, files, seen, depth + 1);
+            } else if (file.isFile()) {
+                String lower = file.getName().toLowerCase();
+                if ((lower.endsWith(".py") || lower.endsWith(".js")) && seen.add(file.getAbsolutePath())) files.add(file);
+            }
+        }
     }
 
     public List<Site> scan() {

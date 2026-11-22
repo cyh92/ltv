@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.utils;
 
+import android.text.TextUtils;
+
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -124,6 +126,19 @@ public class ConfigManager {
         List<Sub> subs = getAll();
         for (int i = 0; i < subs.size(); i++) if (subs.get(i).id.equals(sub.id)) subs.set(i, sub);
         save(subs);
+    }
+
+    /** 改本地订阅的地址：同时把 ScriptManager 里登记的旧地址换成新地址，不然源还从旧地址读。 */
+    public static void updateLink(Sub sub, String oldLink) {
+        update(sub);
+        if (TextUtils.equals(oldLink, sub.link)) return;
+        if (sub.isFolder()) {
+            ScriptManager.get().removeFolder(oldLink);
+            ScriptManager.get().addFolder(sub.link);
+        } else if (sub.isFile()) {
+            ScriptManager.get().removeFile(oldLink);
+            ScriptManager.get().addFile(sub.link);
+        }
     }
 
     public static void remove(Sub sub) {

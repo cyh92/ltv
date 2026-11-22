@@ -415,7 +415,7 @@ public class Result implements Parcelable {
 
     public boolean isUseParse() {
         if (direct || !VodConfig.hasParse()) return false;
-        return (getPlayUrl().isEmpty() && VodConfig.get().getFlags().contains(getFlag())) || getJx() == 1;
+        return needParse() || (getPlayUrl().isEmpty() && VodConfig.get().getFlags().contains(getFlag()));
     }
 
     public boolean needParse() {

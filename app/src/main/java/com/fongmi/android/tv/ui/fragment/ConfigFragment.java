@@ -9,6 +9,7 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -59,13 +60,23 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
     private static final int PICK_LOCAL = 1;
 
     private final ActivityResultLauncher<Intent> folderLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        boolean edit = pickingEditPath;
+        pickingEditPath = false;
         if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null || result.getData().getData() == null) return;
         String path = result.getData().getData().getPath();
         if (path == null) return;
+        if (edit && editLinkInput != null) {
+            editLinkInput.setText(path);
+            return;
+        }
         onFolderPicked(path);
     });
 
     private final ActivityResultLauncher<Intent> fileLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> FileChooser.getFileUri(result, this::onFilePicked));
+
+    private final ActivityResultLauncher<Intent> editFileLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> FileChooser.getFileUri(result, uri -> {
+        if (uri != null && uri.getPath() != null && editLinkInput != null) editLinkInput.setText(uri.getPath());
+    }));
 
     private ActivityConfigBinding mBinding;
     private ConfigSubAdapter mAdapterLocal;
@@ -76,6 +87,8 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
     private ConfigSubAdapter mAdapterLiveOnline;
     private int tab = ConfigManager.TAB_VOD;
     private int pickMode = PICK_SINGLE;
+    private boolean pickingEditPath;
+    private EditText editLinkInput;
     private boolean embedded;
     private ExecutorService checkExecutor;
     private volatile boolean checkCancelled;
@@ -416,12 +429,17 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
     }
 
     private int countSources(File dir) {
+        return countSources(dir, 0);
+    }
+
+    private int countSources(File dir, int depth) {
         int count = 0;
         File[] children = dir.listFiles();
         if (children == null) return 0;
         for (File file : children) {
             String lower = file.getName().toLowerCase();
             if (file.isFile() && (lower.endsWith(".py") || lower.endsWith(".js"))) count++;
+            else if (file.isDirectory() && depth < 2 && !file.getName().startsWith(".")) count += countSources(file, depth + 1);
         }
         return count;
     }
@@ -490,6 +508,20 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
         linkInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         layout.addView(nameInput);
         layout.addView(linkInput);
+        if (!item.isUrl() && !item.isLiveUrl()) {
+            Button pickButton = new Button(requireContext());
+            pickButton.setText(R.string.setting_choose);
+            pickButton.setOnClickListener(v -> {
+                editLinkInput = linkInput;
+                if (item.isFolder()) {
+                    pickingEditPath = true;
+                    folderLauncher.launch(new Intent(requireActivity(), FileActivity.class).putExtra(FileActivity.EXTRA_PICK_DIR, true));
+                } else {
+                    FileChooser.from(editFileLauncher).show();
+                }
+            });
+            layout.addView(pickButton);
+        }
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.config_edit_sub)
                 .setView(layout)
@@ -505,11 +537,12 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
                         return;
                     }
                     boolean wasActive = item.id.equals(ConfigManager.getActiveId());
+                    String oldLink = item.link;
                     item.name = name;
                     item.link = link;
-                    ConfigManager.update(item);
+                    ConfigManager.updateLink(item, oldLink);
                     refresh();
-                    if (wasActive && item.isInterface()) {
+                    if (wasActive) {
                         if (item.tab == ConfigManager.TAB_VOD) ConfigManager.activateVod(item, getCallback());
                         else ConfigManager.activateLive(item, getCallback());
                     }
