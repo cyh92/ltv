@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.dialog;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
@@ -175,7 +176,7 @@ public class ParseEditDialog extends BaseAlertDialog {
     }
 
     private Chip addChip(String label, String code, boolean checked, boolean closable) {
-        Chip chip = new Chip(requireContext(), null, 0, com.google.android.material.R.style.Widget_Material3_Chip_Filter);
+        Chip chip = new Chip(new ContextThemeWrapper(requireContext(), com.google.android.material.R.style.Widget_Material3_Chip_Filter));
         chip.setText(label);
         chip.setTag(code);
         chip.setCheckable(true);
