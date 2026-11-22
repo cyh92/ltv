@@ -175,7 +175,7 @@ public class ParseEditDialog extends BaseAlertDialog {
     }
 
     private Chip addChip(String label, String code, boolean checked, boolean closable) {
-        Chip chip = new Chip(requireContext(), null, com.google.android.material.R.attr.chipChoiceStyle);
+        Chip chip = new Chip(requireContext(), null, 0, com.google.android.material.R.style.Widget_Material3_Chip_Filter);
         chip.setText(label);
         chip.setTag(code);
         chip.setCheckable(true);
