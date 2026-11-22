@@ -1,6 +1,7 @@
 import builtins
 import hashlib
 import importlib
+import importlib.util
 import json
 import os
 import shutil
@@ -15,6 +16,19 @@ from urllib.parse import urljoin, urlsplit
 
 class SourceNotFoundError(FileNotFoundError):
     pass
+
+
+def _is_importable(name):
+    """True when `name` can already be imported from the installed environment
+    (stdlib or a package from requirements.txt). getDependence() entries that
+    name installed modules must not be mistaken for local .py files to
+    download; only names that really cannot be imported fall through to the
+    local-file download below. Any lookup failure means "not importable",
+    which keeps the old download behaviour as the fallback."""
+    try:
+        return importlib.util.find_spec(name) is not None
+    except Exception:
+        return False
 
 
 def cleanup_failure(failure, error):
@@ -91,7 +105,13 @@ class Runtime:
         name = reference.replace("/", ".")
         with self._lock:
             self._check_open()
-            if any(not part.isidentifier() for part in reference.split("/")):
+            # Check the dot-separated parts of the converted name, not the
+            # slash-separated parts of the reference: a dotted module name
+            # such as "concurrent.futures" has no slash, so checking the
+            # reference would wrongly treat the whole dotted name as one
+            # non-identifier segment and hash it away. Path references
+            # ("utils/helper.py") still convert the same way as before.
+            if any(not part.isidentifier() for part in name.split(".")):
                 name = "_file_" + hashlib.sha256(reference.encode()).hexdigest()
                 self._references[name] = reference + ".py"
         return name
@@ -395,11 +415,23 @@ class Runtime:
         name = self.entry if name is None else self._name(name)
         module = self.load_module(name)
         cls = getattr(module, "Spider", None)
-        if not isinstance(cls, type) or cls is Spider or not issubclass(cls, Spider):
+        if not isinstance(cls, type) or cls is Spider:
             raise TypeError("Python source must export a Spider subclass")
+        if not issubclass(cls, Spider):
+            # Standalone Spider: other shells run it by duck typing, so accept
+            # it here too. Wrap it in a dynamic subclass with the standalone
+            # class first, so its own methods win and only the methods it does
+            # not define fall back to the base Spider (destroy, liveContent,
+            # proxy, action, fetch, ...). isinstance checks keep working.
+            cls = type(cls.__name__, (cls, Spider), {})
         cls.runtime = self
         cls.siteKey = self.site_key
-        return self.bind(cls())
+        instance = cls()
+        if not hasattr(instance, "extend"):
+            # Base Spider.__init__ sets self.extend, but a standalone class
+            # never calls super().__init__(); make sure the attribute exists.
+            instance.extend = ""
+        return self.bind(instance)
 
     def bind(self, spider):
         with self._lock:
@@ -430,10 +462,11 @@ class Runtime:
 
     def prepare(self, spider):
         names = [self._name(name) for name in spider.getDependence() or []]
+        missing = [name for name in names if not _is_importable(name)]
         with self._lock:
             self._check_open()
-            self._declared.update(names)
-        for name in names:
+            self._declared.update(missing)
+        for name in missing:
             self._download(name)
 
     def close(self):
