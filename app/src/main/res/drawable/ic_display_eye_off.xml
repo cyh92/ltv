@@ -3,18 +3,37 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- 眼廓：杏仁形眼线（隐藏态，整体置灰） -->
     <path
         android:fillColor="#00000000"
         android:pathData="M2,12 C5,6.5 9,4 12,4 C15,4 19,6.5 22,12 C19,17.5 15,20 12,20 C9,20 5,17.5 2,12 Z"
-        android:strokeWidth="2"
+        android:strokeWidth="1.8"
         android:strokeColor="?attr/colorOnSurface"
         android:strokeAlpha="0.45"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
+    <!-- 上眼睑双眼皮褶皱线 -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M4.5,11 C7,7 9.5,6 12,6 C14.5,6 17,7 19.5,11"
+        android:strokeWidth="1.3"
+        android:strokeColor="?attr/colorOnSurface"
+        android:strokeAlpha="0.45"
+        android:strokeLineCap="round" />
+    <!-- 虹膜（淡色圆盘，与瞳孔区分） -->
+    <path
+        android:fillColor="?attr/colorOnSurface"
+        android:fillAlpha="0.18"
+        android:pathData="M17.2,12 a5.2,5.2 0 1,1 -10.4,0 a5.2,5.2 0 1,1 10.4,0 Z"
+        android:strokeWidth="1"
+        android:strokeColor="?attr/colorOnSurface"
+        android:strokeAlpha="0.45" />
+    <!-- 瞳孔 -->
     <path
         android:fillColor="?attr/colorOnSurface"
         android:fillAlpha="0.45"
-        android:pathData="M15.5,12 a3.5,3.5 0 1,1 -7,0 a3.5,3.5 0 1,1 7,0 Z" />
+        android:pathData="M14.7,12 a2.7,2.7 0 1,1 -5.4,0 a2.7,2.7 0 1,1 5.4,0 Z" />
+    <!-- 斜杠：隐藏标记 -->
     <path
         android:fillColor="#00000000"
         android:pathData="M4,4 L20,20"

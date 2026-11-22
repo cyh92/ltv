@@ -290,6 +290,7 @@
                             android:layout_height="wrap_content"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@drawable/ic_action_more"
+                            android:tint="?attr/colorOnSurface"
                             android:visibility="gone"
                             tools:visibility="visible" />
 

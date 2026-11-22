@@ -45,6 +45,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     private SiteViewModel mViewModel;
     private List<Site> mSites;
     private final List<Collect> mTabs = new ArrayList<>();
+    private String mPinnedKey;
 
     public static CollectFragment newInstance(String keyword) {
         Bundle args = new Bundle();
@@ -131,6 +132,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
 
     private void search() {
         if (mSites.isEmpty()) return;
+        mPinnedKey = null;
         mTabs.clear();
         mTabs.add(Collect.all());
         mCollectAdapter.setItems(new ArrayList<>(mTabs), () -> mViewModel.searchContent(mSites, getKeyword(), false));
@@ -146,8 +148,73 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
         if (result == null || result.getList().isEmpty()) return;
         mTabs.get(0).getList().addAll(result.getList());
         mTabs.add(Collect.create(result.getList()));
-        mCollectAdapter.setItems(new ArrayList<>(mTabs));
-        if (mCollectAdapter.getPosition() == 0) mSearchAdapter.setItems(new ArrayList<>(mTabs.get(0).getList()));
+        List<Collect> visible = getVisibleTabs();
+        mCollectAdapter.setItems(new ArrayList<>(visible));
+        if (mCollectAdapter.getPosition() == 0) mSearchAdapter.setItems(new ArrayList<>(visible.get(0).getList()));
+    }
+
+    /**
+     * 搜索关键词归一化：全角 ASCII 转半角，只保留字母与数字并转小写。
+     * “生化危机3：灭绝”归一化后为“生化危机3灭绝”，可与片名直接比较。
+     */
+    private static String normalizeKeyword(String text) {
+        if (text == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c >= '！' && c <= '～') c = (char) (c - '！' + '!');
+            if (c == '　') c = ' ';
+            if (Character.isLetterOrDigit(c)) sb.append(Character.toLowerCase(c));
+        }
+        return sb.toString();
+    }
+
+    /** 片名是否与关键词相关：归一化后互相包含即算相关。 */
+    private static boolean matchesKeyword(String name, String keyword) {
+        String n = normalizeKeyword(name);
+        String k = normalizeKeyword(keyword);
+        if (n.isEmpty() || k.isEmpty()) return false;
+        return n.contains(k) || k.contains(n);
+    }
+
+    /** 该源的搜索结果里是否至少有一条与关键词相关。 */
+    private static boolean hasMatch(Collect tab, String keyword) {
+        for (Vod vod : tab.getList()) if (matchesKeyword(vod.getName(), keyword)) return true;
+        return false;
+    }
+
+    /**
+     * 当前应展示的源 tab 列表。
+     * 任一源有相关结果时，只展示有相关结果的源（外加用户亲手点开的源），
+     * 展示用的“全部”只汇总相关源的条目；没有任何源有相关结果时（例如搜演员名，
+     * 片名里本来就没有演员名），原样展示全部结果，不做过滤。
+     * mTabs 本身始终保存全部源的完整结果，不受过滤影响。
+     */
+    private List<Collect> getVisibleTabs() {
+        String keyword = getKeyword();
+        boolean anyMatch = false;
+        for (int i = 1; i < mTabs.size(); i++) if (hasMatch(mTabs.get(i), keyword)) {
+            anyMatch = true;
+            break;
+        }
+        if (!anyMatch) return new ArrayList<>(mTabs);
+        List<Collect> visible = new ArrayList<>();
+        List<Vod> all = new ArrayList<>();
+        for (int i = 1; i < mTabs.size(); i++) {
+            Collect tab = mTabs.get(i);
+            boolean match = hasMatch(tab, keyword);
+            if (match || tab.getSite().getKey().equals(mPinnedKey)) {
+                visible.add(tab);
+                if (match) all.addAll(tab.getList());
+            }
+        }
+        visible.add(0, new Collect(mTabs.get(0).getSite(), all));
+        return visible;
+    }
+
+    /** 展示用的“全部”列表：按当前过滤规则从 mTabs 实时汇总，点“全部”时总是最新的。 */
+    private List<Vod> getVisibleAllList() {
+        return getVisibleTabs().get(0).getList();
     }
 
     private void setSearch(Result result) {
@@ -163,7 +230,9 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
 
     @Override
     public void onItemClick(int position, Collect item) {
-        mSearchAdapter.setItems(item.getList(), () -> mBinding.recycler.scrollToPosition(0));
+        boolean all = "all".equals(item.getSite().getKey());
+        mPinnedKey = all ? null : item.getSite().getKey();
+        mSearchAdapter.setItems(all ? new ArrayList<>(getVisibleAllList()) : item.getList(), () -> mBinding.recycler.scrollToPosition(0));
         mCollectAdapter.setSelected(position);
         mScroller.setPage(item.getPage());
     }
