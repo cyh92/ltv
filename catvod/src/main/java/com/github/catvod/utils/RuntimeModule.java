@@ -61,11 +61,26 @@ public enum RuntimeModule {
     }
 
     public boolean isInstalled() {
-        return external().info != null;
+        return isBuiltIn() || external().info != null;
     }
 
     public boolean isExternal() {
-        return true;
+        return !isBuiltIn();
+    }
+
+    /**
+     * True when the Node.js runtime is compiled into the host app (0.1.93+).
+     * Requires both the entry class in the host dex and libnode.so in the
+     * host native library dir, so a merely-installed plugin APK does not count.
+     */
+    public boolean isBuiltIn() {
+        if (this != NODEJS) return false;
+        try {
+            Class.forName(getEntryClass(), false, RuntimeModule.class.getClassLoader());
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+        return new File(Runtime.context().getApplicationInfo().nativeLibraryDir, library).exists();
     }
 
     public String getPackageName() {
@@ -163,6 +178,7 @@ public enum RuntimeModule {
     }
 
     public synchronized <T extends RuntimePlugin> T entry(Class<T> type) {
+        if (isBuiltIn()) return builtInEntry(type);
         require();
         if (getEntryClass().isEmpty()) throw new IllegalStateException("Runtime does not provide a Java plugin");
         External state = external();
@@ -171,6 +187,22 @@ public enum RuntimeModule {
             if (state.entry == null) state.entry = createEntry(type, state);
             return type.cast(state.entry);
         } catch (ReflectiveOperationException | IOException | ClassCastException | LinkageError e) {
+            state.entryFailure = new IllegalStateException("Unable to load " + title + " Java runtime; restart the app", e);
+            throw state.entryFailure;
+        }
+    }
+
+    private <T extends RuntimePlugin> T builtInEntry(Class<T> type) {
+        if (getEntryClass().isEmpty()) throw new IllegalStateException("Runtime does not provide a Java plugin");
+        External state = external();
+        if (state.entryFailure != null) throw state.entryFailure;
+        try {
+            if (state.entry == null) {
+                Class<?> implementation = Class.forName(getEntryClass(), true, RuntimeModule.class.getClassLoader());
+                state.entry = type.cast(implementation.getConstructor().newInstance());
+            }
+            return type.cast(state.entry);
+        } catch (ReflectiveOperationException | ClassCastException | LinkageError e) {
             state.entryFailure = new IllegalStateException("Unable to load " + title + " Java runtime; restart the app", e);
             throw state.entryFailure;
         }
@@ -191,6 +223,11 @@ public enum RuntimeModule {
 
     public synchronized String readAsset(String path) {
         try {
+            if (isBuiltIn()) {
+                try (InputStream input = Runtime.context().getAssets().open(path)) {
+                    return Path.readOrThrow(input);
+                }
+            }
             require();
             if (this == BDJ) throw new IOException("BD-J preparation belongs to the player");
             External state = external();
@@ -292,6 +329,10 @@ public enum RuntimeModule {
 
     public synchronized void load(Consumer<String> loader) {
         if (this == BDJ) throw new IllegalStateException("BD-J loading belongs to the player");
+        if (isBuiltIn()) {
+            loadBuiltIn(loader);
+            return;
+        }
         require();
         External state = external();
         if (state.loadFailure != null) throw state.loadFailure;
@@ -311,6 +352,24 @@ public enum RuntimeModule {
         }
     }
 
+    private synchronized void loadBuiltIn(Consumer<String> loader) {
+        External state = external();
+        if (state.loadFailure != null) throw state.loadFailure;
+        if (state.complete) return;
+        try {
+            File directory = new File(Runtime.context().getApplicationInfo().nativeLibraryDir);
+            for (String name : libraries()) {
+                File file = new File(directory, name);
+                loader.accept(file.getPath());
+                if (name.equals(library)) state.loaded = file;
+            }
+            state.complete = true;
+        } catch (LinkageError e) {
+            state.loadFailure = e;
+            throw e;
+        }
+    }
+
     private void loadLibraries(Consumer<String> loader, External state, Metadata metadata) {
         File directory = nativeDirectory(metadata);
         for (String name : libraries()) loadLibrary(loader, state, metadata, directory, name);
@@ -324,6 +383,7 @@ public enum RuntimeModule {
     }
 
     public synchronized boolean isRestartRequired() throws IOException {
+        if (isBuiltIn()) return false;
         External state = external();
         if (state.loadFailure != null || state.entryFailure != null) return true;
         if (state.loaded == null && state.loadedMetadata == null) return false;
@@ -342,6 +402,12 @@ public enum RuntimeModule {
         if (owner == null) throw new IOException("Invalid runtime owner");
         require();
         External state = external();
+        if (isBuiltIn()) {
+            if (!file.equals(new File(Runtime.context().getApplicationInfo().nativeLibraryDir, library))) throw new IOException("Invalid loaded runtime file");
+            state.loaded = file;
+            state.loadedOwner = owner;
+            return;
+        }
         Metadata metadata = state.loadedMetadata == null ? getMetadata() : state.loadedMetadata;
         if (!file.equals(new File(nativeDirectory(metadata), library))) throw new IOException("Invalid loaded runtime file");
         state.loaded = file;
@@ -358,6 +424,7 @@ public enum RuntimeModule {
 
     public synchronized void clean() throws IOException {
         if (this == BDJ) return;
+        if (isBuiltIn()) return;
         External state = external();
         if (state.loaded != null || state.loadedMetadata != null) return;
         Metadata metadata = getMetadata();

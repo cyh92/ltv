@@ -67,8 +67,8 @@ public class ModuleFragment extends BaseFragment {
         if (embedded) mBinding.toolbar.setVisibility(View.GONE);
         mBinding.toolbar.getMenu().add(R.string.module_check).setIcon(R.drawable.ic_setting_refresh).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         mBinding.toolbar.setOnMenuItemClickListener(this::onCheck);
-        models = new ModuleViewModel[]{ModuleViewModel.get(getRoot(), RuntimeModule.NODEJS), ModuleViewModel.get(getRoot(), RuntimeModule.MPV)};
-        items = new ItemModuleBinding[]{mBinding.nodejs, mBinding.mpv};
+        models = new ModuleViewModel[]{ModuleViewModel.get(getRoot(), RuntimeModule.MPV)};
+        items = new ItemModuleBinding[]{mBinding.mpv};
         for (int i = 0; i < items.length; i++) bind(items[i], models[i], i);
         updateCount();
     }
@@ -88,9 +88,8 @@ public class ModuleFragment extends BaseFragment {
     }
 
     private int getDescRes(int index) {
-        return switch (index) {
-            case 0 -> R.string.module_desc_nodejs;
-            case 1 -> R.string.module_desc_mpv;
+        return switch (models[index].getModule()) {
+            case MPV -> R.string.module_desc_mpv;
             default -> 0;
         };
     }
