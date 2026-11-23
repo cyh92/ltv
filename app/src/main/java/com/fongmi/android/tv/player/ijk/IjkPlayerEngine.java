@@ -8,6 +8,7 @@ import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.TrackSelectionParameters;
+import androidx.media3.ui.PlayerView;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.bean.Sub;
@@ -56,6 +57,20 @@ public class IjkPlayerEngine implements PlayerEngine {
     @Override
     public Player getPlayer() {
         return adapter;
+    }
+
+    /**
+     * 0.1.96：把视频 Surface 接到 IJK 上。
+     * <p>
+     * 根因：PlayerView 的视频 Surface 是接到“后端播放器”（setBackendPlayer）上的，
+     * ExoPlayerEngine.bindPlayerView() 就是这么做的；IJK 之前没有重写 bindPlayerView，
+     * 所以 Surface 从来没接到 IJK 适配器上——只有声音、没有画面，PlayerView 一直
+     * 显示海报（artwork）、画面尺寸也一直是 UNKNOWN（看着像“小屏幕”）。
+     * 这里照抄 Exo 的做法，把 adapter 设为后端播放器。
+     */
+    @Override
+    public void bindPlayerView(PlayerView playerView) {
+        if (adapter != null) playerView.setBackendPlayer(adapter);
     }
 
     @Override

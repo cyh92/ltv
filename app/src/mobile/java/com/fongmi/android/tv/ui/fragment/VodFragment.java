@@ -186,14 +186,20 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         List<ConfigManager.Sub> subs = ConfigManager.getSubs(ConfigManager.TAB_VOD);
         List<ConfigManager.Sub> enabled = new ArrayList<>();
         for (ConfigManager.Sub sub : subs) if (sub.enabled) enabled.add(sub);
+        // 0.1.96：在线接口排在前面、本地包排在后面。之前按添加顺序混排，在线
+        // （demo.json / 影视py）和本地包（RRZY）穿插，用着本地包时想切回在线要满列表
+        // 翻找、滑到最上面才看到。分组后在线接口固定在顶部，一眼找到。
+        // 用稳定排序原地排（各组内保持添加顺序），不重赋值 enabled（lambda 要捕获它）。
+        enabled.sort((a, b) -> Boolean.compare(!a.isInterface(), !b.isInterface()));
         String[] items = new String[enabled.size() + 1];
         items[0] = getString(R.string.config_all_interfaces);
         for (int i = 0; i < enabled.size(); i++) items[i + 1] = enabled.get(i).name;
         int checked = 0;
         String activeId = ConfigManager.getActiveId();
         for (int i = 0; i < enabled.size(); i++) if (enabled.get(i).id.equals(activeId)) checked = i + 1;
-        new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.config_interface).setSingleChoiceItems(items, checked, (dialog, which) -> {
-            dialog.dismiss();
+        int checkedIndex = checked;
+        androidx.appcompat.app.AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.config_interface).setSingleChoiceItems(items, checked, (d, which) -> {
+            d.dismiss();
             if (which == 0) {
                 ConfigManager.setActiveId("");
                 ConfigManager.reloadVod(getCallback());
@@ -202,6 +208,12 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
             }
             setIface();
         }).show();
+        // 0.1.96：打开对话框时把列表定位到当前选中的接口。单选列表默认不一定滚到选中项，
+        // 列表长时用户打开只能看到顶部，当前项（比如 RRZY）在下面看不到，切换时容易迷路。
+        dialog.setOnShowListener(d -> {
+            android.widget.ListView listView = dialog.getListView();
+            if (listView != null) listView.setSelection(checkedIndex);
+        });
     }
 
     private void onTypeMenu(View view) {

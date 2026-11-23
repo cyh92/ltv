@@ -548,7 +548,7 @@
     <string name="decoder_mode_ffmpeg_detail">使用 FFmpeg 軟體解碼</string>
     <string name="decoder_mode_unavailable">目前播放引擎沒有可切換的解碼模式。</string>
 
-    <string name="player_kernel_current">已安裝（插件中心）· 當前：%1$s</string>
+    <string name="player_kernel_current">當前：%1$s</string>
     <string name="player_decode_hint">自動（硬解優先，失敗自動回退）· 切換後下次播放生效</string>
     <string name="player_decode_advanced">高級解碼設定</string>
     <string name="decoder_mode_hw">硬解</string>

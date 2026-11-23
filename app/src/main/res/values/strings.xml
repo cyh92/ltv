@@ -574,7 +574,7 @@
     <string name="decoder_mode_ffmpeg_detail">FFmpeg software decoding</string>
     <string name="decoder_mode_unavailable">This engine has no selectable decoder modes.</string>
 
-    <string name="player_kernel_current">Installed (Plugins) · Current: %1$s</string>
+    <string name="player_kernel_current">Current: %1$s</string>
     <string name="player_decode_hint">Auto (hardware first, falls back on failure) · Applies on next playback</string>
     <string name="player_decode_advanced">Advanced decoder settings</string>
     <string name="decoder_mode_hw">Hardware</string>

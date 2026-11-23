@@ -2,6 +2,11 @@ package com.fongmi.android.tv.utils;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
+import okhttp3.Call;
+
+import java.io.IOException;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -201,9 +206,49 @@ public class ConfigManager {
     public static void activateVod(Sub sub, Callback callback) {
         sub.enabled = true;
         update(sub);
+        // 0.1.96：先记下旧接口 id。之前这里先 setActiveId 再加载，新接口加载失败时
+        // app 已经切到坏配置上（VodConfig 也被 clear 成新配置），只剩“配置信息初始化
+        // 失败，请重启APP”，必须重启或手动切回去才能恢复。现在包一层回调：加载失败时
+        // 把 activeId 恢复成旧接口、重新加载旧配置，用户留在原来能用的接口上。
+        String prevId = getActiveId();
         setActiveId(sub.id);
-        if (sub.isInterface()) VodConfig.load(Config.find(sub.getConfigUrl(), 0), callback);
-        else reloadVod(callback);
+        Callback guarded = new Callback() {
+            @Override
+            public void error(String msg) {
+                setActiveId(prevId);
+                Sub prev = find(prevId);
+                if (prev != null && prev.isInterface()) VodConfig.load(Config.find(prev.getConfigUrl(), 0), callback);
+                else VodConfig.load(Config.vod(), callback);
+                callback.error(msg);
+            }
+
+            @Override
+            public void error() {
+                error("");
+            }
+
+            @Override
+            public void success() {
+                callback.success();
+            }
+
+            @Override
+            public void success(String result) {
+                callback.success(result);
+            }
+
+            @Override
+            public void start() {
+                callback.start();
+            }
+
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                callback.onFailure(call, e);
+            }
+        };
+        if (sub.isInterface()) VodConfig.load(Config.find(sub.getConfigUrl(), 0), guarded);
+        else reloadVod(guarded);
     }
 
     /** 关掉一个点播订阅：是在用的，就切到另一个还开着的接口；没有就回到只有本地源。 */

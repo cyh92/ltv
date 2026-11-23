@@ -87,6 +87,23 @@ public class IjkPlayerAdapter extends SimpleBasePlayer {
      * RequestMetadata extras 而不是 LocalConfiguration，所以不能从 MediaItem 里取）。 */
     private Map<String, String> headers = Map.of();
 
+    /**
+     * 0.1.96：每个 MediaItem 对应的唯一 UID，与 mediaItems 一一对应、同步增删改。
+     * <p>
+     * 根因（直播闪退）：之前 getState() 直接用 {@code item.mediaId} 做 MediaItemData 的
+     * UID。直播切台时 PlayerManager.setMetadata() 用 {@code buildUpon()} 复制当前 item
+     * 只改元数据，新旧两个 item 共用同一个 mediaId；replaceMediaItem 的过渡态里播放
+     * 列表同时存在两个相同 UID，SimpleBasePlayer.setPlaylist() 强制 UID 唯一，于是抛
+     * "Duplicate MediaItemData UID in playlist" 闪退。这里改用自增计数器分配 UID，
+     * 与 mediaId 解耦，保证唯一且每个 item 在列表里稳定不变。
+     */
+    private List<String> mediaItemUids = List.of();
+    private long uidCounter;
+
+    private String newUid() {
+        return "ijk-" + (uidCounter++);
+    }
+
     /** 设置下一次 setDataSource 用的请求头（引擎在 setMediaItem 之前调用）。 */
     public void setHeaders(@Nullable Map<String, String> headers) {
         this.headers = headers == null ? Map.of() : headers;
@@ -105,6 +122,15 @@ public class IjkPlayerAdapter extends SimpleBasePlayer {
             prepared = true;
             playbackState = Player.STATE_READY;
             buildTracks();
+            // 0.1.96：OnVideoSizeChanged 有时不触发（硬解下尺寸回调可能丢失），videoSize
+            // 一直是 UNKNOWN 时 PlayerView 会一直显示海报、不显示视频画面。prepare 完成
+            // 后直接读 IJK 的宽高补一次，保证 PlayerView 知道视频尺寸、显示视频面而不是海报。
+            try {
+                int w = ijk.getVideoWidth();
+                int h = ijk.getVideoHeight();
+                if (w > 0 && h > 0) videoSize = new VideoSize(w, h, 1f);
+            } catch (Throwable ignored) {
+            }
             if (pendingSeekMs != C.TIME_UNSET) {
                 ijk.seekTo(pendingSeekMs);
                 pendingSeekMs = C.TIME_UNSET;
@@ -202,10 +228,17 @@ public class IjkPlayerAdapter extends SimpleBasePlayer {
 
     @Override
     protected State getState() {
+        // 防御：UID 列表必须和 mediaItems 等长，不等长时补齐（缺的分配新 UID），
+        // 避免任何同步遗漏再次触发 Duplicate UID。
+        if (mediaItemUids.size() != mediaItems.size()) {
+            List<String> uids = new ArrayList<>();
+            for (int i = 0; i < mediaItems.size(); i++) uids.add(i < mediaItemUids.size() ? mediaItemUids.get(i) : newUid());
+            mediaItemUids = uids;
+        }
         List<MediaItemData> playlist = new ArrayList<>();
         for (int i = 0; i < mediaItems.size(); i++) {
             MediaItem item = mediaItems.get(i);
-            playlist.add(new MediaItemData.Builder(item.mediaId)
+            playlist.add(new MediaItemData.Builder(mediaItemUids.get(i))
                     .setMediaItem(item)
                     .setDurationUs(prepared ? ijk.getDuration() * 1000 : C.TIME_UNSET)
                     .setIsSeekable(true)
@@ -273,6 +306,8 @@ public class IjkPlayerAdapter extends SimpleBasePlayer {
     @Override
     protected ListenableFuture<?> handleSetMediaItems(List<MediaItem> mediaItems, int startIndex, long startPositionMs) {
         this.mediaItems = new ArrayList<>(mediaItems);
+        this.mediaItemUids = new ArrayList<>();
+        for (int i = 0; i < mediaItems.size(); i++) mediaItemUids.add(newUid());
         this.currentIndex = startIndex;
         this.startPositionMs = startPositionMs;
         this.pendingSeekMs = C.TIME_UNSET;
@@ -297,11 +332,21 @@ public class IjkPlayerAdapter extends SimpleBasePlayer {
     @Override
     protected ListenableFuture<?> handleSetPlayWhenReady(boolean playWhenReady) {
         this.playWhenReady = playWhenReady;
-        if (prepared) {
-            if (playWhenReady) {
-                if (!ijk.isPlaying()) ijk.start();
-            } else {
+        if (released || ijk == null) return Futures.immediateVoidFuture();
+        // 0.1.96：暂停不要等 prepared。之前 !prepared 时直接 return，退出播放界面时
+        // pause 撞上这个门控就停不掉音频（退出后有时还有声音）。pause 一个未 prepare 的
+        // player 是安全的（try-catch 兜底）；恢复播放仍要等 prepared 才 start。
+        if (playWhenReady) {
+            if (prepared && !ijk.isPlaying()) {
+                try {
+                    ijk.start();
+                } catch (Throwable ignored) {
+                }
+            }
+        } else {
+            try {
                 ijk.pause();
+            } catch (Throwable ignored) {
             }
         }
         invalidateState();
@@ -414,6 +459,9 @@ public class IjkPlayerAdapter extends SimpleBasePlayer {
     @Override
     protected ListenableFuture<?> handleAddMediaItems(int index, List<MediaItem> mediaItems) {
         this.mediaItems.addAll(index, mediaItems);
+        List<String> uids = new ArrayList<>();
+        for (int i = 0; i < mediaItems.size(); i++) uids.add(newUid());
+        this.mediaItemUids.addAll(index, uids);
         invalidateState();
         return Futures.immediateVoidFuture();
     }
@@ -421,6 +469,7 @@ public class IjkPlayerAdapter extends SimpleBasePlayer {
     @Override
     protected ListenableFuture<?> handleRemoveMediaItems(int fromIndex, int toIndex) {
         mediaItems.subList(fromIndex, toIndex).clear();
+        mediaItemUids.subList(fromIndex, toIndex).clear();
         if (currentIndex >= mediaItems.size()) currentIndex = Math.max(0, mediaItems.size() - 1);
         invalidateState();
         return Futures.immediateVoidFuture();
@@ -430,14 +479,23 @@ public class IjkPlayerAdapter extends SimpleBasePlayer {
     protected ListenableFuture<?> handleMoveMediaItems(int fromIndex, int toIndex, int newIndex) {
         List<MediaItem> moved = new ArrayList<>(mediaItems.subList(fromIndex, toIndex));
         mediaItems.subList(fromIndex, toIndex).clear();
-        mediaItems.addAll(newIndex > fromIndex ? newIndex - moved.size() : newIndex, moved);
+        List<String> movedUids = new ArrayList<>(mediaItemUids.subList(fromIndex, toIndex));
+        mediaItemUids.subList(fromIndex, toIndex).clear();
+        int dest = newIndex > fromIndex ? newIndex - moved.size() : newIndex;
+        mediaItems.addAll(dest, moved);
+        mediaItemUids.addAll(dest, movedUids);
         invalidateState();
         return Futures.immediateVoidFuture();
     }
 
     @Override
     protected ListenableFuture<?> handleStop() {
-        if (prepared) ijk.stop();
+        // 0.1.96：无条件 stop。之前只在 prepared 时才 ijk.stop()，状态不同步时
+        // （比如退出时 prepared 已是 false 但音频还在播）stop 调不到，声音停不掉。
+        try {
+            ijk.stop();
+        } catch (Throwable ignored) {
+        }
         prepared = false;
         playbackState = Player.STATE_IDLE;
         invalidateState();
@@ -448,6 +506,12 @@ public class IjkPlayerAdapter extends SimpleBasePlayer {
     protected ListenableFuture<?> handleRelease() {
         mainHandler.removeCallbacksAndMessages(null);
         released = true;
+        // 0.1.96：release 之前先 stop，保证音频一定停掉（release 本身应停，但
+        // 某些状态下 native 层可能不停，先 stop 再 release 更稳）。
+        try {
+            ijk.stop();
+        } catch (Throwable ignored) {
+        }
         try {
             ijk.release();
         } catch (Throwable ignored) {
