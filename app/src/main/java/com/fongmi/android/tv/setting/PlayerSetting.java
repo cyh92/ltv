@@ -23,6 +23,13 @@ public class PlayerSetting {
     private static final int MAX_BACKGROUND = 2;
 
     public static int getEngine() {
+        // 0.1.97：一次性把默认内核重置为 EXO（用户要求全部默认 EXO 播放）。
+        // 只做一次（player_engine_reset_exo_0197 标记）；之后用户仍可在设置里手动切 IJK/MPV。
+        // IJK 本身仍可用（0.1.97 的 IJK 修复都在），只是默认不再是 IJK。
+        if (!Prefers.getBoolean("player_engine_reset_exo_0197", false)) {
+            Prefers.put("player_engine_reset_exo_0197", true);
+            Prefers.put("player_engine", ENGINE_EXO);
+        }
         return Math.clamp(Prefers.getInt("player_engine", ENGINE_EXO), ENGINE_EXO, getEngineCount() - 1);
     }
 
