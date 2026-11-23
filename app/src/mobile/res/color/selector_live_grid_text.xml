@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 竖屏直播频道网格文字色：当前频道用主题强调色，其余用主题正文色 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="?attr/colorPrimary" android:state_selected="true" />
+    <item android:color="?attr/colorOnSurface" />
+</selector>

@@ -20,6 +20,7 @@ import androidx.media3.common.Player;
 import androidx.media3.ui.PlayerSeekView;
 import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
@@ -57,14 +58,17 @@ import com.fongmi.android.tv.setting.DisplaySetting;
 import com.fongmi.android.tv.setting.LiveSetting;
 import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.ui.adapter.ChannelAdapter;
+import com.fongmi.android.tv.ui.adapter.ChannelGridAdapter;
 import com.fongmi.android.tv.ui.adapter.EpgDataAdapter;
 import com.fongmi.android.tv.ui.adapter.GroupAdapter;
+import com.fongmi.android.tv.ui.adapter.GroupPortAdapter;
 import com.fongmi.android.tv.ui.custom.PinchScaleFeedback;
 import com.fongmi.android.tv.ui.custom.TouchInput;
 import com.fongmi.android.tv.ui.dialog.CastDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
+import com.fongmi.android.tv.ui.dialog.LiveInfoDialog;
 import com.fongmi.android.tv.ui.dialog.PassDialog;
 import com.fongmi.android.tv.ui.dialog.PlayerEngineDialog;
 import com.fongmi.android.tv.ui.dialog.DecoderSettingDialog;
@@ -86,7 +90,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class LiveActivity extends PlaybackActivity implements TouchInput.Listener, Biometric.Callback, PassListener, ConfigListener, LiveListener, GroupAdapter.OnClickListener, ChannelAdapter.OnClickListener, EpgDataAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener, LivePlaybackHost {
+public class LiveActivity extends PlaybackActivity implements TouchInput.Listener, Biometric.Callback, PassListener, ConfigListener, LiveListener, GroupAdapter.OnClickListener, GroupPortAdapter.OnClickListener, ChannelAdapter.OnClickListener, EpgDataAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener, LivePlaybackHost {
 
     private ActivityLiveBinding mBinding;
     private LiveViewModel mViewModel;
@@ -94,6 +98,9 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     private GroupAdapter mGroupAdapter;
     private ChannelAdapter mChannelAdapter;
     private EpgDataAdapter mEpgDataAdapter;
+    private GroupPortAdapter mPortGroupAdapter;
+    private ChannelGridAdapter mPortChannelAdapter;
+    private int portSpan = 4;
     private TouchInput mInput;
     private PinchScaleFeedback mScaleFeedback;
     private PiP mPiP;
@@ -177,9 +184,11 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         mR3 = this::hideInfo;
         mPiP = new PiP();
         setRecyclerView();
+        setPortraitView();
         setVideoView();
         setViewModel();
         checkLive();
+        layoutOrientation();
     }
 
     @Override
@@ -210,6 +219,66 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         mBinding.control.action.speed.setOnLongClickListener(view -> onSpeedLong());
         mBinding.control.action.getRoot().setOnTouchListener(this::onActionTouch);
         mBinding.video.setOnTouchListener((view, event) -> mInput.onTouchEvent(event));
+        mBinding.portIcon.setOnClickListener(view -> checkPlay());
+        mBinding.btnFullscreen.setOnClickListener(view -> onFullscreenClick());
+        mBinding.btnCast.setOnClickListener(view -> onCast());
+        mBinding.btnKeep.setOnClickListener(view -> onPortKeep());
+        mBinding.btnInfo.setOnClickListener(view -> onPortInfo());
+        mBinding.btnMenu.setOnClickListener(view -> showControl());
+        mBinding.btnGrid.setOnClickListener(view -> setPortSpan(portSpan == 4 ? 2 : 4));
+    }
+
+    private void setPortraitView() {
+        mBinding.groupPort.setItemAnimator(null);
+        mBinding.channelPort.setItemAnimator(null);
+        mBinding.groupPort.setAdapter(mPortGroupAdapter = new GroupPortAdapter(this));
+        mBinding.channelPort.setAdapter(mPortChannelAdapter = new ChannelGridAdapter(this));
+        setPortSpan(portSpan);
+    }
+
+    private void setPortSpan(int span) {
+        portSpan = span;
+        mBinding.channelPort.setLayoutManager(new GridLayoutManager(this, span));
+    }
+
+    /** 横屏视频全屏，竖屏视频 16:9 在上、面板在下；只在横竖切换和初始化时调。 */
+    private void layoutOrientation() {
+        boolean land = ResUtil.isLand(this);
+        ViewGroup.LayoutParams params = mBinding.video.getLayoutParams();
+        params.height = land ? ViewGroup.LayoutParams.MATCH_PARENT : ResUtil.getScreenWidth() * 9 / 16;
+        mBinding.video.setLayoutParams(params);
+        mBinding.portrait.setVisibility(land ? View.GONE : View.VISIBLE);
+        if (!land) hideUI();
+    }
+
+    private void onPortKeep() {
+        if (mChannel == null) return;
+        if (onLongClick(mChannel)) updatePortKeep();
+    }
+
+    private void onPortInfo() {
+        if (mChannel == null) return;
+        LiveInfoDialog.create(mChannel, mChannel.getData(mViewModel.getZoneId()).getEpgData()).show(this);
+    }
+
+    private void updatePortInfo() {
+        if (mChannel == null) return;
+        mBinding.portNumber.setText(mChannel.getNumber());
+        Live home = getHome();
+        mBinding.portSource.setText(ResUtil.getString(R.string.live_source, home == null ? "" : home.getName()));
+        updatePortKeep();
+    }
+
+    private void updatePortKeep() {
+        mBinding.btnKeep.setSelected(mChannel != null && Keep.exist(mChannel.getName()));
+    }
+
+    /** “当前频道序号 / 该分类下的频道总数”，如 1 / 34；切频道分子变，换分类分母变。 */
+    private void updatePortCounter() {
+        if (mGroup == null) return;
+        int total = mGroup.getChannel().size();
+        int current = total == 0 ? 0 : mGroup.getPosition() + 1;
+        mBinding.portCount.setText(current + " / " + total);
     }
 
     private void setRecyclerView() {
@@ -298,6 +367,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         List<Group> items = new ArrayList<>();
         for (Group group : live.getGroups()) (group.isHidden() ? mHides : items).add(group);
         mGroupAdapter.addAll(items);
+        mPortGroupAdapter.addAll(items);
         setPosition(LiveConfig.get().findKeepPosition(items));
     }
 
@@ -478,6 +548,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     }
 
     private void showUI() {
+        if (!ResUtil.isLand(this)) return;
         if (isVisible(mBinding.recycler) || mGroupAdapter.getItemCount() == 0) return;
         mBinding.recycler.setVisibility(View.VISIBLE);
         mBinding.channel.requestFocus();
@@ -575,7 +646,8 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     private void onToggle() {
         if (isVisible(mBinding.control.getRoot())) hideControl();
         else if (isVisible(mBinding.recycler)) hideUI();
-        else showUI();
+        else if (ResUtil.isLand(this)) showUI();
+        else showControl();
         hideInfo();
     }
 
@@ -609,8 +681,12 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
 
     @Override
     public void onItemClick(Channel item) {
-        if (!item.getData(mViewModel.getZoneId()).getList().isEmpty() && item.isSelected() && mChannel != null && mChannel.equals(item) && mChannel.getGroup().equals(mGroup)) showEpg(item);
-        else if (mGroup != null) mLive.selectChannel(item.group(mGroup));
+        boolean current = mChannel != null && mChannel.equals(item) && mChannel.getGroup().equals(mGroup);
+        if (!item.getData(mViewModel.getZoneId()).getList().isEmpty() && item.isSelected() && current) {
+            if (ResUtil.isLand(this)) showEpg(item);
+        } else if (mGroup != null && (!current || ResUtil.isLand(this))) {
+            mLive.selectChannel(item.group(mGroup));
+        }
     }
 
     @Override
@@ -621,6 +697,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         if (exist) delKeep(item);
         else addKeep(item);
         RefreshEvent.keep();
+        updatePortKeep();
         return true;
     }
 
@@ -639,6 +716,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
 
     private void delKeep(Channel item) {
         if (mGroup.isKeep()) mChannelAdapter.remove(item);
+        if (mGroup.isKeep()) mPortChannelAdapter.remove(item);
         getKeep().getChannel().remove(item);
         Keep.delete(item.getName());
     }
@@ -656,6 +734,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         mBinding.widget.line.setVisibility(mChannel.getLineVisible());
         mBinding.control.action.line.setText(mBinding.widget.line.getText());
         mBinding.control.action.line.setVisibility(mBinding.widget.line.getVisibility());
+        updatePortInfo();
     }
 
     private void onEpgLoaded(Epg epg) {
@@ -760,21 +839,28 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     @Override
     public void renderGroupSelection(Group group) {
         mGroupAdapter.setSelected(mGroup = group);
+        mPortGroupAdapter.setSelected(group);
     }
 
     @Override
     public void renderGroupChannels(Group group) {
         mChannelAdapter.addAll(group.getChannel());
         mChannelAdapter.setSelected(group.getPosition());
+        mPortChannelAdapter.addAll(group.getChannel());
+        mPortChannelAdapter.setSelected(group.getPosition());
+        updatePortCounter();
     }
 
     @Override
     public void renderChannelSelection(Channel channel) {
-        if (mGroup != null) mGroup.setPosition(mChannelAdapter.setSelected(channel.group(mGroup)));
+        int position = mChannelAdapter.setSelected(channel.group(mGroup));
+        if (mGroup != null) mGroup.setPosition(position);
+        mPortChannelAdapter.setSelected(position);
         mChannel = channel;
         setArtwork();
         showInfo();
         hideUI();
+        updatePortCounter();
     }
 
     @Override
@@ -814,7 +900,9 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         mBinding.control.subtitle.setVisibility(View.GONE);
         mEpgDataAdapter.clear();
         mChannelAdapter.clear();
+        mPortChannelAdapter.clear();
         mGroupAdapter.clear();
+        mPortGroupAdapter.clear();
         mHides.clear();
         mChannel = null;
         mGroup = null;
@@ -945,6 +1033,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
 
     private void updatePlayControl(boolean isPlaying) {
         mBinding.control.play.setImageResource(isPlaying ? androidx.media3.ui.R.drawable.exo_icon_pause : androidx.media3.ui.R.drawable.exo_icon_play);
+        mBinding.portIcon.setImageResource(isPlaying ? androidx.media3.ui.R.drawable.exo_icon_pause : androidx.media3.ui.R.drawable.exo_icon_play);
         mPiP.update(this, isPlaying);
     }
 
@@ -1005,6 +1094,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
             Group item = iterator.next();
             if (pass != null && !pass.equals(item.getPass())) continue;
             mGroupAdapter.add(item);
+            mPortGroupAdapter.add(item);
             if (first) onItemClick(item);
             iterator.remove();
             first = false;
@@ -1018,6 +1108,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         getKeep().getChannel().clear();
         LiveConfig.get().applyKeepsToGroups(groups);
         if (mGroup != null && mGroup.isKeep()) mChannelAdapter.addAll(getKeep().getChannel());
+        if (mGroup != null && mGroup.isKeep()) mPortChannelAdapter.addAll(getKeep().getChannel());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -1216,6 +1307,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         super.onConfigurationChanged(newConfig);
         Util.hideSystemUI(this);
         updateFullscreenIcon();
+        layoutOrientation();
     }
 
     @Override

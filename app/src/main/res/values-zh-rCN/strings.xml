@@ -7,6 +7,11 @@
     <string name="live_pass">密码</string>
     <string name="live_refresh">刷新</string>
     <string name="live_line">线路 <xliff:g name="name">%s</xliff:g></string>
+    <string name="live_fullscreen">全屏</string>
+    <string name="live_cast">推送</string>
+    <string name="live_info">简介</string>
+    <string name="live_menu">菜单</string>
+    <string name="live_source">来源：<xliff:g name="name">%s</xliff:g> 类型：直播列表</string>
 
     <!-- Detail -->
     <string name="detail_title"><xliff:g name="name">%s</xliff:g>：<xliff:g name="name">%s</xliff:g></string>

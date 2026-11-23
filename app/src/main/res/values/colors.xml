@@ -28,4 +28,11 @@
     <color name="white_90">#E6FFFFFF</color>
     <color name="splash_background">#141218</color>
 
+    <!-- 直播竖屏页五个按钮的颜色（沿用效果图的配色；页面底色走主题壁纸，不用这里的颜色） -->
+    <color name="live_btn_fullscreen">#F59E0B</color>
+    <color name="live_btn_cast">#84CC16</color>
+    <color name="live_btn_keep">#EF4444</color>
+    <color name="live_btn_info">#22C55E</color>
+    <color name="live_btn_menu">#0EA5E9</color>
+
 </resources>

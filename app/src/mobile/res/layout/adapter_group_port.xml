@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 竖屏直播分类 tab：主题卡片底色 + 主题正文色（侧边列表的 adapter_group 是白字配深底，竖屏壁纸上看不清，所以单列一个） -->
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:layout_marginEnd="8dp"
+    android:background="@drawable/shape_live_grid"
+    android:gravity="center"
+    android:orientation="horizontal">
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:duplicateParentState="true"
+        android:ellipsize="marquee"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:singleLine="true"
+        android:textColor="@color/selector_live_grid_text"
+        android:textSize="14sp"
+        tools:text="央视频道" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

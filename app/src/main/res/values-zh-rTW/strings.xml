@@ -7,6 +7,11 @@
     <string name="live_pass">密碼</string>
     <string name="live_refresh">刷新</string>
     <string name="live_line">來源 <xliff:g name="name">%s</xliff:g></string>
+    <string name="live_fullscreen">全螢幕</string>
+    <string name="live_cast">推送</string>
+    <string name="live_info">簡介</string>
+    <string name="live_menu">選單</string>
+    <string name="live_source">來源：<xliff:g name="name">%s</xliff:g> 類型：直播列表</string>
 
     <!-- Detail -->
     <string name="detail_title"><xliff:g name="name">%s</xliff:g>：<xliff:g name="name">%s</xliff:g></string>

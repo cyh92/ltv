@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 竖屏直播“收藏”按钮的底色：已收藏是红色，未收藏是灰色（点一下切换，有 Toast 提示） -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/live_btn_keep" android:state_selected="true" />
+    <item android:color="#9E9E9E" />
+</selector>

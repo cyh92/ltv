@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 竖屏直播频道网格的单个频道：只显示名字，当前频道描边高亮 -->
+<com.google.android.material.textview.MaterialTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/name"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:layout_margin="4dp"
+    android:background="@drawable/shape_live_grid"
+    android:duplicateParentState="true"
+    android:ellipsize="end"
+    android:gravity="center"
+    android:singleLine="true"
+    android:textColor="@color/selector_live_grid_text"
+    android:textSize="14sp"
+    tools:text="CCTV-1综合" />
