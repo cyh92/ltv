@@ -334,10 +334,6 @@
     <string name="module_install_permission_title">需要允許安裝應用</string>
     <string name="module_install_permission_msg">安裝外掛要先允許燭龍安裝應用。點「去設定」開啟「允許安裝未知應用」，回來再開啟開關安裝。</string>
     <string name="module_install_permission_settings">去設定</string>
-    <string name="home_plugin_tip_title">裝個 MPV 看得更清楚</string>
-    <string name="home_plugin_tip_msg">Python、QuickJS 已內置，直接能看片。想看 4K 高清、大碼率片源，去「我的 → 外掛中心」裝上 MPV 外掛，播放更流暢。</string>
-    <string name="home_plugin_tip_go">去下載</string>
-    <string name="home_plugin_tip_later">以後再說</string>
 
     <!-- Backup & Restore -->
     <string name="restore_select">選擇備份</string>
@@ -547,7 +543,7 @@
     <string name="decoder_mode_ffmpeg_detail">使用 FFmpeg 軟體解碼</string>
     <string name="decoder_mode_unavailable">目前播放引擎沒有可切換的解碼模式。</string>
 
-    <string name="player_kernel_current">已安裝（插件中心）· 當前：%1$s</string>
+    <string name="player_kernel_current">當前：%1$s</string>
     <string name="player_decode_hint">自動（硬解優先，失敗自動回退）· 切換後下次播放生效</string>
     <string name="player_decode_advanced">高級解碼設定</string>
     <string name="decoder_mode_hw">硬解</string>

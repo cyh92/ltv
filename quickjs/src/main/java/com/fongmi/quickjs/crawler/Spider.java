@@ -307,9 +307,61 @@ public class Spider extends com.github.catvod.crawler.Spider {
     }
 
     private void createObj() throws Exception {
-        String content = module.load(api);
-        evaluateModule(content, api);
-        evaluateModule(String.format(readHostAsset("js/lib/spider.js"), JSONObject.quote(api)), api + "#spider");
+        String effectiveApi = resolveDrpyApi(api);
+        String content = module.load(effectiveApi);
+        content = transformDrpySource(content);
+        evaluateModule(content, effectiveApi);
+        evaluateModule(String.format(readHostAsset("js/lib/spider.js"), JSONObject.quote(effectiveApi)), effectiveApi + "#spider");
+    }
+
+    // drpy support (0.1.94): when a site's api is a drpy2 engine file, use the engine
+    // bundled in the app instead of the user's copy (local or remote). The bundled
+    // engine's relative import (./drpy-core-lite.min.js) then resolves inside the APK,
+    // so the source works on any phone with no local files and no plugin install.
+    // Any other api is returned unchanged.
+    private static String resolveDrpyApi(String api) {
+        String name = api;
+        int query = name.indexOf('?');
+        if (query >= 0) name = name.substring(0, query);
+        int hash = name.indexOf('#');
+        if (hash >= 0) name = name.substring(0, hash);
+        int slash = name.lastIndexOf('/');
+        if (slash >= 0) name = name.substring(slash + 1);
+        return "drpy2.min.js".equalsIgnoreCase(name) ? "assets://js/lib/drpy2/drpy2.min.js" : api;
+    }
+
+    // drpy support (0.1.94): make drpy v1 rules and cat rules reachable from the host.
+    // A v1 rule is top-level functions (init/home/category/detail/play/search) with no
+    // export; a cat rule is `var rule = {...}` with no export. Both are module-scoped,
+    // so the host cannot see them. Append a default export (with typeof guards, so a
+    // rule that omits a function does not break). Spider classes and files that already
+    // export a default are returned unchanged.
+    private static String transformDrpySource(String content) {
+        if (content == null) return content;
+        if (content.contains("class Spider") || content.contains("extends Spider")) return content;
+        if (content.contains("export default")) return content;
+        if (content.contains("var rule") || content.contains("let rule") || content.contains("const rule")) {
+            return content + "\nexport default rule;\n";
+        }
+        if (isDrpyV1Source(content)) {
+            return content + "\nexport default {"
+                    + "init: typeof init !== 'undefined' ? init : undefined,"
+                    + "home: typeof home !== 'undefined' ? home : undefined,"
+                    + "homeVod: typeof homeVod !== 'undefined' ? homeVod : undefined,"
+                    + "category: typeof category !== 'undefined' ? category : undefined,"
+                    + "detail: typeof detail !== 'undefined' ? detail : undefined,"
+                    + "play: typeof play !== 'undefined' ? play : undefined,"
+                    + "search: typeof search !== 'undefined' ? search : undefined,"
+                    + "proxy: typeof proxy !== 'undefined' ? proxy : undefined,"
+                    + "action: typeof action !== 'undefined' ? action : undefined};\n";
+        }
+        return content;
+    }
+
+    private static boolean isDrpyV1Source(String content) {
+        return content.contains("function home") || content.contains("function category")
+                || content.contains("function detail") || content.contains("function play")
+                || content.contains("function search") || content.contains("async function init");
     }
 
     private static String readHostAsset(String path) {

@@ -216,6 +216,8 @@ public class Global {
         ctx.bind(bridge, "session", args -> network.openSession()).join();
         ctx.bind(bridge, "closeSession", args -> closeSession(integer(args, 0))).join();
         ctx.bindAsync(bridge, "req", args -> network.req(str(args, 0), json(args, 1)), this::captureScope).join();
+        // drpy support (0.1.94): synchronous req for the drpy2 engine (see Network.reqSync).
+        ctx.bind(bridge, "reqSync", args -> network.reqSync(str(args, 0), json(args, 1))).join();
         ctx.bindAsync(bridge, "ws", args -> network.ws(str(args, 0), json(args, 1)), this::captureScope).join();
         ctx.bind(bridge, "download", args -> download(str(args, 0), str(args, 1), json(args, 2), callback(args, 3))).join();
         ctx.bindAsync(bridge, "sleep", args -> network.sleep(((Number) arg(args, 0)).doubleValue(), integer(args, 1)), this::captureScope).join();

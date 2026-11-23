@@ -342,10 +342,6 @@
     <string name="module_install_permission_title">需要允许安装应用</string>
     <string name="module_install_permission_msg">安装插件要先允许烛龙安装应用。点“去设置”打开“允许安装未知应用”，回来再打开开关安装。</string>
     <string name="module_install_permission_settings">去设置</string>
-    <string name="home_plugin_tip_title">装个 MPV 看得更清楚</string>
-    <string name="home_plugin_tip_msg">Python、QuickJS 已内置，直接能看片。想看 4K 高清、大码率片源，去“我的 → 插件中心”装上 MPV 插件，播放更流畅。</string>
-    <string name="home_plugin_tip_go">去下载</string>
-    <string name="home_plugin_tip_later">以后再说</string>
 
     <!-- Backup & Restore -->
     <string name="restore_select">选择备份</string>
@@ -555,7 +551,7 @@
     <string name="decoder_mode_ffmpeg_detail">使用 FFmpeg 软件解码</string>
     <string name="decoder_mode_unavailable">当前播放引擎没有可切换的解码模式。</string>
 
-    <string name="player_kernel_current">已安装（插件中心）· 当前：%1$s</string>
+    <string name="player_kernel_current">当前：%1$s</string>
     <string name="player_decode_hint">自动（硬解优先，失败自动回退）· 切换后下次播放生效</string>
     <string name="player_decode_advanced">高级解码设置</string>
     <string name="decoder_mode_hw">硬解</string>

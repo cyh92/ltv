@@ -206,19 +206,6 @@
                         android:textStyle="bold" />
 
                     <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/tabModule"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="6dp"
-                        android:gravity="center"
-                        android:paddingStart="6dp"
-                        android:paddingEnd="6dp"
-                        android:text="@string/setting_menu_plugin"
-                        android:textColor="@color/selector_setting_tab_text"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/tabPlayer"
                         android:layout_width="wrap_content"
                         android:layout_height="32dp"
@@ -294,19 +281,6 @@
                     android:paddingStart="6dp"
                     android:paddingEnd="6dp"
                     android:text="@string/setting_menu_interface"
-                    android:textColor="@color/selector_setting_tab_text"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/tabModuleTop"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="6dp"
-                    android:gravity="center"
-                    android:paddingStart="6dp"
-                    android:paddingEnd="6dp"
-                    android:text="@string/setting_menu_plugin"
                     android:textColor="@color/selector_setting_tab_text"
                     android:textSize="14sp"
                     android:textStyle="bold" />

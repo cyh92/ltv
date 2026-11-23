@@ -69,18 +69,26 @@ public enum RuntimeModule {
     }
 
     /**
-     * True when the Node.js runtime is compiled into the host app (0.1.93+).
-     * Requires both the entry class in the host dex and libnode.so in the
-     * host native library dir, so a merely-installed plugin APK does not count.
+     * True when the runtime is compiled into the host app (Node.js 0.1.93+,
+     * MPV 0.1.94+). Node.js requires both the entry class in the host dex
+     * and libnode.so in the host native library dir. MPV has no Java entry
+     * class, so it only requires libplayer.so in the host native library
+     * dir. Either way a merely-installed plugin APK does not count, because
+     * the check reads the host app's own native library dir.
      */
     public boolean isBuiltIn() {
-        if (this != NODEJS) return false;
-        try {
-            Class.forName(getEntryClass(), false, RuntimeModule.class.getClassLoader());
-        } catch (ClassNotFoundException e) {
-            return false;
+        if (this == NODEJS) {
+            try {
+                Class.forName(getEntryClass(), false, RuntimeModule.class.getClassLoader());
+            } catch (ClassNotFoundException e) {
+                return false;
+            }
+            return new File(Runtime.context().getApplicationInfo().nativeLibraryDir, library).exists();
         }
-        return new File(Runtime.context().getApplicationInfo().nativeLibraryDir, library).exists();
+        if (this == MPV) {
+            return new File(Runtime.context().getApplicationInfo().nativeLibraryDir, library).exists();
+        }
+        return false;
     }
 
     public String getPackageName() {

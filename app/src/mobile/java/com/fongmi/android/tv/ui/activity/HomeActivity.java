@@ -9,7 +9,6 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 
-import java.io.IOException;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.pm.ShortcutInfoCompat;
@@ -42,7 +41,6 @@ import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.FragmentStateManager;
 import com.fongmi.android.tv.ui.fragment.LocalFragment;
-import com.fongmi.android.tv.ui.fragment.ModuleFragment;
 import com.fongmi.android.tv.ui.fragment.SettingDanmakuFragment;
 import com.fongmi.android.tv.ui.fragment.SettingDecodeFragment;
 import com.fongmi.android.tv.ui.fragment.SettingFragment;
@@ -53,9 +51,6 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
-import com.github.catvod.utils.Prefers;
-import com.github.catvod.utils.RuntimeModule;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.navigation.NavigationBarView;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -112,7 +107,6 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         initFragment(savedInstanceState);
         Updater.get().start(this, false);
         checkPermission();
-        checkPluginTip();
     }
 
     @Override
@@ -154,7 +148,6 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
             case 3 -> SettingDanmakuFragment.newInstance();
             case 4 -> SettingPreloadFragment.newInstance();
             case 5 -> SettingDecodeFragment.newInstance();
-            case 6 -> ModuleFragment.newInstance();
             case 7 -> LocalFragment.newInstance();
             default -> null;
         };
@@ -162,27 +155,6 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
     private void checkPermission() {
         PermissionUtil.requestLocalNetwork(this, this::onNetworkPermissionResult);
-    }
-
-    private void checkPluginTip() {
-        if (Prefers.getBoolean("plugin_tip_shown")) return;
-        Prefers.put("plugin_tip_shown", true);
-        try {
-            if (RuntimeModule.MPV.getVersionCode() > 0) return;
-        } catch (IOException e) {
-            return;
-        }
-        new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.home_plugin_tip_title)
-                .setMessage(R.string.home_plugin_tip_msg)
-                .setPositiveButton(R.string.home_plugin_tip_go, (d, which) -> openPluginCenter())
-                .setNegativeButton(R.string.home_plugin_tip_later, null)
-                .show();
-    }
-
-    private void openPluginCenter() {
-        SettingFragment.openTab = 1;
-        change(1);
     }
 
     private void onNetworkPermissionResult(boolean allGranted) {

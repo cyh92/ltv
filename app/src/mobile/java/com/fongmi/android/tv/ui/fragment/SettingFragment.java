@@ -50,8 +50,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     private static final String STATE_TAB = "tab";
 
-    public static int openTab = -1;
-
     private FragmentSettingBinding mBinding;
     private TextView[] mTabs;
     private TextView[] mTabsTop;
@@ -87,8 +85,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     @Override
     protected void initView() {
-        mTabs = new TextView[]{mBinding.tabConfig, mBinding.tabModule, mBinding.tabPlayer, mBinding.tabTheme, mBinding.tabData};
-        mTabsTop = new TextView[]{mBinding.tabConfigTop, mBinding.tabModuleTop, mBinding.tabPlayerTop, mBinding.tabThemeTop, mBinding.tabDataTop};
+        mTabs = new TextView[]{mBinding.tabConfig, mBinding.tabPlayer, mBinding.tabTheme, mBinding.tabData};
+        mTabsTop = new TextView[]{mBinding.tabConfigTop, mBinding.tabPlayerTop, mBinding.tabThemeTop, mBinding.tabDataTop};
         for (int i = 0; i < mTabs.length; i++) {
             int index = i;
             mTabs[i].setOnClickListener(v -> selectTab(index));
@@ -100,10 +98,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.mineStatKeep.setOnClickListener(v -> KeepActivity.start(requireActivity()));
         mBinding.mineStatHistory.setOnClickListener(v -> HistoryActivity.start(requireActivity()));
         mBinding.mineStatSite.setOnClickListener(v -> selectTab(0));
-        if (openTab >= 0) {
-            mTab = openTab;
-            openTab = -1;
-        }
+        if (mTab >= mTabs.length) mTab = mTabs.length - 1;
         refreshMine();
         selectTab(mTab);
     }
@@ -179,7 +174,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private void disableInnerScrolls() {
         if (!isAdded()) return;
         FragmentManager fm = getChildFragmentManager();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < mTabs.length; i++) {
             Fragment f = fm.findFragmentByTag("tab" + i);
             if (f == null || f.getView() == null) continue;
             NestedScrollView scroll = f.getView().findViewById(R.id.tabScroll);
@@ -221,10 +216,9 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private Fragment createTab(int index) {
         return switch (index) {
             case 0 -> ConfigFragment.newInstance(true);
-            case 1 -> ModuleFragment.newInstance(true);
-            case 2 -> SettingPlayerFragment.newInstance(true);
-            case 3 -> ThemeFragment.newInstance(true);
-            case 4 -> DataFragment.newInstance();
+            case 1 -> SettingPlayerFragment.newInstance(true);
+            case 2 -> ThemeFragment.newInstance(true);
+            case 3 -> DataFragment.newInstance();
             default -> null;
         };
     }
@@ -232,8 +226,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private void refreshTab(int index) {
         Fragment f = getChildFragmentManager().findFragmentByTag("tab" + index);
         if (f == null || !f.isAdded() || f.getView() == null) return;
-        if (f instanceof ModuleFragment) ((ModuleFragment) f).refresh();
-        else if (f instanceof SettingPlayerFragment) ((SettingPlayerFragment) f).refresh();
+        if (f instanceof SettingPlayerFragment) ((SettingPlayerFragment) f).refresh();
         else if (f instanceof DataFragment) ((DataFragment) f).refresh();
     }
 
@@ -241,11 +234,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     public void onHiddenChanged(boolean hidden) {
         if (hidden) return;
         refreshMine();
-        if (openTab >= 0) {
-            selectTab(openTab);
-            openTab = -1;
-            return;
-        }
         refreshTab(mTab);
     }
 

@@ -86,6 +86,23 @@ final class Network {
         return requestAsync(url, options, false);
     }
 
+    // drpy support (0.1.94): synchronous request for the drpy2 engine, which reads
+    // res.content synchronously (`let res = req(url, obj)`). Same OkHttp call and same
+    // response shape as the async req ({content, headers, code}); the calling JS
+    // thread blocks on the future until it completes. Callers must not call this
+    // from a thread the OkHttp callback needs (it does not use the JS thread).
+    Object reqSync(String url, QuickJS.Json options) {
+        try {
+            global.checkInvocation();
+            JsonObject json = parseOptions(options);
+            NetOptions req = GSON.fromJson(json, NetOptions.class);
+            CompletableFuture<Net.Result> source = sendRequest(url, json, req, false);
+            return Connect.result(req, source.join());
+        } catch (Exception error) {
+            return Connect.error(error);
+        }
+    }
+
     CompletableFuture<Object> ws(String url, QuickJS.Json options) {
         return requestAsync(url, options, true);
     }

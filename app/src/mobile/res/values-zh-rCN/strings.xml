@@ -198,7 +198,6 @@
     <string name="theme_bg_7">紫霞</string>
     <string name="theme_bg_8">烛龙金</string>
     <string name="setting_menu_interface">接口配置</string>
-    <string name="setting_menu_plugin">插件中心</string>
     <string name="setting_menu_player">播放器</string>
     <string name="setting_menu_appearance">外观</string>
     <string name="setting_menu_data">数据中心</string>
