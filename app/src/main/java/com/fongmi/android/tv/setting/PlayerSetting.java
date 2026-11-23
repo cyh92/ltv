@@ -10,7 +10,6 @@ public class PlayerSetting {
 
     public static final int ENGINE_EXO = 0;
     public static final int ENGINE_MPV = 1;
-    public static final int ENGINE_IJK = 2;
     public static final int RENDER_SURFACE = 0;
     public static final int RENDER_TEXTURE = 1;
     public static final int MIN_SCALE = 0;
@@ -24,23 +23,25 @@ public class PlayerSetting {
 
     public static int getEngine() {
         // 0.1.97：一次性把默认内核重置为 EXO（用户要求全部默认 EXO 播放）。
-        // 只做一次（player_engine_reset_exo_0197 标记）；之后用户仍可在设置里手动切 IJK/MPV。
-        // IJK 本身仍可用（0.1.97 的 IJK 修复都在），只是默认不再是 IJK。
+        // 只做一次（player_engine_reset_exo_0197 标记）；之后用户仍可在设置里手动切 MPV。
         if (!Prefers.getBoolean("player_engine_reset_exo_0197", false)) {
             Prefers.put("player_engine_reset_exo_0197", true);
             Prefers.put("player_engine", ENGINE_EXO);
         }
-        return Math.clamp(Prefers.getInt("player_engine", ENGINE_EXO), ENGINE_EXO, getEngineCount() - 1);
+        // 0.1.98：IJK 已移除。存着的值若超出范围（比如从 0.1.96 直接升上来、
+        // 存的是 IJK=2），一律落到 EXO，不要 clamp 到 MPV。
+        int engine = Prefers.getInt("player_engine", ENGINE_EXO);
+        return engine == ENGINE_MPV ? ENGINE_MPV : ENGINE_EXO;
     }
 
     public static int getEngineCount() {
-        // IJK 是内置的（不依赖插件安装），三个内核槽位一直都在；
+        // 0.1.98：IJK 已移除，只剩 EXO/MPV 两个内核；
         // MPV 没装时由工厂回退到 EXO、设置页隐藏 MPV 按钮，不用靠 count 拦。
-        return ENGINE_IJK + 1;
+        return ENGINE_MPV + 1;
     }
 
     public static void putEngine(int engine) {
-        Prefers.put("player_engine", Math.clamp(engine, ENGINE_EXO, ENGINE_IJK));
+        Prefers.put("player_engine", Math.clamp(engine, ENGINE_EXO, ENGINE_MPV));
         if (isExo() && DecodeSetting.isTunnel()) putRender(RENDER_SURFACE);
     }
 
@@ -50,10 +51,6 @@ public class PlayerSetting {
 
     public static boolean isMpv() {
         return getEngine() == ENGINE_MPV;
-    }
-
-    public static boolean isIjk() {
-        return getEngine() == ENGINE_IJK;
     }
 
     public static boolean isDebug() {

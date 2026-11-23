@@ -279,7 +279,7 @@ public class Remote implements Process {
         body.addProperty("canSeek", service.canRemoteSeek());
         body.addProperty("canSetSpeed", service.canRemoteSetSpeed());
         body.addProperty("speed", player.getSpeed());
-        body.addProperty("engine", player.getEngine() == PlayerSetting.ENGINE_MPV ? "mpv" : player.getEngine() == PlayerSetting.ENGINE_IJK ? "ijk" : "ExoPlayer");
+        body.addProperty("engine", player.getEngine() == PlayerSetting.ENGINE_MPV ? "mpv" : "ExoPlayer");
         body.addProperty("video", player.getSizeText());
         return body;
     }

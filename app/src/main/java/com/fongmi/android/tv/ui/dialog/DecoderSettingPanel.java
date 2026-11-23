@@ -34,8 +34,8 @@ final class DecoderSettingPanel {
         binding.software.summary.setText(R.string.decoder_mode_software_detail);
         binding.ffmpeg.title.setText(R.string.decoder_mode_ffmpeg);
         binding.ffmpeg.summary.setText(R.string.decoder_mode_ffmpeg_detail);
-        // MPV 和 IJK 只有视频解码模式可选（音频固定 FFmpeg 解码），隐藏视频/音频 tab
-        boolean singleTrack = player.getEngine() == PlayerSetting.ENGINE_MPV || player.getEngine() == PlayerSetting.ENGINE_IJK;
+        // MPV 只有视频解码模式可选（音频固定 FFmpeg 解码），隐藏视频/音频 tab
+        boolean singleTrack = player.getEngine() == PlayerSetting.ENGINE_MPV;
         binding.tabGroup.setVisibility(singleTrack ? View.GONE : View.VISIBLE);
         trackType = C.TRACK_TYPE_VIDEO;
         if (!singleTrack) {

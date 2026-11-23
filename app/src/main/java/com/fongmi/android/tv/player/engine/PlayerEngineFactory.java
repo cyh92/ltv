@@ -1,7 +1,6 @@
 package com.fongmi.android.tv.player.engine;
 
 import static com.fongmi.android.tv.player.engine.PlayerEngine.Type.EXO;
-import static com.fongmi.android.tv.player.engine.PlayerEngine.Type.IJK;
 import static com.fongmi.android.tv.player.engine.PlayerEngine.Type.MPV;
 
 import androidx.media3.common.Player;
@@ -9,7 +8,6 @@ import androidx.media3.exoplayer.hls.CmgConfiguration;
 import androidx.media3.mpvplayer.media.MpvDrmSupport;
 
 import com.fongmi.android.tv.player.exo.ExoPlayerEngine;
-import com.fongmi.android.tv.player.ijk.IjkPlayerEngine;
 import com.fongmi.android.tv.player.media.MediaItemFactory;
 import com.fongmi.android.tv.player.media.PlaySpec;
 import com.fongmi.android.tv.player.mpv.MpvPlayerEngine;
@@ -30,7 +28,6 @@ public final class PlayerEngineFactory {
         return switch (type) {
             case EXO -> new ExoPlayerEngine(listener);
             case MPV -> new MpvPlayerEngine(listener);
-            case IJK -> new IjkPlayerEngine(listener);
         };
     }
 
@@ -47,14 +44,14 @@ public final class PlayerEngineFactory {
     }
 
     private static PlayerEngine.Type resolve() {
-        return isIjkReady() ? IJK : isMpvReady() ? MPV : EXO;
+        return isMpvReady() ? MPV : EXO;
     }
 
     static boolean requiresExo(PlaySpec spec) {
         return isCmg(spec) || "smb".equals(UriUtil.scheme(spec.getUrl())) || (spec.getDrm() != null && !drmSupportedBySelectedEngine(spec));
     }
 
-    /** 当前选中的内核能不能播这个 DRM 内容：只有 EXO 一定能，MPV 看支不支持，IJK 从不支持。 */
+    /** 当前选中的内核能不能播这个 DRM 内容：只有 EXO 一定能，MPV 看支不支持（IJK 已移除）。 */
     private static boolean drmSupportedBySelectedEngine(PlaySpec spec) {
         return resolve() == MPV && MpvDrmSupport.supports(MediaItemFactory.from(spec));
     }
@@ -65,9 +62,5 @@ public final class PlayerEngineFactory {
 
     private static boolean isMpvReady() {
         return PlayerSetting.isMpv() && MpvPlayerEngine.isAvailable();
-    }
-
-    private static boolean isIjkReady() {
-        return PlayerSetting.isIjk() && IjkPlayerEngine.isAvailable();
     }
 }
