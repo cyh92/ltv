@@ -46,10 +46,12 @@
         android:layout_height="wrap_content"
         android:clipChildren="false"
         android:clipToPadding="false"
+        android:fadeScrollbars="false"
         android:overScrollMode="never"
         android:paddingStart="24dp"
         android:paddingEnd="24dp"
         android:paddingBottom="24dp"
-        app:maxHeight="376dp" />
+        android:scrollbars="vertical"
+        app:maxHeight="560dp" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

@@ -55,6 +55,12 @@ public class Notify {
             return ResUtil.getString(R.string.error_module_missing, title);
         }
         for (Throwable current = e; current != null; current = current.getCause()) if (current instanceof ExtractException) return current.getMessage();
+        for (Throwable current = e; current != null; current = current.getCause()) {
+            String message = current.getMessage();
+            if (message == null) continue;
+            if (message.contains("Spider requires a default class")) return ResUtil.getString(R.string.error_js_no_spider);
+            if (message.contains("Unable to read QuickJS asset: assets://js/lib/cat.js")) return ResUtil.getString(R.string.error_js_no_cat);
+        }
         for (Throwable current = e; current != null; current = current.getCause()) if (current instanceof SpiderLoadException) return ResUtil.getString(R.string.error_spider_load);
         return null;
     }

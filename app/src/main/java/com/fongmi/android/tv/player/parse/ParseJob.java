@@ -20,10 +20,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,10 +96,61 @@ public class ParseJob implements ParseCallback {
 
     private void parseResult(Result result) {
         try {
-            doInBackground(result.getKey(), result.getUrl().v(), result.getFlag());
+            String webUrl = result.getUrl().v();
+            // 源自己返回的已经是完整解析链接（解析接口地址 + url=视频页）时，先直接按 JSON 取一次直链，
+            // 成功就播；失败（不是 JSON、取不到 url、网络错）再走原来的路（默认解析器或网页嗅探），不误伤正常视频页。
+            if (isParseLink(webUrl)) {
+                try {
+                    Parse direct = Parse.get(1, "");
+                    direct.setHeader(result.getHeader());
+                    jsonParse(direct, webUrl, false);
+                } catch (Throwable ignored) {
+                }
+                if (done.get()) return;
+                // 直接尝试失败：这条解析链接本身已经死了（例如 xmflv 停服），不要再拿整条链接去套默认解析器；
+                // 拆出 url= 参数里的内层视频页地址，用它走原来的路，默认解析器直接解析视频页。
+                String inner = innerUrl(webUrl);
+                if (inner != null) webUrl = inner;
+            }
+            doInBackground(result.getKey(), webUrl, result.getFlag());
         } catch (Throwable e) {
             onParseError();
         }
+    }
+
+    /** 这个地址本身是不是一条完整解析链接：带 url= 参数，值是另一个 http(s) 地址（例如 https://jx.xmflv.com/?url=https://v.qq.com/...）。正常视频页地址没有这种参数，不会误判。 */
+    static boolean isParseLink(String webUrl) {
+        if (TextUtils.isEmpty(webUrl)) return false;
+        int query = webUrl.indexOf('?');
+        if (query < 0) return false;
+        String params = webUrl.substring(query + 1).toLowerCase(Locale.ROOT);
+        for (String part : params.split("&")) {
+            if (part.startsWith("url=")) {
+                String value = part.substring(4);
+                return value.startsWith("http://") || value.startsWith("https://") || value.startsWith("http%3a") || value.startsWith("https%3a");
+            }
+        }
+        return false;
+    }
+
+    /** 从完整解析链接里拆出内层视频页地址：?url= 或 &url= 参数的值（明文 http(s)://，或 URL 编码过的 http%3a…）。拆不到、解码失败或不是 http(s) 开头时返回 null，调用方按原地址走，不抛错。 */
+    static String innerUrl(String webUrl) {
+        if (TextUtils.isEmpty(webUrl)) return null;
+        int query = webUrl.indexOf('?');
+        if (query < 0) return null;
+        for (String part : webUrl.substring(query + 1).split("&")) {
+            if (part.length() > 4 && part.substring(0, 4).equalsIgnoreCase("url=")) {
+                String value = part.substring(4);
+                try {
+                    value = URLDecoder.decode(value, "UTF-8");
+                    if (value.toLowerCase(Locale.ROOT).startsWith("http%3a")) value = URLDecoder.decode(value, "UTF-8");
+                } catch (Exception ignored) {
+                }
+                if (value.startsWith("http://") || value.startsWith("https://")) return value;
+                return null;
+            }
+        }
+        return null;
     }
 
     private void doInBackground(String key, String webUrl, String flag) throws Throwable {

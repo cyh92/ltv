@@ -180,14 +180,14 @@ public class ConfigManager {
         return true;
     }
 
-    /** 当前接口下，这个源要不要显示（""=全部接口，都显示）。 */
+    /** 当前接口下，这个源要不要显示（""=全部接口，都显示）。本地脚本源永远显示：接口只增加它自己的源，不藏起用户自己的 py/js 源；否则导入一个在线接口后，本地源会从列表里消失。 */
     public static boolean isSiteVisible(Site site) {
         Sub active = getActiveSub();
         if (active == null || active.tab != TAB_VOD) return true;
         String path = SiteOrder.getLocalPath(site);
         if (active.isFolder()) return path != null && path.startsWith(active.link + "/");
         if (active.isFile()) return path != null && path.equals(active.link);
-        if (active.isInterface()) return path == null;
+        if (active.isInterface()) return true;
         return true;
     }
 

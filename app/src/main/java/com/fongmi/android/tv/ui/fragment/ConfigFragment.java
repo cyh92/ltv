@@ -31,6 +31,7 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.activity.FileActivity;
 import com.fongmi.android.tv.ui.adapter.ConfigSubAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.utils.CheckStore;
 import com.fongmi.android.tv.utils.ConfigManager;
 import com.fongmi.android.tv.utils.FileChooser;
@@ -377,7 +378,7 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
         };
     }
 
-    /** “添加接口”：名字 + 链接（在线接口或直播源地址）。 */
+    /** “添加接口”：名字 + 链接（在线接口或直播源地址）。名字不用填：输链接时自动取链接的文件名（mynz.json → mynz），想改就自己改；确定时名字还空着，也按链接自动取。 */
     private void onAdd() {
         LinearLayout layout = new LinearLayout(requireContext());
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -388,6 +389,16 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
         EditText linkInput = new EditText(requireContext());
         linkInput.setHint(R.string.config_link);
         linkInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        String[] autoName = {""};
+        linkInput.addTextChangedListener(new CustomTextListener() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String current = nameInput.getText().toString();
+                if (!current.isEmpty() && !current.equals(autoName[0])) return;
+                autoName[0] = fileNameFromLink(s.toString());
+                nameInput.setText(autoName[0]);
+            }
+        });
         layout.addView(nameInput);
         layout.addView(linkInput);
         new MaterialAlertDialogBuilder(requireContext())
@@ -396,13 +407,16 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
                 .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
                     String name = nameInput.getText().toString().trim();
                     String link = linkInput.getText().toString().trim();
-                    if (name.isEmpty()) {
-                        Notify.show(R.string.config_need_name);
-                        return;
-                    }
                     if (link.isEmpty()) {
                         Notify.show(R.string.config_need_link);
                         return;
+                    }
+                    if (name.isEmpty()) {
+                        name = fileNameFromLink(link);
+                        if (name.isEmpty()) {
+                            Notify.show(R.string.config_need_name);
+                            return;
+                        }
                     }
                     String kind = tab == ConfigManager.TAB_VOD ? ConfigManager.KIND_URL : ConfigManager.KIND_LIVE_URL;
                     ConfigManager.Sub sub = ConfigManager.add(tab, kind, name, link);
@@ -412,6 +426,26 @@ public class ConfigFragment extends BaseFragment implements ConfigSubAdapter.OnC
                 })
                 .setNegativeButton(R.string.dialog_negative, null)
                 .show();
+    }
+
+    /** 从链接里取默认名字：最后一段路径的文件名，去掉扩展名（mynz.json → mynz）；没有文件名就用域名；都取不到返回 ""。 */
+    private static String fileNameFromLink(String link) {
+        if (link == null) return "";
+        String clean = link.trim();
+        if (clean.isEmpty()) return "";
+        try {
+            Uri uri = Uri.parse(clean);
+            String segment = uri.getLastPathSegment();
+            if (segment != null && !segment.isEmpty()) {
+                int dot = segment.lastIndexOf('.');
+                if (dot > 0) segment = segment.substring(0, dot);
+                if (!segment.isEmpty()) return segment;
+            }
+            String host = uri.getHost();
+            return host == null ? "" : host;
+        } catch (Exception ignored) {
+            return "";
+        }
     }
 
     /** 扫描文件夹：加成一个本地接口，里面的 .py/.js 都会变成源。 */
