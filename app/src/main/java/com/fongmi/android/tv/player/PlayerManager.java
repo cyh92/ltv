@@ -399,6 +399,7 @@ public class PlayerManager implements ParseCallback {
     }
 
     public int getEngine() {
+        if (isIjkEngine()) return PlayerSetting.ENGINE_IJK;
         return isMpvEngine() ? PlayerSetting.ENGINE_MPV : PlayerSetting.ENGINE_EXO;
     }
 
@@ -612,6 +613,10 @@ public class PlayerManager implements ParseCallback {
 
     private boolean isMpvEngine() {
         return engine != null && engine.getType() == PlayerEngine.Type.MPV;
+    }
+
+    private boolean isIjkEngine() {
+        return engine != null && engine.getType() == PlayerEngine.Type.IJK;
     }
 
     public void play() {

@@ -59,7 +59,7 @@ public final class PlaybackLog {
         DecoderMode audioMode = manager.getDecoderMode(C.TRACK_TYPE_AUDIO);
         DecoderMode videoMode = manager.getDecoderMode(C.TRACK_TYPE_VIDEO);
         body.addProperty("playerId", Integer.toHexString(System.identityHashCode(player)));
-        body.addProperty("engine", manager.getEngine() == PlayerSetting.ENGINE_MPV ? "mpv" : "ExoPlayer");
+        body.addProperty("engine", manager.getEngine() == PlayerSetting.ENGINE_MPV ? "mpv" : manager.getEngine() == PlayerSetting.ENGINE_IJK ? "ijk" : "ExoPlayer");
         addUrl(body, manager.getUrl());
         if (player.isCommandAvailable(Player.COMMAND_GET_CURRENT_MEDIA_ITEM)) body.addProperty("positionMs", manager.getPosition());
         body.addProperty("playbackState", player.getPlaybackState());

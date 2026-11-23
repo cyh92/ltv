@@ -36,6 +36,7 @@
     <string name="play_ed">ED</string>
     <string name="play_exo">EXO</string>
     <string name="play_mpv">MPV</string>
+    <string name="play_ijk">IJK</string>
     <string name="play_other">Other</string>
     <string name="play_next">Next</string>
     <string name="play_prev">Prev</string>
@@ -344,6 +345,10 @@
     <string name="module_install_permission_title">Permission needed to install apps</string>
     <string name="module_install_permission_msg">To install plugins, allow Zhulong to install apps first. Tap "Go to Settings", turn on "Allow installing unknown apps", then come back and turn the switch on again.</string>
     <string name="module_install_permission_settings">Go to Settings</string>
+    <string name="home_plugin_tip_title">Install MPV for sharper playback</string>
+    <string name="home_plugin_tip_msg">Python and QuickJS are built in, so videos play right away. For 4K and high-bitrate sources, install the MPV plugin in "Mine → Plugin Center" for smoother playback.</string>
+    <string name="home_plugin_tip_go">Go download</string>
+    <string name="home_plugin_tip_later">Later</string>
 
     <!-- Backup & Restore -->
     <string name="restore_select">Select backup</string>
@@ -486,6 +491,7 @@
     <string-array name="select_engine">
         <item>EXO</item>
         <item>MPV</item>
+        <item>IJK</item>
     </string-array>
 
     <string-array name="select_mpv_motion">
@@ -568,7 +574,7 @@
     <string name="decoder_mode_ffmpeg_detail">FFmpeg software decoding</string>
     <string name="decoder_mode_unavailable">This engine has no selectable decoder modes.</string>
 
-    <string name="player_kernel_current">Current: %1$s</string>
+    <string name="player_kernel_current">Installed (Plugins) · Current: %1$s</string>
     <string name="player_decode_hint">Auto (hardware first, falls back on failure) · Applies on next playback</string>
     <string name="player_decode_advanced">Advanced decoder settings</string>
     <string name="decoder_mode_hw">Hardware</string>

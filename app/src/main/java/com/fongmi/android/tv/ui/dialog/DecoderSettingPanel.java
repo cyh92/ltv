@@ -34,10 +34,11 @@ final class DecoderSettingPanel {
         binding.software.summary.setText(R.string.decoder_mode_software_detail);
         binding.ffmpeg.title.setText(R.string.decoder_mode_ffmpeg);
         binding.ffmpeg.summary.setText(R.string.decoder_mode_ffmpeg_detail);
-        boolean mpv = player.getEngine() == PlayerSetting.ENGINE_MPV;
-        binding.tabGroup.setVisibility(mpv ? View.GONE : View.VISIBLE);
+        // MPV 和 IJK 只有视频解码模式可选（音频固定 FFmpeg 解码），隐藏视频/音频 tab
+        boolean singleTrack = player.getEngine() == PlayerSetting.ENGINE_MPV || player.getEngine() == PlayerSetting.ENGINE_IJK;
+        binding.tabGroup.setVisibility(singleTrack ? View.GONE : View.VISIBLE);
         trackType = C.TRACK_TYPE_VIDEO;
-        if (!mpv) {
+        if (!singleTrack) {
             SettingPanelViews.bindTabs(binding.tabGroup, getTabs(), index -> {
                 trackType = index == 0 ? C.TRACK_TYPE_VIDEO : C.TRACK_TYPE_AUDIO;
                 showModes();
@@ -45,7 +46,7 @@ final class DecoderSettingPanel {
             PlaybackDialogFocus.selectFirstTab(binding.getRoot(), binding.tabGroup, binding.tabVideo);
         }
         showModes();
-        if (mpv) PlaybackDialogFocus.request(binding.getRoot(), binding.auto.getRoot());
+        if (singleTrack) PlaybackDialogFocus.request(binding.getRoot(), binding.auto.getRoot());
     }
 
     void release() {

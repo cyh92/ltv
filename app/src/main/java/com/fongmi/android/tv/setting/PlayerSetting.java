@@ -5,12 +5,12 @@ import static androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT;
 import static androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM;
 
 import com.github.catvod.utils.Prefers;
-import com.github.catvod.utils.RuntimeModule;
 
 public class PlayerSetting {
 
     public static final int ENGINE_EXO = 0;
     public static final int ENGINE_MPV = 1;
+    public static final int ENGINE_IJK = 2;
     public static final int RENDER_SURFACE = 0;
     public static final int RENDER_TEXTURE = 1;
     public static final int MIN_SCALE = 0;
@@ -27,11 +27,13 @@ public class PlayerSetting {
     }
 
     public static int getEngineCount() {
-        return RuntimeModule.MPV.isInstalled() ? ENGINE_MPV + 1 : ENGINE_EXO + 1;
+        // IJK 是内置的（不依赖插件安装），三个内核槽位一直都在；
+        // MPV 没装时由工厂回退到 EXO、设置页隐藏 MPV 按钮，不用靠 count 拦。
+        return ENGINE_IJK + 1;
     }
 
     public static void putEngine(int engine) {
-        Prefers.put("player_engine", Math.clamp(engine, ENGINE_EXO, ENGINE_MPV));
+        Prefers.put("player_engine", Math.clamp(engine, ENGINE_EXO, ENGINE_IJK));
         if (isExo() && DecodeSetting.isTunnel()) putRender(RENDER_SURFACE);
     }
 
@@ -41,6 +43,10 @@ public class PlayerSetting {
 
     public static boolean isMpv() {
         return getEngine() == ENGINE_MPV;
+    }
+
+    public static boolean isIjk() {
+        return getEngine() == ENGINE_IJK;
     }
 
     public static boolean isDebug() {

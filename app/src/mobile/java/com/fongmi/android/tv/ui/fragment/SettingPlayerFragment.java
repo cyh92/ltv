@@ -101,6 +101,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
             if (!isChecked) return;
             if (checkedId == R.id.engineExo) selectEngine(PlayerSetting.ENGINE_EXO);
             else if (checkedId == R.id.engineMpv) selectEngine(PlayerSetting.ENGINE_MPV);
+            else if (checkedId == R.id.engineIjk) selectEngine(PlayerSetting.ENGINE_IJK);
         });
         mBinding.decodeGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (!isChecked) return;
@@ -131,19 +132,20 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
 
     private void setVisible() {
         boolean exo = PlayerSetting.isExo();
+        boolean mpv = PlayerSetting.isMpv();
         boolean exoMotion = exo && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
         mBinding.exoMotion.setVisibility(exoMotion ? View.VISIBLE : View.GONE);
         mBinding.dividerExoMotion.setVisibility(exoMotion ? View.VISIBLE : View.GONE);
         setExoMotionText();
-        boolean vulkan = !exo && MpvUtil.isVulkanSupported();
-        mBinding.mpvConf.setVisibility(exo ? View.GONE : View.VISIBLE);
-        mBinding.dividerMpvConf.setVisibility(exo ? View.GONE : View.VISIBLE);
+        boolean vulkan = mpv && MpvUtil.isVulkanSupported();
+        mBinding.mpvConf.setVisibility(mpv ? View.VISIBLE : View.GONE);
+        mBinding.dividerMpvConf.setVisibility(mpv ? View.VISIBLE : View.GONE);
         mBinding.mpvVulkan.setVisibility(vulkan ? View.VISIBLE : View.GONE);
         mBinding.dividerMpvVulkan.setVisibility(vulkan ? View.VISIBLE : View.GONE);
         mBinding.mpvMotion.setVisibility(vulkan ? View.VISIBLE : View.GONE);
         mBinding.dividerMpvMotion.setVisibility(vulkan ? View.VISIBLE : View.GONE);
-        mBinding.mpvGpuNext.setVisibility(exo ? View.GONE : View.VISIBLE);
-        mBinding.dividerMpvGpuNext.setVisibility(exo ? View.GONE : View.VISIBLE);
+        mBinding.mpvGpuNext.setVisibility(mpv ? View.VISIBLE : View.GONE);
+        mBinding.dividerMpvGpuNext.setVisibility(mpv ? View.VISIBLE : View.GONE);
         mBinding.libass.setVisibility(exo ? View.VISIBLE : View.GONE);
         mBinding.dividerLibass.setVisibility(exo ? View.VISIBLE : View.GONE);
         mBinding.buffer.setVisibility(exo ? View.VISIBLE : View.GONE);
@@ -156,8 +158,10 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         if (mpvInstalled) {
             if (mBinding.engineMpv.getParent() == null) mBinding.engineGroup.addView(mBinding.engineMpv);
         } else if (mBinding.engineMpv.getParent() != null) mBinding.engineGroup.removeView(mBinding.engineMpv);
-        mBinding.engineGroup.check(PlayerSetting.isExo() ? R.id.engineExo : R.id.engineMpv);
-        mBinding.engineSubtitle.setText(getString(R.string.player_kernel_current, PlayerSetting.isExo() ? "ExoPlayer" : "MPV"));
+        int checkedId = PlayerSetting.isExo() ? R.id.engineExo : PlayerSetting.isMpv() ? R.id.engineMpv : R.id.engineIjk;
+        mBinding.engineGroup.check(checkedId);
+        String engineName = PlayerSetting.isExo() ? "ExoPlayer" : PlayerSetting.isMpv() ? "MPV" : "IJK";
+        mBinding.engineSubtitle.setText(getString(R.string.player_kernel_current, engineName));
     }
 
     private void selectEngine(int index) {

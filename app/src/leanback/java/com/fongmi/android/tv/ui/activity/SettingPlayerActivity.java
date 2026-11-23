@@ -69,14 +69,15 @@ public class SettingPlayerActivity extends BaseActivity implements UaListener, B
 
     private void setVisible() {
         boolean exo = PlayerSetting.isExo();
+        boolean mpv = PlayerSetting.isMpv();
         boolean exoMotion = exo && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
         mBinding.exoMotion.setVisibility(exoMotion ? View.VISIBLE : View.GONE);
         setExoMotionText();
-        boolean vulkan = !exo && MpvUtil.isVulkanSupported();
-        boolean motion = !exo && MpvUtil.isMotionEnabled();
+        boolean vulkan = mpv && MpvUtil.isVulkanSupported();
+        boolean motion = mpv && MpvUtil.isMotionEnabled();
         if (PlayerSetting.isBackgroundPiP()) PlayerSetting.putBackground(1);
         mBinding.exoRow.setVisibility(exo ? View.VISIBLE : View.GONE);
-        mBinding.mpvRow.setVisibility(exo ? View.GONE : View.VISIBLE);
+        mBinding.mpvRow.setVisibility(mpv ? View.VISIBLE : View.GONE);
         mBinding.adblock.setNextFocusDownId(exo ? R.id.libass : R.id.mpvConf);
         mBinding.background.setNextFocusDownId(exo ? R.id.buffer : motion ? R.id.mpvConf : R.id.mpvGpuNext);
         mBinding.mpvConf.setNextFocusDownId(motion ? R.id.mpvMotion : vulkan ? R.id.mpvVulkan : R.id.ua);
