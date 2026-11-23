@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 竖屏直播五个按钮的底形：圆角胶囊，颜色由 backgroundTint 指定 -->
+<!-- 竖屏直播五个按钮的底形：圆角胶囊，颜色由 backgroundTint 指定；圆角 18dp，和频道胶囊一样（胶囊高 36dp，18dp 正好是半圆） -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/white" />
-    <corners android:radius="22dp" />
+    <corners android:radius="18dp" />
 </shape>

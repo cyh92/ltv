@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 竖屏直播频道网格的单个频道：只显示名字，当前频道描边高亮 -->
+<!-- 竖屏直播频道网格的单个频道：只显示名字，当前频道琥珀实底 + 黑字。
+     胶囊高 36dp、字 13sp，和上面五个按钮一样大；一排 5 个。
+     上下边距各 6dp，两行之间就是 12dp（约 2mm）；左右边距各 4dp。 -->
 <com.google.android.material.textview.MaterialTextView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/name"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
-    android:layout_margin="4dp"
+    android:layout_height="36dp"
+    android:layout_marginStart="4dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginBottom="6dp"
     android:background="@drawable/shape_live_grid"
     android:duplicateParentState="true"
     android:ellipsize="end"
     android:gravity="center"
     android:singleLine="true"
     android:textColor="@color/selector_live_grid_text"
-    android:textSize="14sp"
+    android:textSize="13sp"
     tools:text="CCTV-1综合" />

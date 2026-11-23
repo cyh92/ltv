@@ -35,4 +35,7 @@
     <color name="live_btn_info">#22C55E</color>
     <color name="live_btn_menu">#0EA5E9</color>
 
+    <!-- 直播竖屏选中频道的琥珀底色：写死 #F1BB6C，不用 ?attr/colorPrimary，因为 Material 动态取色会把它覆盖掉（实测选中的描边被动态取色改成了灰蓝色） -->
+    <color name="live_selected">#F1BB6C</color>
+
 </resources>

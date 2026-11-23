@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 竖屏直播频道网格胶囊：平时是主题卡片底色，当前频道加主题强调色描边 -->
+<!-- 竖屏直播频道网格胶囊：平时是主题卡片底色，当前频道是琥珀实底 + 黑字（和首页选中 chip 一个样式）。
+     底色写死 @color/live_selected（#F1BB6C），不用 ?attr/colorPrimary——Material 动态取色会把它覆盖掉，
+     旧版只加 2dp 描边的选中态在实测里被动态取色改成了灰蓝色，肉眼几乎看不出来。
+     圆角 18dp：胶囊高 36dp，18dp 正好是半圆胶囊；五个顶部按钮的底形也是 18dp，两边一样大。 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_selected="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/card_bg" />
-            <stroke
-                android:width="2dp"
-                android:color="?attr/colorPrimary" />
-            <corners android:radius="16dp" />
+            <solid android:color="@color/live_selected" />
+            <corners android:radius="18dp" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <solid android:color="@color/card_bg" />
-            <corners android:radius="16dp" />
+            <corners android:radius="18dp" />
         </shape>
     </item>
 </selector>

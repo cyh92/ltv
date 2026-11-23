@@ -100,7 +100,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     private EpgDataAdapter mEpgDataAdapter;
     private GroupPortAdapter mPortGroupAdapter;
     private ChannelGridAdapter mPortChannelAdapter;
-    private int portSpan = 4;
+    private int portSpan = 5;
     private TouchInput mInput;
     private PinchScaleFeedback mScaleFeedback;
     private PiP mPiP;
@@ -225,7 +225,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         mBinding.btnKeep.setOnClickListener(view -> onPortKeep());
         mBinding.btnInfo.setOnClickListener(view -> onPortInfo());
         mBinding.btnMenu.setOnClickListener(view -> showControl());
-        mBinding.btnGrid.setOnClickListener(view -> setPortSpan(portSpan == 4 ? 2 : 4));
+        mBinding.btnGrid.setOnClickListener(view -> setPortSpan(portSpan == 5 ? 2 : 5));
     }
 
     private void setPortraitView() {

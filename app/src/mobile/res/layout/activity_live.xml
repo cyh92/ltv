@@ -114,11 +114,14 @@
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
-                <!-- 五个彩色按钮 -->
+                <!-- 五个彩色按钮：和频道胶囊一样大（高 36dp、字 13sp、圆角 18dp）。
+                     左右各留 8dp，和频道网格的胶囊左右边缘对齐，五个按钮就和网格里一排 5 个胶囊一样宽。 -->
                 <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
                     android:layout_marginTop="12dp"
+                    android:layout_marginEnd="8dp"
                     android:orientation="horizontal">
 
                     <com.google.android.material.textview.MaterialTextView
