@@ -239,6 +239,10 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
                 Notify.dismiss();
                 Notify.show(msg);
                 showContent();
+                // 0.1.97：报错后把顶栏接口名刷回真实的 activeId。切换失败时
+                // guarded 回调已把 activeId 恢复成旧接口，但顶栏还停在新接口 X
+                // 上（点选时 setIface() 已改成 X），不刷就会“顶栏是 X、内容是旧接口”。
+                setIface();
             }
         };
     }
@@ -366,6 +370,8 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
                 Notify.dismiss();
                 Notify.show(msg);
                 showContent();
+                // 0.1.97：同上，报错后把顶栏接口名刷回真实的 activeId。
+                setIface();
             }
         });
     }

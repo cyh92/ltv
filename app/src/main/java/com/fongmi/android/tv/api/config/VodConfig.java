@@ -49,6 +49,23 @@ public class VodConfig extends BaseConfig {
     private List<Parse> parses;
     private List<Parse> configParses;
 
+    /**
+     * 0.1.97：切换接口时把首页重置到新接口自己的第一个源（不是存着的旧首页）。
+     * <p>
+     * 根因（“切换后还是显示原来的接口”）：首页内容由首页源（home）决定，而 home 是按
+     * 接口存着的（Config.getHome()）。用户常把本地 py 源（比如 4K河豚[py]）当首页源，
+     * 这个 py 源在所有接口下都可见（0.1.91 起本地脚本源永不隐藏），所以切到 RRZY/
+     * 影视py 后首页源还是同一个 py 源，首页内容一点没变——顶栏字变了，内容还是原来的。
+     * 只有在真正“切换接口”（activateVod 切到另一个订阅）时才置位，加载完成后消费掉；
+     * 平时重载/重启不置位，存着的首页源照常用，不打扰用户。
+     */
+    private boolean resetHome;
+
+    /** 切换接口时调用：下一次加载完成后把首页重置到新接口自己的第一个源。 */
+    public void setResetHome(boolean resetHome) {
+        this.resetHome = resetHome;
+    }
+
     public static VodConfig get() {
         return Loader.INSTANCE;
     }
@@ -229,7 +246,24 @@ public class VodConfig extends BaseConfig {
         getSites().forEach(site -> { String name = SiteOrder.getName(site.getKey()); if (name != null) site.setName(name); });
         Map<String, Site> items = Site.findAll().stream().collect(Collectors.toMap(Site::getKey, Function.identity()));
         getSites().forEach(site -> site.sync(items.get(site.getKey())));
-        setHome(config, getSites().isEmpty() ? new Site() : getSites().stream().filter(item -> item.getKey().equals(config.getHome())).findFirst().orElse(getSites().get(0)), false);
+        setHome(config, selectHomeSite(config), false);
+    }
+
+    /**
+     * 0.1.97：选首页源。平时（重载/重启）按存着的首页源恢复；切换接口时（resetHome），
+     * 忽略存着的首页源（它常是跨接口共享的本地 py 源，恢复它等于没切），改用新接口
+     * 自己的第一个源——接口自己的源排在前（config 的 sites 在先、脚本源后加），
+     * 所以第一个“非本地脚本”源就是该接口自己的源；文件夹接口下过滤后只剩文件夹
+     * 自己的源，直接取第一个。resetHome 一次性，选完就清掉。
+     */
+    private Site selectHomeSite(Config config) {
+        if (getSites().isEmpty()) return new Site();
+        if (!resetHome) {
+            return getSites().stream().filter(item -> item.getKey().equals(config.getHome())).findFirst().orElse(getSites().get(0));
+        }
+        resetHome = false;
+        for (Site site : getSites()) if (SiteOrder.getLocalPath(site) == null) return site;
+        return getSites().get(0);
     }
 
     private void initParse(Config config, JsonObject object) {

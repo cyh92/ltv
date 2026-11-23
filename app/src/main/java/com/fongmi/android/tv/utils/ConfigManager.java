@@ -211,6 +211,11 @@ public class ConfigManager {
         // 失败，请重启APP”，必须重启或手动切回去才能恢复。现在包一层回调：加载失败时
         // 把 activeId 恢复成旧接口、重新加载旧配置，用户留在原来能用的接口上。
         String prevId = getActiveId();
+        // 0.1.97：真在切换接口（不是重复点当前接口）时，让加载完成后把首页重置到
+        // 新接口自己的第一个源。不然首页源还是存着的旧首页（常是跨接口共享的本地
+        // py 源），顶栏字变了、首页内容还是原来的——“切换后还是显示原来的接口”。
+        boolean switching = !sub.id.equals(prevId);
+        if (switching) VodConfig.get().setResetHome(true);
         setActiveId(sub.id);
         Callback guarded = new Callback() {
             @Override
@@ -219,7 +224,16 @@ public class ConfigManager {
                 Sub prev = find(prevId);
                 if (prev != null && prev.isInterface()) VodConfig.load(Config.find(prev.getConfigUrl(), 0), callback);
                 else VodConfig.load(Config.vod(), callback);
-                callback.error(msg);
+                // 0.1.97：失败要说清楚，不能只透传源里的原始报错（比如“配置信息初始
+                // 化失败，请重启APP”）。点名新接口 X 和回退到的旧接口，让用户知道
+                // 这次切换没成功、现在显示的是哪个接口；恢复旧接口的加载走上面那行，
+                // 成功后首页事件链会把顶栏和内容都刷回旧接口。
+                String reason = msg == null ? "" : msg;
+                int nl = reason.indexOf('\n');
+                if (nl >= 0) reason = reason.substring(nl + 1).trim();
+                if (reason.length() > 80) reason = reason.substring(0, 80) + "…";
+                String prevName = prev == null ? "" : prev.name;
+                callback.error("切换到「" + sub.name + "」失败" + (reason.isEmpty() ? "" : "：" + reason) + (prevName.isEmpty() ? "" : "，仍显示「" + prevName + "」"));
             }
 
             @Override

@@ -51,8 +51,17 @@ public class IjkUtil {
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "fflags", "fastseek");
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "flush_packets", 1L);
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect", 1L);
+        // 0.1.97：HLS 分片失败时重连（0.1.96 播约 2 分半后卡在 08:34 不动，就是
+        // 分片拉不到后 demuxer 停住、一直报 buffering。只开 reconnect 不够，段尾/
+        // 流式重连和最大重连延迟也要开，不然一次分片 404/超时就卡死）。
+        player.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect_at_eof", 1L);
+        player.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect_streamed", 1L);
+        player.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect_delay_max", 5L);
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "timeout", 30000000L);
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "http-detect-range-support", 0L);
+        // 0.1.97：切台/切源换域名时清掉 DNS 缓存。ijkplayer 的 DNS 缓存跨域名不失效，
+        // 多个源来回切会在旧 IP 上报 -10000（MEDIA_ERROR_IJK_PLAYER），社区常见修法。
+        player.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "dns_cache_clear", 1L);
         // 解码层：跳过环路滤波省算力（软解时更明显）
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48L);
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_frame", 0L);
@@ -64,7 +73,11 @@ public class IjkUtil {
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-hevc", 1L);
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 0L);
         player.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 0L);
-        player.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0L);
+        // 0.1.97：packet-buffering 改回 1（默认）。0.1.95 设成 0 后 IJK 几乎不预缓冲，
+        // 网络一抖就进 buffering，而且容易停在 buffering 里出不来（0.1.96《一千零一夜》
+        // 08:34 卡住就是这个状态）。开回 1 并给 15MB 上限，让它有缓冲可吃、抖动能恢复。
+        player.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 1L);
+        player.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max-buffer-size", 15L * 1024L * 1024L);
         player.setAudioStreamType(android.media.AudioManager.STREAM_MUSIC);
     }
 

@@ -436,7 +436,7 @@
     <string name="error_episode_missing">无法恢复上次的播放项目，请重新选集</string>
     <string name="error_episode_not_found">找不到指定的播放项目，请重新选集</string>
     <string name="error_play_flag">暂无线路数据</string>
-    <string name="error_play_timeout">连接超时</string>
+    <string name="error_play_timeout">连接超时</string><string name="player_engine_fallback_ijk">IJK 卡住了，已切换到 Exo</string>
     <string name="bdj_preparing">正在准备 BD-J 菜单</string>
     <string name="error_bdj_prepare">ISO 菜单检查或 BD-J 准备失败：%1$s</string>
     <string name="error_audio_effect_unsupported">当前播放方式不支持音质设置</string>

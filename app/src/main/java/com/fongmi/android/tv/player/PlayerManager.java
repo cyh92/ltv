@@ -95,11 +95,22 @@ public class PlayerManager implements ParseCallback {
     private boolean refreshAttempted;
     private boolean mpvDrmExoFallback;
     private boolean initTrack;
+    /** 0.1.97：IJK 出错/卡住后已回退到 Exo（一次播放只回退一次，换集/换台后复位）。 */
+    private boolean ijkExoFallback;
+    /** 0.1.97：IJK 卡住判定——连续 buffering 超过这个时间且位置基本不动 → 切 Exo。 */
+    private static final long IJK_STALL_TIMEOUT_MS = 12000;
+    /** 0.1.97：卡住看门狗复查间隔。 */
+    private static final long IJK_STALL_CHECK_INTERVAL_MS = 4000;
+    /** 0.1.97：IJK 卡住看门狗（播着播着一直 buffering 时触发回退）。 */
+    private final Runnable ijkStallRunnable;
+    private long ijkBufferingSinceMs;
+    private long ijkBufferingPositionMs;
     private final List<Track> pendingTrackRestore = new ArrayList<>();
 
     public PlayerManager(Callback callback) {
         this.callback = callback;
         this.runnable = this::onPlayTimeout;
+        this.ijkStallRunnable = this::onIjkStallCheck;
         this.pendingStartPositionMs = C.TIME_UNSET;
         this.engine = PlayerEngineFactory.create(listener);
         this.effects = new PlayerEffectManager(() -> engine);
@@ -111,6 +122,7 @@ public class PlayerManager implements ParseCallback {
     public void release() {
         timeshift.clear();
         App.removeCallbacks(runnable);
+        App.removeCallbacks(ijkStallRunnable);
         stopParse();
         clearSpeedPressState();
         if (player != null) player.removeListener(listener);
@@ -752,12 +764,60 @@ public class PlayerManager implements ParseCallback {
 
     private void fallbackToExoForDrm() {
         mpvDrmExoFallback = true;
+        fallbackToExo();
+    }
+
+    /**
+     * 0.1.97：IJK 出错/卡住后回退到 Exo（与 MPV 的 DRM 回退同款式）。
+     * <p>
+     * 触发点有二：① onPlayerError 里 IJK 报任何错（直播 -10000、点播解码/IO 错），
+     * 立刻回退，不给用户看报错；② 看门狗 onIjkStallCheck：IJK 播着播着一直
+     * buffering、位置不动超过阈值（0.1.96《一千零一夜》08:34 卡住就是这种），
+     * 也回退。只回退一次（ijkExoFallback 保护），换集/换台后复位。
+     * 直播回退时按快照位置续播（直播是 live edge，Exo 会回到直播沿，不会从头播）。
+     */
+    private void fallbackToExoForIjk() {
+        if (ijkExoFallback) return;
+        ijkExoFallback = true;
+        App.removeCallbacks(ijkStallRunnable);
+        Notify.show(R.string.player_engine_fallback_ijk);
+        fallbackToExo();
+    }
+
+    /** IJK/MPV 回退到 Exo 的公共体：快照位置 → 换 Exo 引擎 → 原位置续播。 */
+    private void fallbackToExo() {
         PlaybackSnapshot snapshot = PlaybackSnapshot.capture(this);
         replaceEngine(PlayerEngineFactory.create(PlayerEngine.Type.EXO, listener));
         engine.prepareForNewMedia();
         beginPlaybackAttempt(false);
         engine.start(spec.checkUa(), snapshot.positionMs());
         snapshot.restorePlayerState(this);
+    }
+
+    /** 0.1.97：IJK 卡住看门狗。buffering 超过阈值且位置基本没动 → 切 Exo。 */
+    private void onIjkStallCheck() {
+        if (ijkExoFallback || engine == null || engine.getType() != PlayerEngine.Type.IJK || player == null) return;
+        if (player.getPlaybackState() != Player.STATE_BUFFERING || !player.getPlayWhenReady()) return;
+        long now = System.currentTimeMillis();
+        // 直播没有固定进度（live edge 一直走），只看 buffering 持续了多久；
+        // 点播还要看位置动没动（位置在走说明还在出数据，只是不够快）。
+        if (isLive()) {
+            if (now - ijkBufferingSinceMs >= IJK_STALL_TIMEOUT_MS) fallbackToExoForIjk();
+            else App.post(ijkStallRunnable, IJK_STALL_CHECK_INTERVAL_MS);
+            return;
+        }
+        long position = getPosition();
+        // 位置还在前进（哪怕很慢）说明还在出数据，只是不够快，不切；
+        // 位置基本不动（1 秒内）才是真卡住。
+        if (now - ijkBufferingSinceMs < IJK_STALL_TIMEOUT_MS) {
+            if (position - ijkBufferingPositionMs > 1000) {
+                ijkBufferingSinceMs = now;
+                ijkBufferingPositionMs = position;
+            }
+            App.post(ijkStallRunnable, IJK_STALL_CHECK_INTERVAL_MS);
+            return;
+        }
+        if (position - ijkBufferingPositionMs <= 1000) fallbackToExoForIjk();
     }
 
     private void restartCurrent() {
@@ -778,7 +838,7 @@ public class PlayerManager implements ParseCallback {
     }
 
     private void ensureEngine(PlaySpec spec) {
-        if (mpvDrmExoFallback) {
+        if (mpvDrmExoFallback || ijkExoFallback) {
             if (engine.getType() != PlayerEngine.Type.EXO || engine.needsRebuild()) replaceEngine(PlayerEngineFactory.create(PlayerEngine.Type.EXO, listener));
             return;
         }
@@ -869,6 +929,10 @@ public class PlayerManager implements ParseCallback {
         endSpeedPress();
         if (newMedia && refreshAttempted) spec.refresh();
         if (newMedia) mpvDrmExoFallback = false;
+        if (newMedia) {
+            ijkExoFallback = false;
+            App.removeCallbacks(ijkStallRunnable);
+        }
         MediaItem current = player.getCurrentMediaItem();
         boolean newContent = newMedia && (current == null || !TextUtils.equals(current.mediaId, spec.getKey()));
         boolean playWhenReady = player.getPlayWhenReady();
@@ -1141,6 +1205,20 @@ public class PlayerManager implements ParseCallback {
                 refreshAttempted = false;
                 startPreloadIfReady();
             }
+            // 0.1.97：IJK 卡住看门狗。进 buffering 就开始计时（只盯 IJK，Exo/MPV 不管）；
+            // 回到 READY/ENDED/IDLE 就取消。播着播着卡住（《一千零一夜》08:34 那种）靠它发现。
+            if (engine != null && engine.getType() == PlayerEngine.Type.IJK && !ijkExoFallback) {
+                if (state == Player.STATE_BUFFERING) {
+                    ijkBufferingSinceMs = System.currentTimeMillis();
+                    ijkBufferingPositionMs = getPosition();
+                    App.removeCallbacks(ijkStallRunnable);
+                    App.post(ijkStallRunnable, IJK_STALL_CHECK_INTERVAL_MS);
+                } else {
+                    App.removeCallbacks(ijkStallRunnable);
+                }
+            } else {
+                App.removeCallbacks(ijkStallRunnable);
+            }
         }
 
         @Override
@@ -1180,6 +1258,15 @@ public class PlayerManager implements ParseCallback {
             if (LogSession.get().isRunning()) Log.e("TV-Playback", "player=" + Integer.toHexString(System.identityHashCode(player)) + " event=playerError playbackId=" + playbackId + " attempt=" + playbackAttempt + " code=" + e.getErrorCodeName());
             if (spec == null) return;
             clearPreload();
+            // 0.1.97：IJK 报错就回退到 Exo（直播 -10000、点播解码/IO 错都算）。
+            // 回归：0.1.95 把 IJK 放到工厂首位后，用户选了 IJK，直播也被分到 IJK，
+            // 而 IJK 播不了这批直播流（-10000；0.1.89 用 Exo 时是好的，Exo 的直播
+            // 链路 0.1.89→0.1.96 没动过）。回退后直播用 Exo 播，不再报错。
+            // 只回退一次，换台/换集后复位；回退里不抛错，用户看不到报错。
+            if (engine.getType() == PlayerEngine.Type.IJK && !ijkExoFallback) {
+                fallbackToExoForIjk();
+                return;
+            }
             if (engine.getType() == PlayerEngine.Type.MPV && e.errorCode == PlaybackException.ERROR_CODE_DRM_LICENSE_ACQUISITION_FAILED && !mpvDrmExoFallback) {
                 fallbackToExoForDrm();
                 return;
