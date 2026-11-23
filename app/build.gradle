@@ -101,12 +101,18 @@ android {
     // Both copies are the same NDK STL library; keep the first.
     // libffmpegJNI.so is duplicated the same way: once from the media
     // decoder_ffmpeg module and once from lib-decoder-ffmpeg-release.aar.
+ // libmpv.so / libplayer.so are duplicated the same way: once from the media
+ // mpvplayer module and once from lib-mpvplayer-release.aar.
     packagingOptions {
         jniLibs {
             pickFirsts += 'lib/arm64-v8a/libc++_shared.so'
             pickFirsts += 'lib/armeabi-v7a/libc++_shared.so'
             pickFirsts += 'lib/arm64-v8a/libffmpegJNI.so'
             pickFirsts += 'lib/armeabi-v7a/libffmpegJNI.so'
+    pickFirsts += 'lib/arm64-v8a/libmpv.so'
+    pickFirsts += 'lib/armeabi-v7a/libmpv.so'
+    pickFirsts += 'lib/arm64-v8a/libplayer.so'
+    pickFirsts += 'lib/armeabi-v7a/libplayer.so'
         }
     }
 }
