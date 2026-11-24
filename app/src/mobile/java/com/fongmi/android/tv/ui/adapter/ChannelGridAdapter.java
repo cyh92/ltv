@@ -122,7 +122,9 @@ public class ChannelGridAdapter extends RecyclerView.Adapter<ChannelGridAdapter.
         if (colorsReady) return;
         textColorSelected = ContextCompat.getColor(context, R.color.black);
         TypedValue value = new TypedValue();
-        context.getTheme().resolveAttribute(R.attr.colorOnSurface, value, true);
+        // 注意：colorOnSurface 不在 app 自己的 R.attr 里（attrs.xml 没定义），必须用 Material 库的 R。
+        // 代码库里已有先例：DeviceAdapter 用 com.google.android.material.R.attr.colorOnSurfaceVariant。
+        context.getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSurface, value, true);
         textColorNormal = value.data;
         colorsReady = true;
     }
