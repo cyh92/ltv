@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 竖屏直播分类 tab：主题卡片底色 + 主题正文色（侧边列表的 adapter_group 是白字配深底，竖屏壁纸上看不清，所以单列一个） -->
+<!-- 竖屏直播分类 tab：主题卡片底色 + 主题正文色（侧边列表的 adapter_group 是白字配深底，竖屏壁纸上看不清，所以单列一个）。
+     0.1.101：字统一成 auto-size（最大 10sp、最小 7sp、步进 1sp），和网格胶囊、横屏两栏一个尺寸；
+     singleLine 换成 maxLines="1"（singleLine 会打开横向滚动、顶掉 auto-size，0.1.100 网格名字缩不下来就是这个原因）；
+     底色和字色由 GroupPortAdapter 在绑定时直接按选中态换（0.1.101 起不再靠 selector / selected 状态，
+     0.1.100 之前那条链路在真机上没起作用，分组 tab 的琥珀色卡在"央视频道"不动）。 -->
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginTop="4dp"
     android:layout_marginBottom="4dp"
     android:layout_marginEnd="8dp"
-    android:background="@drawable/shape_live_grid"
     android:gravity="center"
     android:orientation="horizontal">
 
@@ -16,14 +20,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
-        android:ellipsize="marquee"
+        android:ellipsize="none"
+        android:maxLines="1"
         android:paddingStart="16dp"
         android:paddingTop="8dp"
         android:paddingEnd="16dp"
         android:paddingBottom="8dp"
-        android:singleLine="true"
-        android:textColor="@color/selector_live_grid_text"
-        android:textSize="14sp"
+        app:autoSizeMaxTextSize="10sp"
+        app:autoSizeMinTextSize="7sp"
+        app:autoSizeStepGranularity="1sp"
+        app:autoSizeTextType="uniform"
         tools:text="央视频道" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

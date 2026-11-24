@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 横屏侧边列表的频道项：编号 + 台标 + 名字，选中行灰底（selector，ChannelAdapter 在根 view 上 setSelected）。
+     0.1.101：字统一成 auto-size（最大 10sp、最小 7sp、步进 1sp），和网格胶囊、分组 tab、横屏分组项一个尺寸；
+     编号固定 10sp（只有 3 位数字，不用 auto-size）；名字 singleLine 换成 maxLines="1"
+     （singleLine 会打开横向滚动、顶掉 auto-size）；选中态仍走 selector，别动它。 -->
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -17,7 +22,7 @@
         android:duplicateParentState="true"
         android:fontFeatureSettings="tnum"
         android:textColor="@color/selector_text"
-        android:textSize="14sp"
+        android:textSize="10sp"
         tools:text="01" />
 
     <androidx.appcompat.widget.AppCompatImageView
@@ -32,10 +37,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:duplicateParentState="true"
-        android:ellipsize="marquee"
-        android:singleLine="true"
+        android:ellipsize="none"
+        android:maxLines="1"
         android:textColor="@color/selector_text"
-        android:textSize="14sp"
+        app:autoSizeMaxTextSize="10sp"
+        app:autoSizeMinTextSize="7sp"
+        app:autoSizeStepGranularity="1sp"
+        app:autoSizeTextType="uniform"
         tools:text="CNN" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

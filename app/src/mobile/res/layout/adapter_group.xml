@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 横屏侧边列表的分组项：白字配深底（竖屏 tab 单列一个 adapter_group_port 是因为这个在竖屏壁纸上看不清）。
+     0.1.101：字统一成 auto-size（最大 10sp、最小 7sp、步进 1sp），和网格胶囊、分组 tab、横屏频道项一个尺寸；
+     singleLine 换成 maxLines="1"（singleLine 会打开横向滚动、顶掉 auto-size）；选中态仍走 selector
+     （GroupAdapter 在根 view 上 setSelected，文字靠 duplicateParentState 继承——横屏分组的灰底选中是好的，别动它）。 -->
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -14,10 +19,13 @@
         android:layout_height="wrap_content"
         android:background="@drawable/shape_live"
         android:duplicateParentState="true"
-        android:ellipsize="marquee"
-        android:singleLine="true"
+        android:ellipsize="none"
+        android:maxLines="1"
         android:textColor="@color/selector_text"
-        android:textSize="14sp"
+        app:autoSizeMaxTextSize="10sp"
+        app:autoSizeMinTextSize="7sp"
+        app:autoSizeStepGranularity="1sp"
+        app:autoSizeTextType="uniform"
         tools:text="收藏" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

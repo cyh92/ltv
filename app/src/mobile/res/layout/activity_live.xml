@@ -46,6 +46,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
+            <!-- 竖屏全屏入口（0.1.101）：视频右下角的小全屏图标，点一下进横屏；控制栏打开时由代码把它藏起来
+                 （控制栏底部本来就有全屏按钮），控制栏收起时再显示；双击视频也是进全屏（见 LiveActivity.onDoubleTap）。
+                 背景是半透明黑圆（shape_control），在视频上看得清；图标是控制栏全屏按钮同款。 -->
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/btnPortFullscreen"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/shape_control"
+                android:src="@drawable/ic_control_fullscreen"
+                android:tint="@color/white" />
+
         </FrameLayout>
 
         <!-- 竖屏面板：底色是主题壁纸（CustomWallView），换主题自动跟着变 -->
@@ -114,93 +128,12 @@
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
-                <!-- 五个彩色按钮：和频道胶囊一样高（高 32dp、字 13sp、圆角 16dp），均匀排列、字居中。
-                     左右各留 8dp，和频道网格的左右边缘对齐。网格一排 4 个、按钮一排 5 个，
-                     两边宽度本来就不一样，这里只保证一样高、一样圆角。 -->
-                <androidx.appcompat.widget.LinearLayoutCompat
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginEnd="8dp"
-                    android:orientation="horizontal">
+                <!-- 0.1.101：五个彩色按钮（全屏/推送/收藏/简介/菜单）整行拿掉（用户 2026-11-24 12:43 定）。
+                     全屏入口改成双击视频 + 视频右下角小图标（见上面 btnPortFullscreen）；
+                     推送/收藏/简介/菜单在竖屏随之拿掉，横屏播放器控制栏里仍有这些入口。 -->
 
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/btnFullscreen"
-                        android:layout_width="0dp"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="4dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/shape_live_port_btn"
-                        android:gravity="center"
-                        android:text="@string/live_fullscreen"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="@color/live_btn_fullscreen" />
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/btnCast"
-                        android:layout_width="0dp"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginEnd="4dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/shape_live_port_btn"
-                        android:gravity="center"
-                        android:text="@string/live_cast"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="@color/live_btn_cast" />
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/btnKeep"
-                        android:layout_width="0dp"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginEnd="4dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/shape_live_port_btn"
-                        android:gravity="center"
-                        android:text="@string/keep"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="@color/selector_live_keep_btn" />
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/btnInfo"
-                        android:layout_width="0dp"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginEnd="4dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/shape_live_port_btn"
-                        android:gravity="center"
-                        android:text="@string/live_info"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="@color/live_btn_info" />
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/btnMenu"
-                        android:layout_width="0dp"
-                        android:layout_height="32dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/shape_live_port_btn"
-                        android:gravity="center"
-                        android:text="@string/live_menu"
-                        android:textColor="@color/white"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="@color/live_btn_menu" />
-
-                </androidx.appcompat.widget.LinearLayoutCompat>
-
-                <!-- 分类 tab + 网格切换 + 频道序号 -->
+                <!-- 分类 tab + 网格切换（0.1.101：计数器 portCount 拿掉——"1/50"本身就是坏的，录屏里出现过 "0/3""0/0""6/50"；
+                     四方格图标 btnGrid 在行尾，即最右边；点它展开/收回全部频道，见 LiveActivity.onPortGridClick） -->
                 <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -228,22 +161,6 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_view_grid"
                         android:tint="?attr/colorOnSurface" />
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/portCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/shape_live_grid"
-                        android:gravity="center"
-                        android:paddingStart="12dp"
-                        android:paddingTop="6dp"
-                        android:paddingEnd="12dp"
-                        android:paddingBottom="6dp"
-                        android:singleLine="true"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp"
-                        tools:text="1 / 34" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -286,6 +203,8 @@
             tools:itemCount="5"
             tools:listitem="@layout/adapter_group" />
 
+        <!-- 横屏侧边列表：分组栏 + 频道栏 + EPG 栏。0.1.101：频道栏去掉 translationX="-16dp"——它把频道栏整列往左挪 16dp、
+             压到分组栏上，底部最后一行（"数字…"和"014 CCTV-1综合"）在同一高度左右重叠。 -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/channel"
             android:layout_width="0dp"
@@ -293,7 +212,6 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:padding="8dp"
-            android:translationX="-16dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:itemCount="5"
             tools:listitem="@layout/adapter_channel" />

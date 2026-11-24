@@ -2,11 +2,13 @@
 <!-- 竖屏直播频道网格的单个频道：只显示名字，当前频道琥珀实底 + 黑字。
      胶囊高 32dp（0.1.99 是 36dp，0.1.98 是 48dp——用户说 0.1.99 看着没小，这次再小一圈），一排 4 个。
      上下边距各 6dp，两行之间就是 12dp（约 2mm）；左右边距各 4dp。
-     字用 auto-size（最大 13sp、最小 7sp、步进 1sp）：名字短的照常 13sp，名字长的自动缩小、
-     整条名字都显示在胶囊里，不截成 "…"（ellipsize="none"）；最长的 "CCTV-5+体育赛事" 在 8sp 时约 65dp，
-     4 列胶囊宽 74dp、去 2dp 两边内边距还剩 70dp，放得下；最小 7sp 是保险——万一别的手机字体
-     比这台宽、8sp 放不下，还能再缩一档而不是把字切掉。底色和字色由 ChannelGridAdapter
-     在绑定时直接按选中态换（0.1.100 起不再靠 selector / selected 状态，0.1.99 那条链路在真机上没起作用）。 -->
+     0.1.101：字统一成 auto-size（最大 10sp、最小 7sp、步进 1sp），和分组 tab、横屏两栏一个尺寸；
+     singleLine 换成 maxLines="1"——singleLine 在 AppCompat 里会打开横向滚动，auto-size 拿不到
+     "放不下"的判断、始终按最大字号画，0.1.100 的名字就是这么被硬切掉的（根因，run103 已核实）；
+     最长的 "CCTV-5+体育赛事" 在 8sp 时约 65dp，4 列胶囊宽 74dp、去 2dp 两边内边距还剩 70dp，放得下；
+     最小 7sp 是保险——万一别的手机字体比这台宽、8sp 放不下，还能再缩一档而不是把字切掉。
+     底色和字色由 ChannelGridAdapter 在绑定时直接按选中态换（0.1.100 起不再靠 selector / selected 状态，
+     0.1.99 那条链路在真机上没起作用）。 -->
 <com.google.android.material.textview.MaterialTextView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -19,10 +21,10 @@
     android:layout_marginBottom="6dp"
     android:ellipsize="none"
     android:gravity="center"
+    android:maxLines="1"
     android:paddingStart="2dp"
     android:paddingEnd="2dp"
-    android:singleLine="true"
-    app:autoSizeMaxTextSize="13sp"
+    app:autoSizeMaxTextSize="10sp"
     app:autoSizeMinTextSize="7sp"
     app:autoSizeStepGranularity="1sp"
     app:autoSizeTextType="uniform"
