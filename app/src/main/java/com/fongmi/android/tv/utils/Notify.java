@@ -43,9 +43,18 @@ public class Notify {
 
     public static String getError(int resId, Throwable e) {
         String message = getError(e);
-        if (message != null) return message;
+        if (message != null) return stripRestart(message);
         if (TextUtils.isEmpty(e.getMessage())) return ResUtil.getString(resId);
-        return ResUtil.getString(resId) + "\n" + e.getMessage();
+        return stripRestart(ResUtil.getString(resId) + "\n" + e.getMessage());
+    }
+
+    /**
+     * 0.1.103：接口/爬虫的原始报错里常带“请重启APP”，但 app 现在加载失败会自己恢复到
+     * 旧接口，不用重启。把这句误导去掉，免得用户以为必须重启。
+     */
+    private static String stripRestart(String text) {
+        if (text == null) return null;
+        return text.replace("，请重启APP", "").replace("请重启APP", "").replace("，请重启app", "").replace("请重启app", "");
     }
 
     public static String getError(Throwable e) {

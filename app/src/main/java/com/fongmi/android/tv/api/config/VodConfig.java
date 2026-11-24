@@ -90,8 +90,61 @@ public class VodConfig extends BaseConfig {
         return !get().getParses().isEmpty();
     }
 
+    /**
+     * 0.1.103：加载失败不再清空能用的配置。之前这里先 clear 再加载，新配置加载失败时
+     * app 剩个空壳（源列表被清掉），只能重启。现在加载前先快照当前能用的状态，失败时
+     * 恢复快照，app 留在旧接口上，首页照常显示，不用重启。
+     */
     public static void load(Config config, Callback callback) {
-        get().clear().config(config).load(callback);
+        VodConfig vod = get();
+        List<Site> oldSites = vod.sites;
+        Site oldHome = vod.home;
+        Parse oldParse = vod.parse;
+        List<Parse> oldParses = vod.parses;
+        List<Parse> oldConfigParses = vod.configParses;
+        String oldWall = vod.wall;
+        List<Doh> oldDoh = vod.doh;
+        List<Rule> oldRules = vod.rules;
+        List<String> oldAds = vod.ads;
+        List<String> oldFlags = vod.flags;
+        Config oldConfig = vod.getConfig();
+        vod.clear().config(config).load(new Callback() {
+            @Override
+            public void error(String msg) {
+                vod.sites = oldSites;
+                vod.home = oldHome;
+                vod.parse = oldParse;
+                vod.parses = oldParses;
+                vod.configParses = oldConfigParses;
+                vod.wall = oldWall;
+                vod.doh = oldDoh;
+                vod.rules = oldRules;
+                vod.ads = oldAds;
+                vod.flags = oldFlags;
+                vod.config(oldConfig);
+                callback.error(msg);
+            }
+
+            @Override
+            public void error() {
+                error("");
+            }
+
+            @Override
+            public void success() {
+                callback.success();
+            }
+
+            @Override
+            public void success(String result) {
+                callback.success(result);
+            }
+
+            @Override
+            public void start() {
+                callback.start();
+            }
+        });
     }
 
     public VodConfig init() {
@@ -233,12 +286,12 @@ public class VodConfig extends BaseConfig {
     }
 
     private void initSite(Config config, JsonObject object) {
-        String spider = UrlUtil.resolveRelative(config.getUrl(), Json.safeString(object, "spider"));
+        String spider = UrlUtil.resolveEncodedFile(UrlUtil.resolveRelative(config.getUrl(), Json.safeString(object, "spider")));
         BaseLoader.get().parseJar(spider, true);
         setSites(Json.safeListElement(object, "sites").stream().map(e -> Site.objectFrom(e, spider)).distinct().collect(Collectors.toCollection(ArrayList::new)));
         for (Site site : getSites()) {
-            site.setApi(UrlUtil.resolveRelative(config.getUrl(), site.getApi()));
-            site.setExt(UrlUtil.resolveRelative(config.getUrl(), site.getExt()));
+            site.setApi(UrlUtil.resolveEncodedFile(UrlUtil.resolveRelative(config.getUrl(), site.getApi())));
+            site.setExt(UrlUtil.resolveEncodedFile(UrlUtil.resolveRelative(config.getUrl(), site.getExt())));
         }
         Set<String> keys = getSites().stream().map(Site::getKey).collect(Collectors.toSet());
         ScriptManager.get().scan().stream().filter(site -> keys.add(site.getKey())).forEach(site -> getSites().add(site));     

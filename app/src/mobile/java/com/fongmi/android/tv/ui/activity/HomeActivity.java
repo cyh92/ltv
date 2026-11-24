@@ -177,6 +177,25 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
             @Override
             public void error(String msg) {
+                // 0.1.103：开机时保存的接口加载失败，别留空白首页。改加载一个空配置，
+                // 只显示本地源（py/js），用户不用重启，进我的页切个能用的接口就行。
+                if (VodConfig.get().getSites().isEmpty()) {
+                    VodConfig.load(new Config(), new Callback() {
+                        @Override
+                        public void success() {
+                            onConfigReady();
+                            Notify.show(msg);
+                        }
+
+                        @Override
+                        public void error(String errorMsg) {
+                            onConfigReady();
+                            StateEvent.empty();
+                            Notify.show(msg);
+                        }
+                    });
+                    return;
+                }
                 onConfigReady();
                 StateEvent.empty();
                 Notify.show(msg);

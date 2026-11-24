@@ -67,6 +67,41 @@ public class UrlUtil {
         return resolved;
     }
 
+    /**
+     * 0.1.103：有些配置包把爬虫/规则文件名存成 #Uxxxx 编码（如 #U679c#U679c.js），
+     * 配置里写的是中文名（./js/果果.js）。解压后文件名还是编码的，app 按中文名
+     * 找不到文件，这些源就打不开。这里本地文件按中文名找不到时，改试编码名，
+     * 让这种包不用改名就能直接用。只对本地 file:// 路径生效，网址和 JSON 不动。
+     */
+    public static String resolveEncodedFile(String url) {
+        if (TextUtils.isEmpty(url) || !url.startsWith("file://")) return url;
+        String path = url.substring("file://".length());
+        if (new File(path).exists()) return url;
+        String encoded = encodeFileName(path);
+        if (encoded != null && new File(encoded).exists()) return "file://" + encoded;
+        return url;
+    }
+
+    /** 把路径里文件名的非 ASCII 字符编成 #Uxxxx（小写十六进制，4 位），ASCII 字符不动。 */
+    private static String encodeFileName(String path) {
+        int slash = path.lastIndexOf('/');
+        if (slash < 0) return null;
+        String dir = path.substring(0, slash + 1);
+        String name = path.substring(slash + 1);
+        StringBuilder sb = new StringBuilder();
+        boolean changed = false;
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (c > 127) {
+                sb.append(String.format("#U%04x", (int) c));
+                changed = true;
+            } else {
+                sb.append(c);
+            }
+        }
+        return changed ? dir + sb.toString() : null;
+    }
+
     private static boolean isRelativePath(String url) {
         if (url.startsWith("./") || url.startsWith("../")) return true;
         if (url.startsWith("/") || url.startsWith("csp_") || url.startsWith("node:") || url.startsWith("{") || url.startsWith("[")) return false;
