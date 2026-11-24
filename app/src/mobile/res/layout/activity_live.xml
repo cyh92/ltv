@@ -114,8 +114,9 @@
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
-                <!-- 五个彩色按钮：和频道胶囊一样大（高 36dp、字 13sp、圆角 18dp）。
-                     左右各留 8dp，和频道网格的胶囊左右边缘对齐，五个按钮就和网格里一排 5 个胶囊一样宽。 -->
+                <!-- 五个彩色按钮：和频道胶囊一样高（高 32dp、字 13sp、圆角 16dp），均匀排列、字居中。
+                     左右各留 8dp，和频道网格的左右边缘对齐。网格一排 4 个、按钮一排 5 个，
+                     两边宽度本来就不一样，这里只保证一样高、一样圆角。 -->
                 <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -127,7 +128,7 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/btnFullscreen"
                         android:layout_width="0dp"
-                        android:layout_height="36dp"
+                        android:layout_height="32dp"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
                         android:background="@drawable/shape_live_port_btn"
@@ -141,7 +142,7 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/btnCast"
                         android:layout_width="0dp"
-                        android:layout_height="36dp"
+                        android:layout_height="32dp"
                         android:layout_marginStart="4dp"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
@@ -156,7 +157,7 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/btnKeep"
                         android:layout_width="0dp"
-                        android:layout_height="36dp"
+                        android:layout_height="32dp"
                         android:layout_marginStart="4dp"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
@@ -171,7 +172,7 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/btnInfo"
                         android:layout_width="0dp"
-                        android:layout_height="36dp"
+                        android:layout_height="32dp"
                         android:layout_marginStart="4dp"
                         android:layout_marginEnd="4dp"
                         android:layout_weight="1"
@@ -186,7 +187,7 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/btnMenu"
                         android:layout_width="0dp"
-                        android:layout_height="36dp"
+                        android:layout_height="32dp"
                         android:layout_marginStart="4dp"
                         android:layout_weight="1"
                         android:background="@drawable/shape_live_port_btn"

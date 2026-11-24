@@ -1,21 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 竖屏直播频道网格的单个频道：只显示名字，当前频道琥珀实底 + 黑字。
-     胶囊高 36dp、字 13sp，和上面五个按钮一样大；一排 5 个。
-     上下边距各 6dp，两行之间就是 12dp（约 2mm）；左右边距各 4dp。 -->
+     胶囊高 32dp（0.1.99 是 36dp，0.1.98 是 48dp——用户说 0.1.99 看着没小，这次再小一圈），一排 4 个。
+     上下边距各 6dp，两行之间就是 12dp（约 2mm）；左右边距各 4dp。
+     字用 auto-size（最大 13sp、最小 7sp、步进 1sp）：名字短的照常 13sp，名字长的自动缩小、
+     整条名字都显示在胶囊里，不截成 "…"（ellipsize="none"）；最长的 "CCTV-5+体育赛事" 在 8sp 时约 65dp，
+     4 列胶囊宽 74dp、去 2dp 两边内边距还剩 70dp，放得下；最小 7sp 是保险——万一别的手机字体
+     比这台宽、8sp 放不下，还能再缩一档而不是把字切掉。底色和字色由 ChannelGridAdapter
+     在绑定时直接按选中态换（0.1.100 起不再靠 selector / selected 状态，0.1.99 那条链路在真机上没起作用）。 -->
 <com.google.android.material.textview.MaterialTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/name"
     android:layout_width="match_parent"
-    android:layout_height="36dp"
+    android:layout_height="32dp"
     android:layout_marginStart="4dp"
     android:layout_marginTop="6dp"
     android:layout_marginEnd="4dp"
     android:layout_marginBottom="6dp"
-    android:background="@drawable/shape_live_grid"
-    android:duplicateParentState="true"
-    android:ellipsize="end"
+    android:ellipsize="none"
     android:gravity="center"
+    android:paddingStart="2dp"
+    android:paddingEnd="2dp"
     android:singleLine="true"
-    android:textColor="@color/selector_live_grid_text"
-    android:textSize="13sp"
-    tools:text="CCTV-1综合" />
+    app:autoSizeMaxTextSize="13sp"
+    app:autoSizeMinTextSize="7sp"
+    app:autoSizeStepGranularity="1sp"
+    app:autoSizeTextType="uniform"
+    tools:text="CCTV-5+体育赛事" />
