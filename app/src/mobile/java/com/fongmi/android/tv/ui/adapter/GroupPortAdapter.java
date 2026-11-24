@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 竖屏直播分类 tab（横向一排）。
+ * 竖屏直播分组网格（4 列，全部的分全露出来）。
  * 与侧边列表的 GroupAdapter 共用同一批 Group 对象和点击回调。
  * <p>
  * 0.1.101：选中态不再靠 Group.isSelected() + selector 画出来——0.1.100 及之前就是这么做的，
@@ -29,6 +29,11 @@ import java.util.List;
  * position == selectedPosition 直接换底色、换字色（非 selector 的 shape + 显式颜色值），
  * 不经过 selected 状态；通知也不带 payload，永远走完整绑定。
  * setSelected 还照常调（无害，保持 view 自身状态同步），但外观不再依赖它。
+ * <p>
+ * 0.1.102：分组从横向一排改成 4 列网格（四方格图标拿掉），字比下边频道大一号且加黑。
+ * 选中通知改成全量重绘——0.1.101 用 notifyItemChanged(旧)+notifyItemChanged(新)，
+ * xu 的 0.1.101 录屏里 7 个分组全是琥珀底；全量重绘最稳（分组只有几个，全露在网格里不用滚动），
+ * 旧项残留的琥珀底不可能留下来，没选中的分组一定是普通底色。
  */
 public class GroupPortAdapter extends RecyclerView.Adapter<GroupPortAdapter.ViewHolder> {
 
@@ -89,15 +94,15 @@ public class GroupPortAdapter extends RecyclerView.Adapter<GroupPortAdapter.View
         if (position == -1 || position >= mItems.size()) return;
         int old = selectedPosition;
         selectedPosition = position;
-        // 不管 Group 对象的 flag 是什么，都通知新旧两项重绘——flag 是和侧边列表共用的，
+        // 不管 Group 对象的 flag 是什么，都重绘——flag 是和侧边列表共用的，
         // 侧边先改过就和目标值一样了，靠 flag 判断会漏通知（0.1.100 之前就是这么漏的）。
+        // 0.1.102：改成全量重绘（notifyDataSetChanged），不再只通知新旧两项——0.1.101 的两项通知在
+        // xu 的录屏里没起作用，7 个分组全是琥珀底；分组只有几个、全露在网格里不用滚动，全量重绘最稳，
+        // 每个格子都按 position == selectedPosition 重新定底色，没选中的一定回到普通底色。
         // 不带 payload 通知，永远走完整绑定（0.1.99 的 payload 局部绑定在真机上没起作用）。
-        if (old != -1 && old != position && old < mItems.size()) {
-            mItems.get(old).setSelected(false);
-            notifyItemChanged(old);
-        }
+        if (old != -1 && old != position && old < mItems.size()) mItems.get(old).setSelected(false);
         mItems.get(position).setSelected(true);
-        if (old != position) notifyItemChanged(position);
+        if (old != position) notifyDataSetChanged();
     }
 
     @Override

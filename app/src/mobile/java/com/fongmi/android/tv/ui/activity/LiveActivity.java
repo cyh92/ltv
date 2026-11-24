@@ -99,9 +99,9 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     private EpgDataAdapter mEpgDataAdapter;
     private GroupPortAdapter mPortGroupAdapter;
     private ChannelGridAdapter mPortChannelAdapter;
-    // 0.1.101：四方格图标是展开/收回开关——点一下展开全部频道（所有分组拼在一起，一排 4 个），再点一下收回当前分组。
-    // 网格始终 4 列，不切换列数（0.1.100 之前是 4 列/2 列切换，portSpan 字段随之拿掉）。
-    private boolean isAllChannels;
+    // 0.1.102：四方格图标拿掉了（用户 2026-11-24 17:33 定）——分组改成 4 列网格全露出来，不再展开/收回全部频道；
+    // isAllChannels 和它那一套方法（onPortGridClick / refreshPortGrid / getAllChannels 等）随之删掉。
+    // 频道网格始终 4 列（0.1.100 起），分组网格也是 4 列。
     private TouchInput mInput;
     private PinchScaleFeedback mScaleFeedback;
     private PiP mPiP;
@@ -221,8 +221,8 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         mBinding.control.action.getRoot().setOnTouchListener(this::onActionTouch);
         mBinding.video.setOnTouchListener((view, event) -> mInput.onTouchEvent(event));
         mBinding.portIcon.setOnClickListener(view -> checkPlay());
-        // 0.1.101：5 个彩色按钮整行拿掉了，这里只剩四方格图标（展开/收回全部频道）和视频右下角全屏图标。
-        mBinding.btnGrid.setOnClickListener(view -> onPortGridClick());
+        // 0.1.101：5 个彩色按钮整行拿掉了；0.1.102：四方格图标也拿掉了（分组改成 4 列网格全露出来）。
+        // 竖屏只剩视频右下角全屏图标（点一下进横屏；双击视频也是进全屏，见 onDoubleTap）。
         mBinding.btnPortFullscreen.setOnClickListener(view -> onFullscreenClick());
     }
 
@@ -231,67 +231,9 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         mBinding.channelPort.setItemAnimator(null);
         mBinding.groupPort.setAdapter(mPortGroupAdapter = new GroupPortAdapter(this));
         mBinding.channelPort.setAdapter(mPortChannelAdapter = new ChannelGridAdapter(this));
-        // 0.1.101：网格固定 4 列，不再切换列数（四方格图标改成展开/收回全部频道，见 onPortGridClick）。
+        // 0.1.102：分组网格和频道网格都是 4 列。分组网格全露出来（7 个分组占两行），点哪个分组就只显示那个分组的频道。
+        mBinding.groupPort.setLayoutManager(new GridLayoutManager(this, 4));
         mBinding.channelPort.setLayoutManager(new GridLayoutManager(this, 4));
-    }
-
-    /** 四方格图标：展开/收回全部频道的开关（用户 2026-11-24 13:11 定）。点一下展开——出现全部的分组频道，
-     * 和下边频道网格一样一排 4 个；再点一下收回去——回到当前分组的频道。网格始终 4 列，不切换。 */
-    private void onPortGridClick() {
-        isAllChannels = !isAllChannels;
-        refreshPortGrid();
-    }
-
-    /** 按 isAllChannels 刷新竖屏频道网格的数据和选中高亮。展开时数据源是所有分组的频道拼在一起
-     *（按分组顺序依次拼接，收藏分组除外——它是收藏夹不是频道分组，放进来会让已收藏的台出现两次）；
-     * 收回时数据源是当前分组的频道。两种模式下选中高亮都要跟上当前播放的台。 */
-    private void refreshPortGrid() {
-        if (isAllChannels) mPortChannelAdapter.addAll(getAllChannels());
-        else if (mGroup != null) mPortChannelAdapter.addAll(mGroup.getChannel());
-        updatePortGridSelection();
-    }
-
-    private void updatePortGridSelection() {
-        if (mChannel == null) return;
-        int position = isAllChannels ? indexOfChannelInAll(mChannel) : (mGroup == null ? -1 : mGroup.getPosition());
-        if (position != -1) mPortChannelAdapter.setSelected(position);
-    }
-
-    /** 所有分组的频道拼在一起（按分组顺序，收藏分组除外）。 */
-    private List<Channel> getAllChannels() {
-        List<Channel> all = new ArrayList<>();
-        for (int i = 0; i < mGroupAdapter.getItemCount(); i++) {
-            Group group = mGroupAdapter.get(i);
-            if (group.isKeep()) continue;
-            all.addAll(group.getChannel());
-        }
-        return all;
-    }
-
-    /** 当前频道在"全部频道"列表里的下标（按分组顺序累加）。不用 List.indexOf——Channel.equals 只比名字，
-     * 同名台在两个分组里会指错；这里先按对象本身找、再按名字找。 */
-    private int indexOfChannelInAll(Channel channel) {
-        int index = 0;
-        for (int i = 0; i < mGroupAdapter.getItemCount(); i++) {
-            Group group = mGroupAdapter.get(i);
-            if (group.isKeep()) continue;
-            List<Channel> channels = group.getChannel();
-            for (int j = 0; j < channels.size(); j++) {
-                if (channels.get(j) == channel || channels.get(j).equals(channel)) return index + j;
-            }
-            index += channels.size();
-        }
-        return -1;
-    }
-
-    /** 频道实际属于哪个分组（展开模式下点台时用——点到的台可能不在当前分组里）。 */
-    private Group findGroupForChannel(Channel channel) {
-        for (int i = 0; i < mGroupAdapter.getItemCount(); i++) {
-            Group group = mGroupAdapter.get(i);
-            if (group.isKeep()) continue;
-            for (Channel item : group.getChannel()) if (item == channel || item.equals(channel)) return group;
-        }
-        return null;
     }
 
     /** 横屏视频全屏，竖屏视频 16:9 在上、面板在下；只在横竖切换和初始化时调。 */
@@ -724,8 +666,7 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
 
     @Override
     public void onItemClick(Group item) {
-        // 0.1.101：点分组 tab 就收回到该分组（四方格的展开开关复位）。
-        isAllChannels = false;
+        // 0.1.102：点分组网格里的分组，就只显示那个分组的频道（四方格展开开关已经拿掉了，不用复位）。
         mLive.selectGroup(item);
         scrollToPosition(mBinding.channel, Math.max(item.getPosition(), 0));
         if (!item.isKeep() || ++count < 5 || mHides.isEmpty()) return;
@@ -736,17 +677,13 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
 
     @Override
     public void onItemClick(Channel item) {
-        // 0.1.101：展开模式下点到的台可能不在当前分组里，先找到它实际属于的分组。
-        // 只有点到的台就是正在播的台（同对象，或同名且同分组）才算"当前台"；同名但在别的分组里的台不算，点到就切过去。
-        Group actual = isAllChannels ? findGroupForChannel(item) : mGroup;
-        boolean sameGroup = actual != null && actual == mGroup;
-        boolean current = mChannel != null && (mChannel == item || (mChannel.equals(item) && sameGroup));
+        // 0.1.102：竖屏网格只显示当前分组的频道，点到的台一定在当前分组里，不用再找它属于哪个分组。
+        // 只有点到的台就是正在播的台（同对象，或同名）才算"当前台"；同名但在别的分组里的台不算，点到就切过去。
+        // （网格里只有当前分组的台，所以同名就是当前台。）
+        boolean current = mChannel != null && (mChannel == item || mChannel.equals(item));
         if (!item.getData(mViewModel.getZoneId()).getList().isEmpty() && item.isSelected() && current) {
             if (ResUtil.isLand(this)) showEpg(item);
         } else if (mGroup != null && (!current || ResUtil.isLand(this))) {
-            // 展开模式下点到别的分组的台：先切到它实际属于的分组，再播它；视图保持展开，
-            // 分组 tab 的高亮跟着它走。selectGroup 是同步的（调完 mGroup 就是新分组），再调 selectChannel 不会拿错分组。
-            if (isAllChannels && actual != null && actual != mGroup) mLive.selectGroup(actual);
             mLive.selectChannel(item.group(mGroup));
         }
     }
@@ -907,14 +844,9 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
     public void renderGroupChannels(Group group) {
         mChannelAdapter.addAll(group.getChannel());
         mChannelAdapter.setSelected(group.getPosition());
-        // 0.1.101：展开模式下竖屏网格显示的是全部频道，不换成单分组；只更新选中高亮（当前台在全部列表里的位置）。
-        // 计数器 portCount 拿掉了，这里不再更新它。
-        if (isAllChannels) {
-            updatePortGridSelection();
-        } else {
-            mPortChannelAdapter.addAll(group.getChannel());
-            mPortChannelAdapter.setSelected(group.getPosition());
-        }
+        // 0.1.102：竖屏网格只显示当前分组的频道（四方格展开开关拿掉了），点哪个分组就换成那个分组的频道。
+        mPortChannelAdapter.addAll(group.getChannel());
+        mPortChannelAdapter.setSelected(group.getPosition());
     }
 
     @Override
@@ -922,10 +854,8 @@ public class LiveActivity extends PlaybackActivity implements TouchInput.Listene
         int position = mChannelAdapter.setSelected(channel.group(mGroup));
         if (mGroup != null) mGroup.setPosition(position);
         mChannel = channel;
-        // 0.1.101：展开模式下竖屏网格的选中位置是当前台在"全部频道"列表里的下标，不是分组内的下标。
-        // 注意 mChannel 要先更新，updatePortGridSelection 才是按新台算位置。
-        if (isAllChannels) updatePortGridSelection();
-        else mPortChannelAdapter.setSelected(position);
+        // 0.1.102：竖屏网格的选中位置就是当前台在分组内的下标。
+        mPortChannelAdapter.setSelected(position);
         setArtwork();
         showInfo();
         hideUI();

@@ -132,37 +132,18 @@
                      全屏入口改成双击视频 + 视频右下角小图标（见上面 btnPortFullscreen）；
                      推送/收藏/简介/菜单在竖屏随之拿掉，横屏播放器控制栏里仍有这些入口。 -->
 
-                <!-- 分类 tab + 网格切换（0.1.101：计数器 portCount 拿掉——"1/50"本身就是坏的，录屏里出现过 "0/3""0/0""6/50"；
-                     四方格图标 btnGrid 在行尾，即最右边；点它展开/收回全部频道，见 LiveActivity.onPortGridClick） -->
-                <androidx.appcompat.widget.LinearLayoutCompat
+                <!-- 分组网格（0.1.102：四方格图标拿掉，分组从横向一排 tab 改成 4 列网格，全部的分全露出来；
+                     点哪个分组就只显示那个分组的频道，其他分组的频道不出现；分组字比下边频道大一号且加黑，
+                     见 adapter_group_port.xml。列数在 LiveActivity.setPortraitView 里定成 4 列） -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/groupPort"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/groupPort"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:clipChildren="false"
-                        android:clipToPadding="false"
-                        android:orientation="horizontal"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                        tools:itemCount="4"
-                        tools:listitem="@layout/adapter_group_port" />
-
-                    <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/btnGrid"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="8dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_view_grid"
-                        android:tint="?attr/colorOnSurface" />
-
-                </androidx.appcompat.widget.LinearLayoutCompat>
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    tools:itemCount="7"
+                    tools:listitem="@layout/adapter_group_port" />
 
                 <!-- 频道网格（4 列，可滚动） -->
                 <androidx.recyclerview.widget.RecyclerView
