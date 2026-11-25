@@ -30,7 +30,22 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
     public SiteAdapter(OnClickListener listener) {
         this.listener = listener;
-        for (Site site : VodConfig.get().getSites()) if (!site.isHide()) all.add(site);
+        // 0.1.105: 接口隔离——当前是 JSON/在线接口时，只显示接口自己的源；
+        // 手机本地 py/js 脚本源（key 以 script_ 开头）是跨接口追加进来的，
+        // 不在这里显示，它们仍在 本地 tab 和文件夹/单文件接口里。
+        // 文件夹/单文件接口下 isSiteVisible 本来就只留本文件夹/文件的源，
+        // 不动；没选接口时也不动。接口自己的本地文件源（XBPQ/drpy2，
+        // key 不是 script_）照常显示。
+        ConfigManager.Sub active = ConfigManager.getActiveSub();
+        boolean isolate = active != null && active.isInterface();
+        List<Site> visible = new ArrayList<>();
+        for (Site site : VodConfig.get().getSites()) {
+            if (!site.isHide() && (!isolate || !SiteOrder.isLocalScript(site))) visible.add(site);
+        }
+        // 安全网：过滤后为空（接口配置没加载出来，只剩本地脚本源）时回退到
+        // 不过滤，绝不让对话框因此变空白/自动消失。
+        if (visible.isEmpty()) for (Site site : VodConfig.get().getSites()) if (!site.isHide()) visible.add(site);
+        all.addAll(visible);
         List<Site> ordered = SiteOrder.applyOrder(all);
         all.clear();
         all.addAll(ordered);
@@ -77,8 +92,16 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         int allFrom = all.indexOf(items.get(to));
         int allTo = all.indexOf(items.get(from));
         if (allFrom >= 0 && allTo >= 0) Collections.swap(all, allFrom, allTo);
-        SiteOrder.putOrder(SiteOrder.keysOf(all));
+        putOrder();
         notifyItemMoved(from, to);
+    }
+
+    // 0.1.105: 写回顺序时保留当前列表里没有的 key（接口隔离过滤掉的本地
+    // 脚本源），不然它们的自定义顺序会从全局排序记录里丢掉。
+    private void putOrder() {
+        List<String> order = SiteOrder.keysOf(all);
+        for (String key : SiteOrder.getOrder()) if (!order.contains(key)) order.add(key);
+        SiteOrder.putOrder(order);
     }
 
     public void remove(Site item) {
@@ -88,7 +111,7 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
             items.remove(position);
             notifyItemRemoved(position);
         }
-        SiteOrder.putOrder(SiteOrder.keysOf(all));
+        putOrder();
     }
 
     // The site object is updated in place by the rename; just refresh its row.

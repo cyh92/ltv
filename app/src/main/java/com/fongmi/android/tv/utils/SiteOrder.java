@@ -111,6 +111,15 @@ public class SiteOrder {
         return result;
     }
 
+    // 0.1.105: a site appended from the phone's local script files
+    // (ScriptManager.scan), not a site defined by the current interface's own
+    // config. Do NOT use isLocalFile() for this: a config's own XBPQ/drpy2
+    // sites also point at local files, but their keys are not "script_".
+    public static boolean isLocalScript(Site site) {
+        String key = site.getKey();
+        return key != null && key.startsWith("script_");
+    }
+
     // A site is a local file when we can resolve it to a real file on the phone.
     // NOTE: never test api.startsWith("file://") — Site.objectFrom runs
     // UrlUtil.convert on the api, so a script source's api is actually

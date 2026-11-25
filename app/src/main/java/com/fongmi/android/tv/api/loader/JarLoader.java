@@ -2,6 +2,7 @@ package com.fongmi.android.tv.api.loader;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.exception.SpiderLoadException;
@@ -44,6 +45,8 @@ import dalvik.system.DexFile;
 
 public class JarLoader extends SpiderLoader {
 
+    private static final String TAG = "JarLoader";
+
     private final ConcurrentHashMap<String, DexClassLoader> loaders;
     private final ConcurrentHashMap<String, Method> methods;
     private final ConcurrentHashMap<String, Object> locks;
@@ -70,7 +73,19 @@ public class JarLoader extends SpiderLoader {
 
     private void load(String key, File file) {
         if (Thread.interrupted()) return;
-        if (!Path.exists(file) || !file.setReadOnly()) return;
+        if (!Path.exists(file)) {
+            Log.w(TAG, "JAR missing or empty, skip loading: " + file);
+            return;
+        }
+        // 0.1.105: setReadOnly() is best-effort only. On shared storage it often
+        // fails (read-only media / SAF), and DexClassLoader does NOT need the file
+        // to be read-only. The old `|| !file.setReadOnly()` silently dropped the
+        // whole jar here, so every csp_ site depending on it later failed with
+        // "Cannot load spider JAR" ("爬虫加载失败").
+        try {
+            file.setReadOnly();
+        } catch (Exception ignored) {
+        }
         String cachePath = Path.jar().getAbsolutePath();
         DexClassLoader loader = new DexClassLoader(file.getAbsolutePath(), cachePath, cachePath, RuntimeModule.getSpiderClassLoader());
         try {
@@ -127,6 +142,10 @@ public class JarLoader extends SpiderLoader {
         File src = Path.local(jar);
         File dst = Path.jar(jar);
         if (Path.exists(dst) && Path.exists(src) && dst.length() == src.length() && dst.lastModified() >= src.lastModified()) return dst;
+        // 0.1.105: make sure the cache dir exists before copying, so a missing
+        // dir can never be the reason the local jar falls back to shared storage.
+        File parent = dst.getParentFile();
+        if (parent != null) parent.mkdirs();
         File tmp = new File(dst.getParent(), dst.getName() + ".tmp");
         try (InputStream in = new FileInputStream(src); OutputStream out = new FileOutputStream(tmp)) {
             byte[] buffer = new byte[8192];
@@ -135,6 +154,7 @@ public class JarLoader extends SpiderLoader {
             if (!tmp.renameTo(dst)) throw new IOException("Cannot move cached JAR into place");
             return dst;
         } catch (IOException | RuntimeException e) {
+            Log.w(TAG, "Cannot cache local JAR, use original: " + jar, e);
             if (tmp.exists()) tmp.delete();
             return src;
         }
@@ -173,7 +193,12 @@ public class JarLoader extends SpiderLoader {
 
     private static DexClassLoader openDex(File file) throws Exception {
         if (!Path.exists(file)) throw new IllegalArgumentException("JAR is missing or empty: " + file);
-        if (!file.setReadOnly()) throw new IllegalStateException("Cannot mark JAR read-only: " + file);
+        // 0.1.105: setReadOnly() is best-effort only, see load() — a failure here
+        // must not fail the whole jar (crawler test session hit the same bug).
+        try {
+            file.setReadOnly();
+        } catch (Exception ignored) {
+        }
         String cachePath = file.getParent();
         return new DexClassLoader(file.getAbsolutePath(), cachePath, cachePath, RuntimeModule.getSpiderClassLoader());
     }

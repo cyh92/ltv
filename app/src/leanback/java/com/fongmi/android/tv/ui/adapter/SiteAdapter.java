@@ -12,6 +12,8 @@ import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.AdapterSiteBinding;
 import com.fongmi.android.tv.setting.Setting;
+import com.fongmi.android.tv.utils.ConfigManager;
+import com.fongmi.android.tv.utils.SiteOrder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +49,16 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
     }
 
     private void addAll() {
-        for (Site site : VodConfig.get().getSites()) if (!site.isHide()) mItems.add(site);
+        // 0.1.105: 接口隔离——当前是 JSON/在线接口时，只显示接口自己的源；
+        // 手机本地 py/js 脚本源（key 以 script_ 开头）是跨接口追加进来的，
+        // 不在这里显示（与移动端同款过滤；见移动端 SiteAdapter）。
+        // 安全网：过滤后为空时回退到不过滤，绝不让列表因此变空白。
+        ConfigManager.Sub active = ConfigManager.getActiveSub();
+        boolean isolate = active != null && active.isInterface();
+        for (Site site : VodConfig.get().getSites()) {
+            if (!site.isHide() && (!isolate || !SiteOrder.isLocalScript(site))) mItems.add(site);
+        }
+        if (mItems.isEmpty()) for (Site site : VodConfig.get().getSites()) if (!site.isHide()) mItems.add(site);
     }
 
     public List<Site> getItems() {
