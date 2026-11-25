@@ -177,7 +177,7 @@ jobs:
           git clone --branch release-1.11.0-fongmi --depth 1 https://github.com/FongMi/media.git ../media
           sed -i 's/pluginManagement {/pluginManagement {\n    includeBuild("..\/media\/build-logic")\n    plugins { id("org.jetbrains.kotlin.android") version "2.2.0" }/' settings.gradle
           python3 .github/scripts/merge_toml.py
-          for entry in common:common session:session exoplayer:exoplayer container:container decoder:decoder decoder-ffmpeg:decoder_ffmpeg ui:ui ui-danmaku:ui_danmaku database:database datasource:datasource datasource-okhttp:datasource_okhttp extractor:extractor mpvplayer:mpvplayer exoplayer-hls:exoplayer_hls exoplayer-dash:exoplayer_dash exoplayer-rtsp:exoplayer_rtsp exoplayer-smoothstreaming:exoplayer_smoothstreaming; do
+          for entry in common:common session:session exoplayer:exoplayer container:container decoder:decoder decoder-ffmpeg:decoder_ffmpeg ui:ui ui-danmaku:ui_danmaku database:database datasource:datasource datasource-okhttp:datasource_okhttp datasource-cronet:datasource_cronet extractor:extractor mpvplayer:mpvplayer exoplayer-hls:exoplayer_hls exoplayer-dash:exoplayer_dash exoplayer-rtsp:exoplayer_rtsp exoplayer-smoothstreaming:exoplayer_smoothstreaming; do
             proj="${entry%%:*}"
             dir="${entry##*:}"
             echo "include ':lib-${proj}'" >> settings.gradle
@@ -185,7 +185,7 @@ jobs:
           done
           sed -i '/testImplementation/d' ../media/libraries/*/build.gradle.kts
           sed -i '/androidTestImplementation/d' ../media/libraries/*/build.gradle.kts
-          for dep in common session ui ui-danmaku exoplayer extractor datasource database datasource-okhttp mpvplayer exoplayer-hls exoplayer-dash exoplayer-rtsp exoplayer-smoothstreaming; do
+          for dep in common session ui ui-danmaku exoplayer extractor datasource database datasource-okhttp datasource-cronet mpvplayer exoplayer-hls exoplayer-dash exoplayer-rtsp exoplayer-smoothstreaming; do
             sed -i "/^    coreLibraryDesugaring libs.desugar/i\    implementation project(':lib-${dep}')" app/build.gradle
           done
           sed -i '$ i\  public DefaultRenderersFactory setFfmpegAudioPrefer(boolean prefer) { return this; }\n  public DefaultRenderersFactory setFfmpegVideoPrefer(boolean prefer) { return this; }\n  public DefaultRenderersFactory setEnableDv7HevcFallback(boolean enable) { return this; }\n' ../media/libraries/exoplayer/src/main/java/androidx/media3/exoplayer/DefaultRenderersFactory.java
