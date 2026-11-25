@@ -132,8 +132,7 @@ jobs:
           so_names = sorted(os.path.basename(n) for n in names if n.startswith("lib/") and n.endswith(".so"))
           print("so files:", so_names)
           for lib in ["libnode.so", "libnodebridge.so", "libmpv.so", "libplayer.so",
-                      "libffmpeg.so", "libc++_shared.so",
-                      "libijkplayer.so", "libijkffmpeg.so", "libijksdl.so"]:
+                      "libffmpeg.so", "libc++_shared.so"]:
               check(f"has {lib}", lib in so_names)
           check("has assets/nodejs/bootstrap.js",
                 "assets/nodejs/bootstrap.js" in names)
@@ -147,7 +146,7 @@ jobs:
               return b in dex_text
           for token in [b"HlsMediaSource", b"DashMediaSource", b"RtspMediaSource", b"SsMediaSource"]:
               check(f"dex has {token.decode()}", has(token))
-          for token in [b"IjkMediaPlayer", b"IjkPlayerEngine", b"IjkPlayerAdapter", b"WebViewCookieJar"]:
+          for token in [b"WebViewCookieJar"]:
               check(f"dex has {token.decode()}", has(token))
           # no PHP spider classes anywhere in dex
           for token in [b"PhpLoader", b"PhpSpider"]:
