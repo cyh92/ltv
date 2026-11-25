@@ -19,9 +19,19 @@ public class Traffic {
     private static long lastTimeStamp;
 
     public static void setSpeed(TextView view) {
-        if (TrafficStats.getUidRxBytes(UID) == TrafficStats.UNSUPPORTED) return;
+        String speed = speedText();
+        if (speed == null) return;
         view.setVisibility(View.VISIBLE);
-        view.setText(getSpeed());
+        view.setText(speed);
+    }
+
+    // 0.1.110 C(b)：缓冲提示要把网速拼进同一行文案里，这里只算出网速字符串，
+    // 不直接写进 TextView；不支持时返回 null，调用方省略网速部分。
+    // 注意：每次调用都会消耗一次 TrafficStats 差值（与 setSpeed 同），
+    // 同一秒内不要又调 setSpeed 又调 speedText。
+    public static String speedText() {
+        if (TrafficStats.getUidRxBytes(UID) == TrafficStats.UNSUPPORTED) return null;
+        return getSpeed();
     }
 
     private static String getSpeed() {

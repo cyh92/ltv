@@ -356,6 +356,12 @@ public class VodConfig extends BaseConfig {
         for (Site site : sites) {
             site.setApi(UrlUtil.resolveEncodedFile(UrlUtil.resolveRelative(config.getUrl(), site.getApi())));
             site.setExt(UrlUtil.resolveEncodedFile(UrlUtil.resolveRelative(config.getUrl(), site.getExt())));
+            // 0.1.110 A.1：站点 jar 也要相对配置地址解析（与 api/ext 同法）。
+            // 原来只解析 api/ext，jar 字段从未解析，相对路径（./jar/xbpq.jar 等）
+            // 原样进了 JarLoader，isLocalFile 永远 false，报“不支持的 JAR 位置”，
+            // loader 留空 → 点站即“爬虫加载失败”。解析成 file:// 后自然走进
+            // JarLoader 已有的 file 分支（copyLocalJar），加载逻辑本身不动。
+            site.setJar(UrlUtil.resolveEncodedFile(UrlUtil.resolveRelative(config.getUrl(), site.getJar())));
         }
         Set<String> keys = sites.stream().map(Site::getKey).collect(Collectors.toSet());
         ScriptManager.get().scan().stream().filter(site -> keys.add(site.getKey())).forEach(site -> sites.add(site));

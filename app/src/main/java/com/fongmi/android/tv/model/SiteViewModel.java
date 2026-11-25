@@ -6,16 +6,35 @@ import androidx.lifecycle.ViewModel;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.SiteApi;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.exception.SpiderLoadException;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ResUtil;
+import com.github.catvod.utils.Task;
+import com.google.common.util.concurrent.FluentFuture;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SiteViewModel extends ViewModel {
 
@@ -28,6 +47,12 @@ public class SiteViewModel extends ViewModel {
 
     /** 首页内存缓存：key = 接口 URL + 首页源 key。只放内存，退出即丢；只用来先显示，后台一定再拉一次（见 homeContent）。 */
     private final Map<String, Result> homeCache = new HashMap<>();
+
+    // 0.1.110 B(a)：首页请求的世代号。每次发起新的首页请求或切到分类/详情/搜索
+    // （execute）时 +1；只有与当前世代号一致、且取回的仍是当前首页源的请求，
+    // 才把结果推给界面；过期的只进缓存（切回该站时秒出），不覆盖当前界面。
+    private final AtomicInteger homeEpoch = new AtomicInteger();
+    private final List<ListenableFuture<?>> homeFutures = new ArrayList<>();
 
     public SiteViewModel() {
         result = new MutableLiveData<>();
@@ -62,11 +87,39 @@ public class SiteViewModel extends ViewModel {
         Result cached = homeCache.get(key);
         // 先显示缓存（切回已打开过的接口秒出内容），同时一定再拉一次新的，回来后更新缓存并刷新界面。
         if (cached != null) result.postValue(cached);
-        execute(TaskType.RESULT, result, () -> {
+        // 0.1.110 B(a)：首页请求不再走共享的 tasks runner（它每种类型只有一个槽，
+        // 新任务会取消旧的；5 秒点一个新站、首页要 10–20 秒时，永远等不到完成）。
+        // 这里直接用 Task.submit 起请求，各站的请求互不取消、先出哪个算哪个；
+        // 世代号 + 当前首页源双重校验，只让“最新、且仍是当前站”的那次推界面。
+        int epoch = homeEpoch.incrementAndGet();
+        FluentFuture<Result> future = FluentFuture.from(Task.submit(() -> {
             Result fresh = SiteApi.homeContent(home);
             if (fresh != null) homeCache.put(key, fresh);
             return fresh;
-        });
+        }, Constant.TIMEOUT_VOD));
+        synchronized (homeFutures) {
+            homeFutures.add(future);
+        }
+        future.addCallback(Task.callback(fresh -> {
+            removeHomeFuture(future);
+            if (epoch == homeEpoch.get() && isCurrentHome(home)) result.postValue(fresh);
+        }, error -> {
+            removeHomeFuture(future);
+            if (error instanceof CancellationException) return;
+            if (epoch == homeEpoch.get() && isCurrentHome(home)) handleError(TaskType.RESULT, result, error);
+            else error.printStackTrace();
+        }), MoreExecutors.directExecutor());
+    }
+
+    private void removeHomeFuture(ListenableFuture<?> future) {
+        synchronized (homeFutures) {
+            homeFutures.remove(future);
+        }
+    }
+
+    private static boolean isCurrentHome(Site home) {
+        Site current = VodConfig.get().getHome();
+        return current != null && home != null && current.getKey().equals(home.getKey());
     }
 
     private static String homeCacheKey(Site home) {
@@ -94,14 +147,65 @@ public class SiteViewModel extends ViewModel {
     }
 
     private void execute(TaskType type, MutableLiveData<Result> liveData, Callable<Result> callable) {
+        // 0.1.110 B(a)：切到分类/详情/动作/搜索时，正在飞的首页请求就算回来也不再推界面
+        // （避免把首页内容盖到分类/详情上）；它仍会进缓存。
+        homeEpoch.incrementAndGet();
         tasks.execute(type, Constant.TIMEOUT_VOD, callable, liveData::postValue, error -> handleError(type, liveData, error));
     }
 
     private void handleError(TaskType type, MutableLiveData<Result> liveData, Throwable error) {
         String message = Notify.getError(error);
+        // 0.1.110 B(b)：超时原来在 Notify.getError 里没有映射，返回 null，
+        // 界面只剩静默空白。超时改给明确提示，可重试。
+        if (message == null && isTimeout(error)) message = ResUtil.getString(R.string.error_load_timeout);
+        // 0.1.110 A.2.3 断点二：JS 爬虫加载失败时只留“爬虫加载失败”一句，
+        // 看不到是哪一行抛的。把完整异常栈写进诊断文件，保存成功就在 toast
+        // 后追加一句，xu 下次失败时把文件发我，就能定准那一行。
+        if (message != null && isSpiderLoadError(error) && logSpiderError(error)) {
+            message += "，" + ResUtil.getString(R.string.error_spider_saved_hint);
+        }
         liveData.postValue(message != null ? Result.error(message) : Result.empty());
         if (type == TaskType.RESULT && message != null) App.post(() -> Notify.show(message));
         error.printStackTrace();
+    }
+
+    private static boolean isTimeout(Throwable error) {
+        for (Throwable current = error; current != null; current = current.getCause()) {
+            if (current instanceof TimeoutException) return true;
+        }
+        return false;
+    }
+
+    private static boolean isSpiderLoadError(Throwable error) {
+        for (Throwable current = error; current != null; current = current.getCause()) {
+            if (current instanceof SpiderLoadException) return true;
+        }
+        return false;
+    }
+
+    // 0.1.110 A.2.3 断点二：只留痕，不修引擎、不动 Module 的 import 解析。
+    // 文件写在 app 外置存储目录（Android/data/com.zhulong.tv/files/，
+    // 文件管理器可进），文件名带时间，如 spider-error-20261125-213000.txt，
+    // 内容是完整异常栈（含 cause 链）。写失败返回 false，toast 不追加提示。
+    private static boolean logSpiderError(Throwable error) {
+        try {
+            File dir = App.get().getExternalFilesDir(null);
+            if (dir == null) return false;
+            String stamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault()).format(new Date());
+            File file = new File(dir, "spider-error-" + stamp + ".txt");
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            error.printStackTrace(pw);
+            pw.flush();
+            String head = "time: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()) + "\n";
+            try (FileOutputStream out = new FileOutputStream(file)) {
+                out.write((head + sw.toString()).getBytes(StandardCharsets.UTF_8));
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public void stopSearch() {
@@ -112,6 +216,10 @@ public class SiteViewModel extends ViewModel {
     protected void onCleared() {
         stopSearch();
         tasks.cancelAll();
+        synchronized (homeFutures) {
+            for (ListenableFuture<?> future : homeFutures) future.cancel(true);
+            homeFutures.clear();
+        }
     }
 
     private record SearchTask(Site site, String keyword, boolean quick, String page) implements Callable<Result> {

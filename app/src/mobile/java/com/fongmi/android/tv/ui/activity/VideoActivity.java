@@ -152,6 +152,10 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     private Runnable mR3;
     private Runnable mR4;
     private Runnable mR5;
+    // 0.1.110 C(b)：缓冲提示的采样基线（上一秒已缓冲的毫秒数与采样时间），
+    // 用于估算缓冲增长速度 → 预计还需几秒。showProgress 时重置。
+    private long mBufferAheadMs = -1;
+    private long mBufferSampleMs = 0;
     private History mHistory;
     private boolean fullscreen;
     private boolean webFullscreen;
@@ -1425,6 +1429,9 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
 
     private void showProgress() {
         mBinding.progress.getRoot().setVisibility(View.VISIBLE);
+        // 0.1.110 C(b)：新一轮缓冲开始，重置缓冲采样基线。
+        mBufferAheadMs = -1;
+        mBufferSampleMs = 0;
         App.post(mR2, 0);
         hideError();
     }
@@ -1508,10 +1515,43 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
         for (Fragment fragment : getSupportFragmentManager().getFragments()) if (fragment instanceof DialogFragment dialog) dialog.dismiss();
     }
 
+    // 0.1.110 C(b)：缓冲时（progress 视图在显示，mR2 每秒跑一次）不再只转圈，
+    // 在转圈下方的 traffic 文本行显示“正在缓冲，已缓冲 X 秒，预计还需 Y 秒”
+    // （网速开关开着时再拼上当前网速）。已缓冲 = 已缓冲位置 − 当前位置；
+    // 预计还需 = 还差多少才够起播门槛（forPlayback 2.5 秒 × 缓冲倍数）÷ 最近
+    // 一秒的缓冲增长速度；增长为 0（卡住）或已够门槛时不给预计时间。
+    // 注意：缓冲提示不看网速开关——开关只决定拼不拼网速那一段。
     private void setTraffic() {
-        if (DisplaySetting.isSpeed()) Traffic.setSpeed(mBinding.progress.traffic);
-        else mBinding.progress.traffic.setVisibility(View.GONE);
+        mBinding.progress.traffic.setText(bufferingText());
+        mBinding.progress.traffic.setVisibility(View.VISIBLE);
         App.post(mR2, 1000);
+    }
+
+    private String bufferingText() {
+        String speed = DisplaySetting.isSpeed() ? Traffic.speedText() : null;
+        String suffix = speed == null ? "" : " · " + speed;
+        Player player = player() == null ? null : player().getPlayer();
+        if (player == null) return "正在缓冲…" + suffix;
+        long buffered = player.getBufferedPosition();
+        long current = player.getCurrentPosition();
+        if (buffered == C.TIME_UNSET || buffered < 0) return "正在缓冲…" + suffix;
+        long aheadMs = Math.max(0, buffered - Math.max(0, current));
+        long aheadSec = aheadMs / 1000;
+        long now = System.currentTimeMillis();
+        String eta = "";
+        if (mBufferAheadMs >= 0 && mBufferSampleMs > 0 && now > mBufferSampleMs) {
+            long growthMs = aheadMs - mBufferAheadMs;
+            double growthPerSec = growthMs * 1000.0 / (now - mBufferSampleMs);
+            long targetMs = 2500L * PlayerSetting.getBuffer();
+            long remainMs = targetMs - aheadMs;
+            if (growthPerSec > 0 && remainMs > 0) {
+                long etaSec = Math.max(1, Math.round(remainMs / growthPerSec));
+                eta = "，预计还需 " + etaSec + " 秒";
+            }
+        }
+        mBufferAheadMs = aheadMs;
+        mBufferSampleMs = now;
+        return "正在缓冲，已缓冲 " + aheadSec + " 秒" + eta + suffix;
     }
 
     /**

@@ -58,8 +58,13 @@ class VodFallbackPolicy {
     }
 
     private void fallbackToNextLineOrSource() {
-        if (!host.isSiteChangeable()) return;
+        // 0.1.110 C(a)：换线路（同一源内切到下一条线路）不依赖“可换站”，先试；
+        // 只有换源才需要可换站。原来 isSiteChangeable 拦在最前面，changeable=0
+        // 的源（如 drpy2 的 4K 源）超时后连下一条线路都不试，直接报错。
+        // 手动切线路本就不检查 changeable（VideoActivity 选线路直接 selectFlag），
+        // 自动切也不应被它拦。先试下一条线路，没有才按原逻辑判断换源。
         if (fallbackToNextLine()) return;
+        if (!host.isSiteChangeable()) return;
         fallbackToNextSource(false);
     }
 

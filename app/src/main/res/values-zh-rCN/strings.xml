@@ -424,6 +424,8 @@
     <string name="file_export_success">文件已导出</string>
     <string name="error_config_get">配置取得失败</string>
     <string name="error_spider_load">爬虫加载失败</string>
+    <string name="error_load_timeout">加载超时，可重试</string>
+    <string name="error_spider_saved_hint">已保存报错，可发给小天</string>
     <string name="error_js_no_spider">这个 js 源没有导出爬虫类；drpy2 规则需要 drpy2.min.js 才能用</string>
     <string name="error_js_no_cat">这个 js 源是 cat 规则，需要 cat.js 框架，当前版本没有内置</string>
     <string name="error_file_open">无法打开文件</string>

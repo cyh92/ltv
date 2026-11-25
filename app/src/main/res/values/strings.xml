@@ -427,6 +427,8 @@
     <string name="file_export_success">File exported</string>
     <string name="error_config_get">Configuration get failed</string>
     <string name="error_spider_load">Unable to load crawler</string>
+    <string name="error_load_timeout">Load timed out, please retry</string>
+    <string name="error_spider_saved_hint">Error saved, you can send it to 小天</string>
     <string name="error_js_no_spider">This JS source exports no spider class; a drpy2 rule needs drpy2.min.js to run</string>
     <string name="error_js_no_cat">This JS source is a cat rule and needs the cat.js framework, which is not built in</string>
     <string name="error_file_open">Unable to open file</string>
