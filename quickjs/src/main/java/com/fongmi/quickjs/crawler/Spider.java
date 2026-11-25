@@ -300,13 +300,15 @@ public class Spider extends com.github.catvod.crawler.Spider {
         try {
             Class<?> clz = dex.loadClass("com.github.catvod.js.Function");
             clz.getDeclaredConstructor(QuickJSContext.class).newInstance(new QuickJSContext(ctx));
-        } catch (ClassNotFoundException | ReflectiveOperationException ignored) {
+        } catch (ReflectiveOperationException ignored) {
             // 0.1.112：JAR 里的 Function 类可能按旧版 QuickJS（com.whl.quickjs）编，
             // 构造器是 <init>(com.whl.quickjs.wrapper.QuickJSContext)，跟新版
             // com.fongmi.quickjs.QuickJSContext 对不上（vox.jar 就是这样）。
             // drpy2 引擎自己用 JS 实现了 pd/pdfl，不需要这个 Java 类，跳过即可，
             // 不要让整个爬虫死掉。原来这里抛 IllegalStateException，果果/酷酷/
-            // 爱奇艺[秒播] 全报“爬虫加载失败”。
+            // 爱奇艺[秒播] 全报“爬虫加载失败”。注意：ClassNotFoundException 是
+            // ReflectiveOperationException 的子类，一个 catch 就全盖住，别写
+            // 多重 catch（多重 catch 不允许并列父子类，编不过）。
         }
     }
 
