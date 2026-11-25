@@ -106,7 +106,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "--- release as seen via API ---"
-        gh release view "v${VERSION}" --repo lvsehuiyicm/TV --json tagName,targetCommitish,assets,body --jq '{tag: .tagName, target: .targetCommitish, body_head: (.body | split("\n")[0]), assets: [.assets[] | {name: .name, size: .size}]}'
+          gh release view "v${VERSION}" --repo lvsehuiyicm/TV --json tagName,targetCommitish,assets,body --jq '{tag: .tagName, target: .targetCommitish, body_head: (.body | split("\n")[0]), assets: [.assets[] | {name: .name, size: .size}]}'
           echo "--- re-download published arm64 asset and re-check sha256 ---"
           gh release download "v${VERSION}" -p "zhulong-${VERSION}-arm64-debug.apk" -D /tmp/recheck --repo lvsehuiyicm/TV
           sha256sum "/tmp/recheck/zhulong-${VERSION}-arm64-debug.apk"
