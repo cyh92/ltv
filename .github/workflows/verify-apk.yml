@@ -1,0 +1,179 @@
+name: Verify built APK
+
+# Verifies a built APK from a "Build mobile APK (from source)" run, without
+# needing a Codespace. Downloads the app-mobile-debug artifact of the given
+# build run, checks the arm64 APK (package, version, signature fingerprint,
+# native libs, dex contents, no PHP), and fails if any check fails.
+# It never creates a release; publishing is a separate step after review.
+#
+# Inputs (workflow_dispatch):
+#   run_id       - the build run id (e.g. 45559805507)
+#   version      - expected versionName, e.g. 0.1.106
+#   version_code - expected versionCode, e.g. 10206
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Build run id to verify'
+        required: true
+        type: string
+      version:
+        description: 'Expected versionName, e.g. 0.1.106'
+        required: true
+        type: string
+      version_code:
+        description: 'Expected versionCode, e.g. 10206'
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      EXPECTED_FINGERPRINT: b08bbcbf6a694b39bfeca8caf02619bbb0b8b726ebbc42564b74af478975677d
+    steps:
+      - name: Download build artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/apk
+          gh run download "$RUN_ID" -n app-mobile-debug -D /tmp/apk --repo lvsehuiyicm/TV
+          echo "--- artifact contents ---"
+          find /tmp/apk -type f | sort
+          echo "--- apk files ---"
+          ls -la /tmp/apk/*.apk 2>/dev/null || find /tmp/apk -name '*.apk' -exec ls -la {} \;
+
+      - name: Pick arm64 APK and hash it
+        run: |
+          set -euo pipefail
+          APK=$(find /tmp/apk -name '*.apk' | grep -i arm64 | head -n 1)
+          if [ -z "$APK" ]; then
+            echo "::error::no arm64 APK found in artifact"
+            find /tmp/apk -name '*.apk'
+            exit 1
+          fi
+          echo "APK=$APK" >> "$GITHUB_ENV"
+          echo "--- size + sha256 ---"
+          ls -la "$APK"
+          sha256sum "$APK"
+
+      - name: Set up JDK 21 (for keytool)
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Install androguard
+        run: |
+          set -euo pipefail
+          python3 -m pip install -q 'androguard==4.1.4'
+          python3 -c "import androguard; print('androguard', androguard.__version__)"
+
+      - name: Verify APK
+        env:
+          VERSION: ${{ inputs.version }}
+          VERSION_CODE: ${{ inputs.version_code }}
+        run: |
+          set -euo pipefail
+          cat > /tmp/verify.py <<'PYEOF'
+          import hashlib, os, re, subprocess, sys, zipfile
+          from androguard.core.apk import APK
+
+          apk_path = os.environ["APK"]
+          version = os.environ["VERSION"]
+          version_code = int(os.environ["VERSION_CODE"])
+          expected_fp = os.environ["EXPECTED_FINGERPRINT"].lower()
+          failures = []
+          def check(name, ok, detail=""):
+              print(f"[{'PASS' if ok else 'FAIL'}] {name} {detail}")
+              if not ok:
+                  failures.append(name)
+
+          apk = APK(apk_path)
+          check("package == com.zhulong.tv", apk.get_package() == "com.zhulong.tv", apk.get_package())
+          check(f"versionName == {version}", apk.get_androidversion_name() == version, apk.get_androidversion_name())
+          check(f"versionCode == {version_code}", int(apk.get_androidversion_code()) == version_code, str(apk.get_androidversion_code()))
+
+          # extractNativeLibs from the manifest
+          manifest = apk.get_android_manifest_xml()
+          app_elem = manifest.find("application")
+          enl = app_elem.get("{http://schemas.android.com/apk/res/android}extractNativeLibs") if app_elem is not None else None
+          check('extractNativeLibs == "true"', enl == "true", f"got {enl!r}")
+
+          # signature fingerprint: androguard cert DER SHA-256
+          fps = set()
+          try:
+              for cert in apk.get_certificates():
+                  der = None
+                  if hasattr(cert, "dump"):
+                      try:
+                          der = cert.dump()
+                      except Exception:
+                          der = None
+                  if der is None and hasattr(cert, "public_bytes"):
+                      try:
+                          from cryptography.hazmat.primitives import serialization
+                          der = cert.public_bytes(serialization.Encoding.DER)
+                      except Exception:
+                          der = None
+                  if der:
+                      fps.add(hashlib.sha256(der).hexdigest())
+          except Exception as e:
+              print(f"androguard cert read failed: {e}")
+          print("androguard fingerprints:", sorted(fps) or "none")
+          check("v2 fingerprint matches (androguard)", expected_fp in fps, f"expected {expected_fp}")
+
+          # keytool cross-check (v1/JAR signature uses the same cert)
+          try:
+              out = subprocess.run(["keytool", "-printcert", "-jarfile", apk_path],
+                                   capture_output=True, text=True, timeout=120).stdout
+              m = re.search(r"SHA256:\s*([0-9A-Fa-f:]+)", out)
+              kt_fp = m.group(1).replace(":", "").lower() if m else ""
+              print("keytool fingerprint:", kt_fp or "none")
+              check("v2 fingerprint matches (keytool)", kt_fp == expected_fp, kt_fp)
+          except Exception as e:
+              print(f"keytool check failed: {e}")
+              check("v2 fingerprint matches (keytool)", False, str(e))
+
+          # native libs + assets via zip listing
+          z = zipfile.ZipFile(apk_path)
+          names = z.namelist()
+          so_names = sorted(os.path.basename(n) for n in names if n.startswith("lib/") and n.endswith(".so"))
+          print("so files:", so_names)
+          for lib in ["libnode.so", "libnodebridge.so", "libmpv.so", "libplayer.so",
+                      "libffmpeg.so", "libc++_shared.so",
+                      "libijkplayer.so", "libijkffmpeg.so", "libijksdl.so"]:
+              check(f"has {lib}", lib in so_names)
+          check("has assets/nodejs/bootstrap.js",
+                "assets/nodejs/bootstrap.js" in names)
+
+          # dex contents: pull all dex text once
+          dex_text = b""
+          for n in names:
+              if n.endswith(".dex"):
+                  dex_text += z.read(n)
+          def has(b):
+              return b in dex_text
+          for token in [b"HlsMediaSource", b"DashMediaSource", b"RtspMediaSource", b"SsMediaSource"]:
+              check(f"dex has {token.decode()}", has(token))
+          for token in [b"IjkMediaPlayer", b"IjkPlayerEngine", b"IjkPlayerAdapter", b"WebViewCookieJar"]:
+              check(f"dex has {token.decode()}", has(token))
+          # no PHP spider classes anywhere in dex
+          for token in [b"PhpLoader", b"PhpSpider"]:
+              check(f"dex has NO {token.decode()}", not has(token))
+
+          print()
+          if failures:
+              print(f"VERIFICATION FAILED: {len(failures)} check(s): {', '.join(failures)}")
+              sys.exit(1)
+          print("VERIFICATION PASSED: all checks green")
+          PYEOF
+          python3 /tmp/verify.py
