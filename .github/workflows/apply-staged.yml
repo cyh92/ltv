@@ -35,7 +35,6 @@ on:
 permissions:
   contents: write
   actions: write
-  workflows: write
 
 jobs:
   apply-and-build:
@@ -74,7 +73,7 @@ jobs:
             rsync -a "$STAGED/catvod/" catvod/
           fi
           if [ -d "$STAGED/.github" ]; then
-            rsync -a "$STAGED/.github/" .github/
+            rsync -a --exclude 'workflows/' "$STAGED/.github/" .github/
           fi
           echo "--- applied; git status ---"
           git status --short | head -60
