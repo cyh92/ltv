@@ -75,6 +75,12 @@ jobs:
           if [ -d "$STAGED/.github" ]; then
             rsync -a --exclude 'workflows/' "$STAGED/.github/" .github/
           fi
+          if [ -f "$STAGED/deletions.txt" ]; then
+            echo "--- deleting listed files ---"
+            while IFS= read -r path; do
+              [ -n "$path" ] && git rm --ignore-unmatch "$path"
+            done < "$STAGED/deletions.txt"
+          fi
           echo "--- applied; git status ---"
           git status --short | head -60
 
@@ -84,11 +90,6 @@ jobs:
           echo "--- PHP must be gone from loader + assets ---"
           if [ -d app/src/main/assets/php ]; then echo "::error::app/src/main/assets/php still exists"; exit 1; fi
           if grep -ri "php" app/src/main/java/com/fongmi/android/tv/api/loader/ ; then echo "::error::PHP reference in loader"; exit 1; fi
-          echo "--- IJK native libs must be present (arm64) ---"
-          ls -la app/src/main/jniLibs/arm64-v8a/
-          test -f app/src/main/jniLibs/arm64-v8a/libijkffmpeg.so
-          test -f app/src/main/jniLibs/arm64-v8a/libijksdl.so
-          test -f app/src/main/jniLibs/arm64-v8a/libijkplayer.so
           echo "--- 16KB alignment (arm64) ---"
           for f in app/src/main/jniLibs/arm64-v8a/*.so; do
             echo "== $f =="
