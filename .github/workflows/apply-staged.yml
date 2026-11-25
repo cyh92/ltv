@@ -91,10 +91,12 @@ jobs:
           if [ -d app/src/main/assets/php ]; then echo "::error::app/src/main/assets/php still exists"; exit 1; fi
           if grep -ri "php" app/src/main/java/com/fongmi/android/tv/api/loader/ ; then echo "::error::PHP reference in loader"; exit 1; fi
           echo "--- 16KB alignment (arm64) ---"
-          for f in app/src/main/jniLibs/arm64-v8a/*.so; do
-            echo "== $f =="
-            readelf -lW "$f" | grep LOAD | awk '{print "Align:", $NF}'
-          done
+          if compgen -G "app/src/main/jniLibs/arm64-v8a/*.so" > /dev/null; then
+            for f in app/src/main/jniLibs/arm64-v8a/*.so; do
+              echo "== $f =="
+              readelf -lW "$f" | grep LOAD | awk '{print "Align:", $NF}'
+            done
+          fi
           echo "--- version ---"
           grep -E "versionCode|versionName" app/build.gradle
           echo "--- diff check ---"
