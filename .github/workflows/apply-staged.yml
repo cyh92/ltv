@@ -11,8 +11,10 @@ name: Apply staged changes and build
 #   tarball_sha256 - sha256 of the tarball (verified before extraction)
 #   commit_message - commit message for the applied changes
 #
-# The tarball must mirror the repo layout at its top level (app/, catvod/,
-# ...). Extra files in the tarball outside those dirs are ignored.
+# The tarball must contain a top-level run*/ directory mirroring the repo
+# layout (app/, catvod/, .github/). Extra files in the tarball outside those
+# dirs are ignored. Files to DELETE must be removed by the stager beforehand
+# (this workflow only adds/modifies; it does not delete).
 
 on:
   workflow_dispatch:
@@ -70,20 +72,10 @@ jobs:
           if [ -d "$STAGED/catvod" ]; then
             rsync -a "$STAGED/catvod/" catvod/
           fi
+          if [ -d "$STAGED/.github" ]; then
+            rsync -a "$STAGED/.github/" .github/
+          fi
           echo "--- applied; git status ---"
-          git status --short | head -60
-
-      - name: Remove dropped files and restore BaseLoader
-        run: |
-          set -euo pipefail
-          # Files dropped from scope for this version (must exist in HEAD).
-          git rm -q app/src/main/java/com/fongmi/android/tv/api/loader/PhpLoader.java
-          git rm -q app/src/main/java/com/fongmi/android/tv/api/loader/PhpSpider.java
-          git rm -q app/src/main/assets/php/runner.php
-          git rm -q app/libs/ijkplayer-cmake-release.aar
-          # BaseLoader must be the 0.1.105 version (no .php dispatch).
-          git show e3ae97eb:app/src/main/java/com/fongmi/android/tv/api/loader/BaseLoader.java > app/src/main/java/com/fongmi/android/tv/api/loader/BaseLoader.java
-          echo "--- after removals; git status ---"
           git status --short | head -60
 
       - name: Verify before commit
@@ -107,7 +99,7 @@ jobs:
           echo "--- diff check ---"
           git diff --check
           echo "--- staged stat ---"
-          git add app catvod
+          git add app catvod .github
           git status --short | head -80
           git diff --cached --stat
 
