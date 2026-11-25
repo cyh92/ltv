@@ -119,7 +119,8 @@ public final class MpvUtil {
         options.addAll(List.of("sub-pos", "secondary-sub-pos", "sub-offset-y", "secondary-sub-offset-y", "sub-ass-override", "secondary-sub-ass-override", "embeddedfonts"));
         options.addAll(SCALE_OPTIONS);
         boolean hasFontOverride = SubtitleSetting.getFont() != null;
-        if (PreloadSetting.isEnabled()) options.addAll(CACHE_OPTIONS);
+        // 0.1.104：磁盘缓存只在预载开着且网络允许时才纳入管理（与 buildConfig 里的 addDiskCacheOptions 同步）。
+        if (PreloadSetting.isEnabled() && PreloadSetting.shouldPreloadOnCurrentNetwork()) options.addAll(CACHE_OPTIONS);
         if (isMotionEnabled()) options.addAll(MOTION_OPTIONS);
         if (hasFontOverride) options.addAll(FONT_OPTIONS);
         options.addAll(STYLE_OPTIONS);
@@ -142,7 +143,8 @@ public final class MpvUtil {
         MpvPlayerConfig.Builder builder = new MpvPlayerConfig.Builder().setDataSourceFactory(createDataSourceFactory()).setDefaultFontDirectories(defaultFontsDirectory, defaultFontsDirectory).addConfigDirectory(Path.mpv()).addAndroidDefaults(buildAndroidOptions(cacheDir));
         builder.addPreInitStringOption("proxy-url", "http://127.0.0.1:" + Proxy.getPort() + "/proxy?");
         builder.addTlsCaFileFromAsset(App.get(), ASSET_CA_FILE, Path.files(ASSET_CA_FILE)).addAndroidSubtitleOptions(App.get(), buildSubtitleOptions(font));
-        if (PreloadSetting.isEnabled()) builder.addDiskCacheOptions(cacheDir, PreloadSetting.getTimeSeconds());
+        // 0.1.104：仅 Wi-Fi 开着且当前不是 Wi-Fi 时，不建 MPV 磁盘缓存（播放器创建时判一次）。
+        if (PreloadSetting.isEnabled() && PreloadSetting.shouldPreloadOnCurrentNetwork()) builder.addDiskCacheOptions(cacheDir, PreloadSetting.getTimeSeconds());
         addMotionOptions(builder);
         return builder.build();
     }

@@ -283,7 +283,15 @@ public class PlayerManager implements ParseCallback {
     }
 
     public boolean canPreloadNext() {
-        return PreloadSetting.shouldPreloadNextEpisode() && engine != null && engine.getType() == PlayerEngine.Type.EXO && !player.isCurrentMediaItemLive() && !player.getDiscMenuState().navigationPlaybackOngoing && (spec == null || !IsoDiscPreparation.isIso(MediaItemFactory.from(spec)));
+        return PreloadSetting.shouldPreloadNextEpisode() && PreloadSetting.shouldPreloadOnCurrentNetwork() && engine != null && engine.getType() == PlayerEngine.Type.EXO && !player.isCurrentMediaItemLive() && !player.getDiscMenuState().navigationPlaybackOngoing && (spec == null || !IsoDiscPreparation.isIso(MediaItemFactory.from(spec)));
+    }
+
+    /**
+     * 0.1.104：下集“地址解析”一级的门——与 canPreloadNext 相同，但不要求引擎是 EXO。
+     * MPV 挂不了媒体，但可以先把下集地址解析好缓存在 PreloadEntry 里，点下一集时直接播，省掉重新解析。
+     */
+    public boolean canPreloadNextUrl() {
+        return PreloadSetting.shouldPreloadNextEpisode() && PreloadSetting.shouldPreloadOnCurrentNetwork() && engine != null && !player.isCurrentMediaItemLive() && !player.getDiscMenuState().navigationPlaybackOngoing && (spec == null || !IsoDiscPreparation.isIso(MediaItemFactory.from(spec)));
     }
 
     public boolean isPortrait() {

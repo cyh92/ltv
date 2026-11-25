@@ -3,6 +3,7 @@ package com.fongmi.android.tv.server.process;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.server.Nano;
 import com.fongmi.android.tv.server.impl.Process;
+import com.fongmi.android.tv.utils.HlsAdStripper;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.catvod.utils.RuntimeModule;
 
@@ -32,11 +33,37 @@ public class Proxy implements Process {
             Map<String, String> params = session.getParms();
             params.putAll(session.getHeaders());
             params.putAll(files);
-            return createResponse(BaseLoader.get().proxy(params));
+            Object[] rs = BaseLoader.get().proxy(params);
+            // 0.1.104：走代理的 m3u8 播放列表先过一遍广告切除，再返回给播放器。
+            if (isM3u8(rs, params)) return createCleanedResponse(rs);
+            return createResponse(rs);
         } catch (Throwable e) {
             RuntimeModule.MissingException missing = RuntimeModule.MissingException.find(e);
             if (missing != null) return markError(Nano.error(Status.SERVICE_UNAVAILABLE, Notify.getError(missing)));
             e.printStackTrace();
+            return markError(Nano.error(Objects.toString(e.getMessage(), e.toString())));
+        }
+    }
+
+    /** 是不是 m3u8 播放列表：看 MIME，或看代理请求的 url 参数以 .m3u8 结尾。 */
+    private static boolean isM3u8(Object[] rs, Map<String, String> params) {
+        if (rs == null || rs.length < 3 || !(rs[2] instanceof InputStream)) return false;
+        String mime = rs[1] instanceof String ? (String) rs[1] : "";
+        if (mime.contains("mpegurl") || mime.contains("x-mpegURL")) return true;
+        String target = params.get("url");
+        return target != null && target.toLowerCase().contains(".m3u8");
+    }
+
+    /** 把 m3u8 文本读出来、过广告切除、用清理后的文本重建响应（长度按清理后重算）。 */
+    private static Response createCleanedResponse(Object[] rs) {
+        InputStream stream = (InputStream) rs[2];
+        try {
+            String cleaned = HlsAdStripper.strip(new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+            Response response = NanoHTTPD.newFixedLengthResponse(toStatus((Integer) rs[0]), (String) rs[1], cleaned);
+            addHeaders(response, rs.length > 3 ? rs[3] : null);
+            return markError(response);
+        } catch (Throwable e) {
+            closeFailedStream(stream, e instanceof RuntimeException error ? error : new RuntimeException(e));
             return markError(Nano.error(Objects.toString(e.getMessage(), e.toString())));
         }
     }

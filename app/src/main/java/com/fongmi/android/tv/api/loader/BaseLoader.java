@@ -33,6 +33,8 @@ public class BaseLoader {
     private volatile NodeLoader nodeLoader;
     private volatile PyLoader pyLoader;
     private volatile JsLoader jsLoader;
+    // 0.1.104：网页嗅探引擎。
+    private volatile WebLoader webLoader;
 
     private BaseLoader() {
         jarLoader = new JarLoader();
@@ -56,6 +58,11 @@ public class BaseLoader {
         return api.startsWith("node:");
     }
 
+    // 0.1.104：网页嗅探源，api 以 web: 开头。
+    private static boolean isWeb(String api) {
+        return api.startsWith("web:");
+    }
+
     private static boolean isCsp(String api) {
         return api.startsWith("csp_");
     }
@@ -70,6 +77,11 @@ public class BaseLoader {
         return pyLoader;
     }
 
+    private synchronized WebLoader getWebLoader() {
+        if (webLoader == null) webLoader = new WebLoader();
+        return webLoader;
+    }
+
     public void clear() {
         clear(false);
     }
@@ -82,7 +94,7 @@ public class BaseLoader {
         List<SpiderLoader> previous;
         List<SpiderLoader> retired;
         synchronized (this) {
-            previous = Stream.of(nodeLoader, jarLoader, pyLoader, jsLoader).filter(Objects::nonNull).toList();
+            previous = Stream.of(nodeLoader, jarLoader, pyLoader, jsLoader, webLoader).filter(Objects::nonNull).toList();
             retiredLoaders.addAll(previous);
             retired = exiting ? new ArrayList<>(retiredLoaders) : List.of();
             if (exiting) retiredLoaders.clear();
@@ -91,9 +103,11 @@ public class BaseLoader {
             if (exiting) {
                 pyLoader = null;
                 jsLoader = null;
+                webLoader = null;
             } else {
                 if (pyLoader != null) pyLoader = new PyLoader(pyLoader);
                 if (jsLoader != null) jsLoader = new JsLoader(jsLoader);
+                if (webLoader != null) webLoader = new WebLoader(webLoader);
             }
         }
         Task.execute(() -> clearLoaders(previous, retired));
@@ -128,7 +142,10 @@ public class BaseLoader {
     }
 
     public Spider getSpider(String key, String api, String ext, String jar) {
-        if (isNode(api)) {
+        // 0.1.104：web: 放第一位，防止 web URL 里含 .js 被误判成 JS 爬虫。
+        if (isWeb(api)) {
+            return getWebLoader().getSpider(key, api, ext);
+        } else if (isNode(api)) {
             RuntimeModule.NODEJS.require();
             return nodeLoader.getSpider(key, api, ext);
         } else if (isPy(api)) {
@@ -153,7 +170,8 @@ public class BaseLoader {
 
     public void setRecent(String key, String api, String jar) {
         if (isNode(api)) return;
-        if (isJs(api)) getJsLoader().setRecent(key);
+        if (isWeb(api)) getWebLoader().setRecent(key);
+        else if (isJs(api)) getJsLoader().setRecent(key);
         else if (isPy(api)) getPyLoader().setRecent(key);
         else if (isCsp(api)) jarLoader.setRecent(Crypto.md5(jar));
     }
@@ -162,6 +180,7 @@ public class BaseLoader {
         if (params.containsKey("siteKey")) return getSpider(params.get("siteKey")).proxy(params);
         if ("js".equals(params.get("do"))) return getJsLoader().proxy(params);
         if ("py".equals(params.get("do"))) return getPyLoader().proxy(params);
+        if ("web".equals(params.get("do"))) return getWebLoader().proxy(params);
         return jarLoader.proxy(params);
     }
 

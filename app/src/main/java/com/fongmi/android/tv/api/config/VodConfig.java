@@ -328,6 +328,9 @@ public class VodConfig extends BaseConfig {
     private void rebuildParses() {
         List<Parse> items = new ArrayList<>(configParses == null ? Collections.emptyList() : configParses);
         for (Parse item : ParseStore.getUserParses()) if (!items.contains(item)) items.add(item);
+        // 0.1.104：接口没给 parses、用户也没加过时，补 4 条自带解析线兜底，
+        // 新装的烛龙也能解析；给了就不用，不抢用户自己的配置。
+        if (items.isEmpty()) items.addAll(Parse.builtin());
         setParses(items);
     }
 

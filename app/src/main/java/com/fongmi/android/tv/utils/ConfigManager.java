@@ -217,9 +217,33 @@ public class ConfigManager {
         boolean switching = !sub.id.equals(prevId);
         if (switching) VodConfig.get().setResetHome(true);
         setActiveId(sub.id);
-        Callback guarded = new Callback() {
+        Callback guarded = guardedCallback(sub, prevId, new java.util.HashSet<>(), 0, callback);
+        if (sub.isInterface()) VodConfig.load(Config.find(sub.getConfigUrl(), 0), guarded);
+        else reloadVod(guarded);
+    }
+
+    /**
+     * 0.1.104：切接口的保护回调。加载失败时，先看失败类型：是域名解析失败、
+     * 源拒绝访问、连接超时这三种，就自动试下一个开着的接口（最多 3 次，弹
+     * “正在自动换源…”）；试完都不行、或失败不是这三种，就走原来的回退逻辑
+     * （恢复旧接口、重载旧配置、拼报错）。已试过的接口记在 tried 里，防 A→B→A 循环。
+     */
+    private static Callback guardedCallback(Sub sub, String prevId, java.util.Set<String> tried, int attempts, Callback callback) {
+        return new Callback() {
             @Override
             public void error(String msg) {
+                if (isAutoSwitchable(msg) && attempts < 3) {
+                    Sub next = nextInterface(tried, sub);
+                    if (next != null) {
+                        tried.add(next.id);
+                        Notify.show("正在自动换源…");
+                        setActiveId(next.id);
+                        Callback nextGuarded = guardedCallback(next, prevId, tried, attempts + 1, callback);
+                        if (next.isInterface()) VodConfig.load(Config.find(next.getConfigUrl(), 0), nextGuarded);
+                        else reloadVod(nextGuarded);
+                        return;
+                    }
+                }
                 setActiveId(prevId);
                 Sub prev = find(prevId);
                 if (prev != null && prev.isInterface()) VodConfig.load(Config.find(prev.getConfigUrl(), 0), callback);
@@ -261,8 +285,25 @@ public class ConfigManager {
                 callback.onFailure(call, e);
             }
         };
-        if (sub.isInterface()) VodConfig.load(Config.find(sub.getConfigUrl(), 0), guarded);
-        else reloadVod(guarded);
+    }
+
+    /** 只认三种值得自动换源的失败：域名解析失败、源拒绝访问（403）、连接超时。 */
+    private static boolean isAutoSwitchable(String msg) {
+        if (msg == null) return false;
+        String m = msg.toLowerCase();
+        return m.contains("unable to resolve host") || m.contains("unknownhost") || m.contains("域名解析失败")
+                || m.contains("403") || m.contains("forbidden") || m.contains("拒绝访问")
+                || m.contains("timeout") || m.contains("timed out") || m.contains("连接超时");
+    }
+
+    /** 找下一个开着的接口：是接口、已启用、不是刚失败的、没试过。按订阅列表顺序取第一个。 */
+    private static Sub nextInterface(java.util.Set<String> tried, Sub failed) {
+        for (Sub item : getAll()) {
+            if (!item.isInterface() || !item.enabled) continue;
+            if (item.id.equals(failed.id) || tried.contains(item.id)) continue;
+            return item;
+        }
+        return null;
     }
 
     /** 关掉一个点播订阅：是在用的，就切到另一个还开着的接口；没有就回到只有本地源。 */

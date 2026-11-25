@@ -369,6 +369,8 @@ public class VodPlaybackController {
     }
 
     public void playbackError(String msg) {
+        // 0.1.104：报错时先把当前进度存进历史再清场——MPV 致命错时不断点（原来只靠 5 秒节流保存）。
+        saveCurrentHistory();
         preloader.clear();
         if (isResolvedPlayback()) cancelResolvedPlayback();
         host.resetPlaybackForError(msg);

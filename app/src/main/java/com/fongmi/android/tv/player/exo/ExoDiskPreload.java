@@ -25,7 +25,8 @@ public class ExoDiskPreload {
 
     public void start(ExoPlayer player, MediaItem mediaItem) {
         stop();
-        if (!PreloadSetting.isEnabled() || ConcatenatingUrl.matches(mediaItem.localConfiguration.uri.toString())) {
+        // 0.1.104：仅 Wi-Fi 开着且当前不是 Wi-Fi 时，不做磁盘预载。
+        if (!PreloadSetting.isEnabled() || !PreloadSetting.shouldPreloadOnCurrentNetwork() || ConcatenatingUrl.matches(mediaItem.localConfiguration.uri.toString())) {
             releaseManager();
             return;
         }

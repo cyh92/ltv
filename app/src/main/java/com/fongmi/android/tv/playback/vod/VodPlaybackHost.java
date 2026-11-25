@@ -54,6 +54,14 @@ public interface VodPlaybackHost {
 
     boolean canPreloadNext();
 
+    /**
+     * 0.1.104：下集“地址解析”一级的门。默认与 canPreloadNext 相同（只挂媒体）；
+     * PlayerManager 重写为不要求 EXO，MPV 也能先把下集地址解析好缓存起来。
+     */
+    default boolean canPreloadNextUrl() {
+        return canPreloadNext();
+    }
+
     boolean isPlayerPlaying();
 
     long getPlayerPosition();

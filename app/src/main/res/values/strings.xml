@@ -381,6 +381,7 @@
     <string name="player_preload_size">Preload size</string>
     <string name="player_preload_time">Preload time</string>
     <string name="player_preload_time_value">%1$d seconds</string>
+    <string name="player_preload_wifi_only">Wi-Fi only preload</string>
     <string name="player_mpv_conf">mpv.conf</string>
     <string name="player_mpv_gpu_next">gpu-next</string>
     <string name="player_mpv_vulkan">vulkan</string>
@@ -516,6 +517,13 @@
         <item>Zoom</item>
         <item>16:9</item>
         <item>4:3</item>
+    </string-array>
+
+    <!-- 0.1.104：缓冲三档预设（对应 PlayerSetting 的 1×/3×/6×）。 -->
+    <string-array name="select_buffer_preset">
+        <item>Data saver (1×)</item>
+        <item>Balanced (3×)</item>
+        <item>Smooth (6×)</item>
     </string-array>
 
     <string-array name="audio_effect_stability_levels">

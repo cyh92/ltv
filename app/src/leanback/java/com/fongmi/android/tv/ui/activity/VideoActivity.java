@@ -533,6 +533,11 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
     }
 
     @Override
+    public boolean canPreloadNextUrl() {
+        return isPlaybackCurrent() && !ExternalPlayback.returnsResult(getIntent()) && player().canPreloadNextUrl();
+    }
+
+    @Override
     public boolean isPlayerPlaying() {
         return isPlaybackCurrent() && !isWebPlaybackActive() && player().isPlaying();
     }
@@ -629,6 +634,8 @@ public class VideoActivity extends PlaybackActivity implements VodPlaybackHost, 
 
     @Override
     public boolean preloadPlayback(Result result, long startPositionMs, MediaMetadata metadata, VodPlayRequest request) {
+        // 0.1.104：MPV 挂不了媒体，只把解析好的地址缓存在 PreloadEntry 里（点下一集时直接播，省掉重新解析）。
+        if (PlayerSetting.isMpv()) return !isWebPlayback(result);
         return !isWebPlayback(result) && player().preload(PlaySpec.from(result, getHistoryKey(), metadata).setEnding(endingDurationMs()), startPositionMs, request);
     }
 

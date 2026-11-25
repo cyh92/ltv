@@ -21,6 +21,23 @@ public class PreloadSetting {
         Prefers.put("preload", preload);
     }
 
+    /**
+     * 0.1.104：仅 Wi-Fi 下预载，默认开。关掉后流量下也预载。
+     * 注意：判断只在“开始预载 / 创建播放器”那一刻做，中途断网不掐已开始的预载。
+     */
+    public static boolean isWifiOnly() {
+        return Prefers.getBoolean("preload_wifi_only", true);
+    }
+
+    public static void putWifiOnly(boolean wifiOnly) {
+        Prefers.put("preload_wifi_only", wifiOnly);
+    }
+
+    /** 当前网络是否允许预载（仅 Wi-Fi 开着时要求连着 Wi-Fi）。 */
+    public static boolean shouldPreloadOnCurrentNetwork() {
+        return !isWifiOnly() || com.fongmi.android.tv.utils.NetworkUtil.isWifi();
+    }
+
     public static boolean isNextEpisodeEnabled() {
         return Prefers.getBoolean("preload_next_episode");
     }

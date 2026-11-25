@@ -101,7 +101,8 @@ final class VodPreloader {
 
     @Nullable
     private Episode findNextEpisode() {
-        if (!state.hasEpisode() || !host.canPreloadNext()) return null;
+        // 0.1.104：这里只放行“地址解析”，挂媒体仍由后面的 preloadPlayback 按引擎分流。
+        if (!state.hasEpisode() || !host.canPreloadNextUrl()) return null;
         History history = state.getHistory();
         int offset = history != null && history.isRevPlay() ? -1 : 1;
         Episode episode = state.getRelativeEpisode(offset);
@@ -116,7 +117,7 @@ final class VodPreloader {
     }
 
     private boolean isPreloadable(VodPlayRequest request, Result result, Episode episode) {
-        return episode != null && host.canPreloadNext() && request.accepts(result) && !result.hasMsg() && !result.needParse() && !result.isUseParse() && !result.getRealUrl().isEmpty() && Source.get().canPreload(result.getUrl().uri());
+        return episode != null && host.canPreloadNextUrl() && request.accepts(result) && !result.hasMsg() && !result.needParse() && !result.isUseParse() && !result.getRealUrl().isEmpty() && Source.get().canPreload(result.getUrl().uri());
     }
 
     private void start(VodPlayRequest request, Result result, Episode episode) {

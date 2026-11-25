@@ -55,6 +55,29 @@ public class Parse implements Diffable<Parse> {
         return parse;
     }
 
+    /**
+     * 0.1.104：自带解析线。新装的烛龙、用户还没配接口时也能解析。4 条都是 URL 型
+     * 网页解析服务（type 0，走 ParseWebView），跟用户自己在接口里配的 parses
+     * 完全一样的做法，不是内置片源。接口或用户给了 parses 时不用它们，只在
+     * 两边都没有时兜底。第三方服务，挂了/慢了不归烛龙管。
+     */
+    public static List<Parse> builtin() {
+        List<Parse> items = new java.util.ArrayList<>();
+        Parse long26 = Parse.get(0, "https://www.mtosz.com/m3u8.php?url=");
+        long26.setName("龙26");
+        items.add(long26);
+        Parse bbkdj = Parse.get(0, "https://jx.yparse.com/index.php?url=");
+        bbkdj.setName("BBKDJ");
+        items.add(bbkdj);
+        Parse q777 = Parse.get(0, "https://jx.bozrc.com:4433/player/?url=");
+        q777.setName("777");
+        items.add(q777);
+        Parse quankan = Parse.get(0, "https://jx.quankan.app/?url=");
+        quankan.setName("全看");
+        items.add(quankan);
+        return items;
+    }
+
     public String getName() {
         return TextUtils.isEmpty(name) ? "" : name;
     }

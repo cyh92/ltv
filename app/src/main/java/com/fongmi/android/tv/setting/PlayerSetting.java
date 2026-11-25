@@ -192,4 +192,28 @@ public class PlayerSetting {
     public static void putBuffer(int buffer) {
         Prefers.put("buffer", Math.clamp(buffer, MIN_BUFFER, MAX_BUFFER));
     }
+
+    /**
+     * 0.1.104：缓冲三档预设（存在同一个 "buffer" 键里，老的 1..10 值继续有效）。
+     * 省流 1×（默认，跟原来一样）、均衡 3×、流畅 6×。
+     */
+    public static final int BUFFER_PRESET_SAVER = 1;
+    public static final int BUFFER_PRESET_BALANCED = 3;
+    public static final int BUFFER_PRESET_SMOOTH = 6;
+
+    /** 当前缓冲值取最近的一档：0 省流 / 1 均衡 / 2 流畅。 */
+    public static int getBufferPreset() {
+        int buffer = getBuffer();
+        if (buffer <= 1) return 0;
+        if (buffer <= 4) return 1;
+        return 2;
+    }
+
+    public static int getBufferPresetValue(int preset) {
+        return switch (preset) {
+            case 1 -> BUFFER_PRESET_BALANCED;
+            case 2 -> BUFFER_PRESET_SMOOTH;
+            default -> BUFFER_PRESET_SAVER;
+        };
+    }
 }

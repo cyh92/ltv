@@ -54,8 +54,10 @@ public final class ExoUtil {
 
     static LoadControl buildLoadControl(int maxPreloadBufferBytes) {
         int buffer = PlayerSetting.getBuffer();
+        // 0.1.104：buffer-for-playback 两项也乘倍率（原来只 min/max 乘了）。
+        // 倍率=1（默认）时与原来一字不差；调高档位后起播/重缓冲多等一会儿，换来更少卡顿。
         return new DefaultLoadControl.Builder()
-                .setBufferDurationsMsForStreaming(DefaultLoadControl.DEFAULT_MIN_BUFFER_MS * buffer, DefaultLoadControl.DEFAULT_MAX_BUFFER_MS * buffer, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS)
+                .setBufferDurationsMsForStreaming(DefaultLoadControl.DEFAULT_MIN_BUFFER_MS * buffer, DefaultLoadControl.DEFAULT_MAX_BUFFER_MS * buffer, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS * buffer, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS * buffer)
                 .setBufferDurationsMsForLocalPlayback(DefaultLoadControl.DEFAULT_MIN_BUFFER_FOR_LOCAL_PLAYBACK_MS * buffer, DefaultLoadControl.DEFAULT_MAX_BUFFER_FOR_LOCAL_PLAYBACK_MS * buffer, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_FOR_LOCAL_PLAYBACK_MS, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_FOR_LOCAL_PLAYBACK_MS)
                 .setPlayerTargetBufferBytes(PlayerId.PRELOAD.name, maxPreloadBufferBytes)
                 .build();

@@ -82,7 +82,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.renderText.setText(render[PlayerSetting.getRender()]);
         mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));
         mBinding.libassText.setText(Setting.getSwitch(PlayerSetting.isLibass()));
-        mBinding.bufferText.setText(String.valueOf(PlayerSetting.getBuffer()));
+        setBufferText();
         setMpvOptions();
         mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
         mBinding.incognitoText.setText(Setting.getSwitch(Setting.isIncognito()));
@@ -300,8 +300,13 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
 
     @Override
     public void setBuffer(int times) {
-        mBinding.bufferText.setText(String.valueOf(times));
         PlayerSetting.putBuffer(times);
+        setBufferText();
+    }
+
+    // 0.1.104：缓冲行显示档位名（省流/均衡/流畅），不再显示裸数字。
+    private void setBufferText() {
+        mBinding.bufferText.setText(ResUtil.getStringArray(R.array.select_buffer_preset)[PlayerSetting.getBufferPreset()]);
     }
 
     private void onBackground(View view) {

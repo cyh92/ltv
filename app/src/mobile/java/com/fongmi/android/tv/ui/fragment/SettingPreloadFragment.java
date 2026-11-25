@@ -38,6 +38,7 @@ public class SettingPreloadFragment extends BaseFragment {
     @Override
     protected void initEvent() {
         mBinding.preload.setOnClickListener(this::setPreload);
+        mBinding.preloadWifi.setOnClickListener(this::setPreloadWifi);
         mBinding.preloadNext.setOnClickListener(this::setPreloadNext);
         mBinding.preloadDecoder.setOnClickListener(this::setPreloadDecoder);
         mBinding.preloadSize.setOnClickListener(view -> PreloadDialog.show(this, PreloadDialog.SIZE));
@@ -47,6 +48,7 @@ public class SettingPreloadFragment extends BaseFragment {
 
     private void refresh() {
         mBinding.preloadText.setText(Setting.getSwitch(PreloadSetting.isEnabled()));
+        mBinding.preloadWifiText.setText(Setting.getSwitch(PreloadSetting.isWifiOnly()));
         mBinding.preloadNextText.setText(Setting.getSwitch(PreloadSetting.isNextEpisodeEnabled()));
         setPreloadDecoderText();
         setPreloadThreadsText();
@@ -58,6 +60,7 @@ public class SettingPreloadFragment extends BaseFragment {
     private void setVisible() {
         boolean preload = PreloadSetting.isEnabled();
         boolean exoPreload = preload && PlayerSetting.isExo();
+        mBinding.preloadWifi.setVisibility(preload ? View.VISIBLE : View.GONE);
         mBinding.preloadTime.setVisibility(preload ? View.VISIBLE : View.GONE);
         mBinding.preloadNext.setVisibility(exoPreload ? View.VISIBLE : View.GONE);
         mBinding.preloadDecoder.setVisibility(exoPreload && PreloadSetting.isNextEpisodeEnabled() ? View.VISIBLE : View.GONE);
@@ -69,6 +72,12 @@ public class SettingPreloadFragment extends BaseFragment {
         PreloadSetting.putEnabled(!PreloadSetting.isEnabled());
         mBinding.preloadText.setText(Setting.getSwitch(PreloadSetting.isEnabled()));
         setVisible();
+    }
+
+    // 0.1.104：仅 Wi-Fi 下预载开关，默认开。
+    private void setPreloadWifi(View view) {
+        PreloadSetting.putWifiOnly(!PreloadSetting.isWifiOnly());
+        mBinding.preloadWifiText.setText(Setting.getSwitch(PreloadSetting.isWifiOnly()));
     }
 
     private void setPreloadNext(View view) {
