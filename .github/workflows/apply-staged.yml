@@ -12,7 +12,7 @@ name: Apply staged changes and build
 #   commit_message - commit message for the applied changes
 #
 # The tarball must contain a top-level run*/ directory mirroring the repo
-# layout (app/, catvod/, .github/). Extra files in the tarball outside those
+# layout (app/, catvod/, quickjs/, .github/). Extra files in the tarball outside those
 # dirs are ignored. Files to DELETE must be removed by the stager beforehand
 # (this workflow only adds/modifies; it does not delete).
 
@@ -72,6 +72,9 @@ jobs:
           if [ -d "$STAGED/catvod" ]; then
             rsync -a "$STAGED/catvod/" catvod/
           fi
+          if [ -d "$STAGED/quickjs" ]; then
+            rsync -a "$STAGED/quickjs/" quickjs/
+          fi
           if [ -d "$STAGED/.github" ]; then
             rsync -a --exclude 'workflows/' "$STAGED/.github/" .github/
           fi
@@ -102,7 +105,7 @@ jobs:
           echo "--- diff check ---"
           git diff --check
           echo "--- staged stat ---"
-          git add app catvod .github
+          git add app catvod quickjs .github
           git status --short | head -80
           git diff --cached --stat
 
