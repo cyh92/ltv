@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.utils;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -217,6 +218,9 @@ public class ConfigManager {
         boolean switching = !sub.id.equals(prevId);
         if (switching) VodConfig.get().setResetHome(true);
         setActiveId(sub.id);
+        // 0.1.111：切接口诊断。时间看 logcat 自带时间戳；resetHome 与 switching 同值
+        //（切换时置 true，重复点当前接口时不置）。
+        Log.i("VodSwitch", "activate target=" + sub.name + " prevId=" + prevId + " switching=" + switching);
         Callback guarded = guardedCallback(sub, prevId, new java.util.HashSet<>(), 0, callback);
         if (sub.isInterface()) VodConfig.load(Config.find(sub.getConfigUrl(), 0), guarded);
         else reloadVod(guarded);
@@ -232,6 +236,10 @@ public class ConfigManager {
         return new Callback() {
             @Override
             public void error(String msg) {
+                // 0.1.111：切接口失败诊断（回退/自动换源前）。回退目标见下面 setActiveId(prevId)
+                // 后的重载；自动换源时下面会再记一条 activate。
+                String shortMsg = msg == null ? "" : msg.length() > 120 ? msg.substring(0, 120) : msg;
+                Log.i("VodSwitch", "error target=" + sub.name + " prevId=" + prevId + " attempts=" + attempts + " msg=" + shortMsg);
                 if (isAutoSwitchable(msg) && attempts < 3) {
                     Sub next = nextInterface(tried, sub);
                     if (next != null) {

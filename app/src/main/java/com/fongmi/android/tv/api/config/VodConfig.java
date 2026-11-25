@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.api.config;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.loader.BaseLoader;
@@ -262,7 +263,13 @@ public class VodConfig extends BaseConfig {
      */
     private void commitIfCurrent(Config config, Staged staged) {
         synchronized (this) {
-            if (!isSameConfig(config, this.config)) return;
+            // 0.1.111：切接口诊断。提交时记最终首页源 key（selectHomeSite 刚算出来的），
+            // 丢弃时记被谁顶掉（当前配置已是更新的点击）。时间看 logcat 自带时间戳。
+            if (!isSameConfig(config, this.config)) {
+                Log.i("VodSwitch", "discard url=" + config.getUrl() + " currentUrl=" + (this.config == null ? "" : this.config.getUrl()));
+                return;
+            }
+            Log.i("VodSwitch", "commit url=" + config.getUrl() + " homeKey=" + (staged.home == null ? "null" : staged.home.getKey()) + " resetHomeUsed=" + staged.resetHomeUsed);
             commit(staged);
         }
     }

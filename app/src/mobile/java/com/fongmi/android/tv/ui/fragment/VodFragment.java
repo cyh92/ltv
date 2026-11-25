@@ -172,7 +172,14 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     }
 
     private void setTitle() {
-        List<String> items = Arrays.asList(getHome().getName(), getConfig().getName(), getString(R.string.app_name));
+        // 0.1.111：顶栏不再显示应用名“烛龙”。加载期间 home 已被 clear() 置空
+        // （getHome() 返回空 Site，名字是 ""），配置名那一环也是空的，原来
+        // 的链就一路掉到应用名，慢网下“烛龙 + 空白”要停 7–20 秒，看着像切坏了。
+        // 第三环改成当前激活的接口名：activateVod 在加载开始前已把 activeId 置
+        // 成目标接口，失败回退时 guarded 回调又把它恢复成旧接口，所以加载中顶栏
+        // 显示目标接口名（如 RRZY），失败后显示旧接口名，成功后首页源名接管。
+        // 无激活接口时（全新安装）才继续掉到应用名。
+        List<String> items = Arrays.asList(getHome().getName(), getConfig().getName(), ConfigManager.getActiveName(), getString(R.string.app_name));
         Optional<String> optional = items.stream().filter(s -> !TextUtils.isEmpty(s)).findFirst();
         optional.ifPresent(s -> mBinding.title.setText(s));
     }
@@ -247,6 +254,10 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
                 // guarded 回调已把 activeId 恢复成旧接口，但顶栏还停在新接口 X
                 // 上（点选时 setIface() 已改成 X），不刷就会“顶栏是 X、内容是旧接口”。
                 setIface();
+                // 0.1.111：报错也是一个加载终态，顶栏源名也要刷一次。静态 load()
+                // 的失败分支在调 error() 之前已把快照恢复（vod.home = oldHome），
+                // 此时 setTitle() 读到的是真实的旧首页源，不用等回退重载成功才纠正。
+                setTitle();
             }
         };
     }
@@ -376,6 +387,8 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
                 showContent();
                 // 0.1.97：同上，报错后把顶栏接口名刷回真实的 activeId。
                 setIface();
+                // 0.1.111：同 getCallback，报错后顶栏源名也刷一次（快照已恢复）。
+                setTitle();
             }
         });
     }

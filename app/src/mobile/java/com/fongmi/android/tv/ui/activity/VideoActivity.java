@@ -1528,9 +1528,14 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, T
     }
 
     private String bufferingText() {
+        // 0.1.111 热修复：player() 内部直接调 mService.player()，service 未绑定时
+        // mService 为 null，player() 自己先抛 NPE，根本到不了后面的判空。播放页刚创建、
+        // 每秒刷新的流量循环就可能撞上它，导致一开视频就闪退。先按本文件一贯的写法
+        // 判 service() == null，短路，不再往下走。
+        if (service() == null || player() == null) return null;
         String speed = DisplaySetting.isSpeed() ? Traffic.speedText() : null;
         String suffix = speed == null ? "" : " · " + speed;
-        Player player = player() == null ? null : player().getPlayer();
+        Player player = player().getPlayer();
         if (player == null) return "正在缓冲…" + suffix;
         long buffered = player.getBufferedPosition();
         long current = player.getCurrentPosition();
