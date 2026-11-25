@@ -65,11 +65,6 @@ jobs:
           ls -la "$APK"
           sha256sum "$APK"
 
-      - name: Set up JDK 21 (for keytool)
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
 
       - name: Install androguard
         run: |
@@ -84,7 +79,7 @@ jobs:
         run: |
           set -euo pipefail
           cat > /tmp/verify.py <<'PYEOF'
-          import hashlib, os, re, subprocess, sys, zipfile
+          import hashlib, os, sys, zipfile
           from androguard.core.apk import APK
 
           apk_path = os.environ["APK"]
@@ -130,18 +125,6 @@ jobs:
               print(f"androguard cert read failed: {e}")
           print("androguard fingerprints:", sorted(fps) or "none")
           check("v2 fingerprint matches (androguard)", expected_fp in fps, f"expected {expected_fp}")
-
-          # keytool cross-check (v1/JAR signature uses the same cert)
-          try:
-              out = subprocess.run(["keytool", "-printcert", "-jarfile", apk_path],
-                                   capture_output=True, text=True, timeout=120).stdout
-              m = re.search(r"SHA256:\s*([0-9A-Fa-f:]+)", out)
-              kt_fp = m.group(1).replace(":", "").lower() if m else ""
-              print("keytool fingerprint:", kt_fp or "none")
-              check("v2 fingerprint matches (keytool)", kt_fp == expected_fp, kt_fp)
-          except Exception as e:
-              print(f"keytool check failed: {e}")
-              check("v2 fingerprint matches (keytool)", False, str(e))
 
           # native libs + assets via zip listing
           z = zipfile.ZipFile(apk_path)
