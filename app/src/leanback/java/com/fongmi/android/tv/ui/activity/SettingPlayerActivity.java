@@ -90,8 +90,12 @@ public class SettingPlayerActivity extends BaseActivity implements UaListener, B
     }
 
     private void setEngine(View view) {
-        int index = (PlayerSetting.getEngine() + 1) % PlayerSetting.getEngineCount();
-        if (index == PlayerSetting.ENGINE_MPV && !MpvUtil.checkInstalled()) return;
+        // 0.1.106：IJK 加回后三个内核轮换；MPV 没装时跳过它（不然从 EXO 点一下会卡在 MPV、永远到不了 IJK）。
+        int index = PlayerSetting.getEngine();
+        for (int i = 0; i < PlayerSetting.getEngineCount(); i++) {
+            index = (index + 1) % PlayerSetting.getEngineCount();
+            if (index != PlayerSetting.ENGINE_MPV || MpvUtil.checkInstalled()) break;
+        }
         PlayerSetting.putEngine(index);
         setPlaybackModeText();
         setVisible();

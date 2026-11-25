@@ -93,6 +93,16 @@
                             android:minHeight="40dp"
                             android:text="@string/play_mpv" />
 
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/engineIjk"
+                            style="@style/PlaybackDialogTab"
+                            android:textSize="14sp"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:minHeight="40dp"
+                            android:text="@string/play_ijk" />
+
                     </com.google.android.material.button.MaterialButtonToggleGroup>
 
                 </androidx.appcompat.widget.LinearLayoutCompat>

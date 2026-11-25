@@ -101,6 +101,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
             if (!isChecked) return;
             if (checkedId == R.id.engineExo) selectEngine(PlayerSetting.ENGINE_EXO);
             else if (checkedId == R.id.engineMpv) selectEngine(PlayerSetting.ENGINE_MPV);
+            else if (checkedId == R.id.engineIjk) selectEngine(PlayerSetting.ENGINE_IJK);
         });
         mBinding.decodeGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (!isChecked) return;
@@ -157,9 +158,9 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         if (mpvInstalled) {
             if (mBinding.engineMpv.getParent() == null) mBinding.engineGroup.addView(mBinding.engineMpv);
         } else if (mBinding.engineMpv.getParent() != null) mBinding.engineGroup.removeView(mBinding.engineMpv);
-        int checkedId = PlayerSetting.isMpv() ? R.id.engineMpv : R.id.engineExo;
+        int checkedId = PlayerSetting.isExo() ? R.id.engineExo : PlayerSetting.isMpv() ? R.id.engineMpv : R.id.engineIjk;
         mBinding.engineGroup.check(checkedId);
-        String engineName = PlayerSetting.isMpv() ? "MPV" : "ExoPlayer";
+        String engineName = PlayerSetting.isExo() ? "ExoPlayer" : PlayerSetting.isMpv() ? "MPV" : "IJK";
         mBinding.engineSubtitle.setText(getString(R.string.player_kernel_current, engineName));
     }
 

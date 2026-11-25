@@ -35,6 +35,8 @@ public class BaseLoader {
     private volatile JsLoader jsLoader;
     // 0.1.104：网页嗅探引擎。
     private volatile WebLoader webLoader;
+    // 0.1.106：PHP 爬虫引擎。
+    private volatile PhpLoader phpLoader;
 
     private BaseLoader() {
         jarLoader = new JarLoader();
@@ -52,6 +54,11 @@ public class BaseLoader {
 
     private static boolean isPy(String api) {
         return api.contains(".py");
+    }
+
+    // 0.1.106：PHP 爬虫源，api 里含 .php。
+    private static boolean isPhp(String api) {
+        return api.contains(".php");
     }
 
     private static boolean isNode(String api) {
@@ -82,6 +89,11 @@ public class BaseLoader {
         return webLoader;
     }
 
+    private synchronized PhpLoader getPhpLoader() {
+        if (phpLoader == null) phpLoader = new PhpLoader();
+        return phpLoader;
+    }
+
     public void clear() {
         clear(false);
     }
@@ -94,7 +106,7 @@ public class BaseLoader {
         List<SpiderLoader> previous;
         List<SpiderLoader> retired;
         synchronized (this) {
-            previous = Stream.of(nodeLoader, jarLoader, pyLoader, jsLoader, webLoader).filter(Objects::nonNull).toList();
+            previous = Stream.of(nodeLoader, jarLoader, pyLoader, jsLoader, webLoader, phpLoader).filter(Objects::nonNull).toList();
             retiredLoaders.addAll(previous);
             retired = exiting ? new ArrayList<>(retiredLoaders) : List.of();
             if (exiting) retiredLoaders.clear();
@@ -104,10 +116,13 @@ public class BaseLoader {
                 pyLoader = null;
                 jsLoader = null;
                 webLoader = null;
+                phpLoader = null;
             } else {
                 if (pyLoader != null) pyLoader = new PyLoader(pyLoader);
                 if (jsLoader != null) jsLoader = new JsLoader(jsLoader);
                 if (webLoader != null) webLoader = new WebLoader(webLoader);
+                // PhpLoader 无状态（每次调用都起新进程），复位时直接丢弃、下次懒加载。
+                phpLoader = null;
             }
         }
         Task.execute(() -> clearLoaders(previous, retired));
@@ -152,6 +167,9 @@ public class BaseLoader {
             return getPyLoader().getSpider(key, api, ext);
         } else if (isJs(api)) {
             return getJsLoader().getSpider(key, api, ext, jar);
+        } else if (isPhp(api)) {
+            // 0.1.106：PHP 爬虫源（api 里含 .php）。解释器缺失时 PhpLoader 直接报明原因。
+            return getPhpLoader().getSpider(key, api, ext);
         } else if (isCsp(api)) {
             return jarLoader.getSpider(key, api, ext, jar);
         } else {
@@ -173,6 +191,7 @@ public class BaseLoader {
         if (isWeb(api)) getWebLoader().setRecent(key);
         else if (isJs(api)) getJsLoader().setRecent(key);
         else if (isPy(api)) getPyLoader().setRecent(key);
+        else if (isPhp(api)) getPhpLoader().setRecent(key);
         else if (isCsp(api)) jarLoader.setRecent(Crypto.md5(jar));
     }
 
@@ -181,6 +200,7 @@ public class BaseLoader {
         if ("js".equals(params.get("do"))) return getJsLoader().proxy(params);
         if ("py".equals(params.get("do"))) return getPyLoader().proxy(params);
         if ("web".equals(params.get("do"))) return getWebLoader().proxy(params);
+        if ("php".equals(params.get("do"))) return getPhpLoader().proxy(params);
         return jarLoader.proxy(params);
     }
 

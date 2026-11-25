@@ -10,6 +10,7 @@ public class PlayerSetting {
 
     public static final int ENGINE_EXO = 0;
     public static final int ENGINE_MPV = 1;
+    public static final int ENGINE_IJK = 2;
     public static final int RENDER_SURFACE = 0;
     public static final int RENDER_TEXTURE = 1;
     public static final int MIN_SCALE = 0;
@@ -22,26 +23,21 @@ public class PlayerSetting {
     private static final int MAX_BACKGROUND = 2;
 
     public static int getEngine() {
-        // 0.1.97：一次性把默认内核重置为 EXO（用户要求全部默认 EXO 播放）。
-        // 只做一次（player_engine_reset_exo_0197 标记）；之后用户仍可在设置里手动切 MPV。
-        if (!Prefers.getBoolean("player_engine_reset_exo_0197", false)) {
-            Prefers.put("player_engine_reset_exo_0197", true);
-            Prefers.put("player_engine", ENGINE_EXO);
-        }
-        // 0.1.98：IJK 已移除。存着的值若超出范围（比如从 0.1.96 直接升上来、
-        // 存的是 IJK=2），一律落到 EXO，不要 clamp 到 MPV。
-        int engine = Prefers.getInt("player_engine", ENGINE_EXO);
-        return engine == ENGINE_MPV ? ENGINE_MPV : ENGINE_EXO;
+        // 0.1.106：IJK 加回。存着的值按 [EXO, IJK] clamp——从 0.1.96 直接升上来的用户
+        // 若存的是 IJK=2，恢复成 IJK，不落到 EXO。0.1.97 的一次性重置块（player_engine_reset_exo_0197）
+        // 不恢复：它在 0.1.97 已对走过 0.1.97 的用户执行过；现在再跑会清掉跳过 0.1.97 的用户存着的 IJK 偏好。
+        // fresh 安装默认仍是 EXO。
+        return Math.clamp(Prefers.getInt("player_engine", ENGINE_EXO), ENGINE_EXO, getEngineCount() - 1);
     }
 
     public static int getEngineCount() {
-        // 0.1.98：IJK 已移除，只剩 EXO/MPV 两个内核；
+        // 0.1.106：IJK 加回，三个内核槽位；IJK 是内置的（不依赖插件安装），
         // MPV 没装时由工厂回退到 EXO、设置页隐藏 MPV 按钮，不用靠 count 拦。
-        return ENGINE_MPV + 1;
+        return ENGINE_IJK + 1;
     }
 
     public static void putEngine(int engine) {
-        Prefers.put("player_engine", Math.clamp(engine, ENGINE_EXO, ENGINE_MPV));
+        Prefers.put("player_engine", Math.clamp(engine, ENGINE_EXO, ENGINE_IJK));
         if (isExo() && DecodeSetting.isTunnel()) putRender(RENDER_SURFACE);
     }
 
@@ -51,6 +47,10 @@ public class PlayerSetting {
 
     public static boolean isMpv() {
         return getEngine() == ENGINE_MPV;
+    }
+
+    public static boolean isIjk() {
+        return getEngine() == ENGINE_IJK;
     }
 
     public static boolean isDebug() {

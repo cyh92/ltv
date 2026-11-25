@@ -19,6 +19,7 @@ import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.SiteCookieStore;
 import com.fongmi.android.tv.utils.SiteOrder;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -120,6 +121,20 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
 
     @Override
     public void onEditClick(Site item) {
+        // 0.1.106：编辑菜单（原来点铅笔直接改名）。加“清除登录状态”：清掉这个源自己域名下的 Cookie，
+        // 下次打开要重新登录；只清这一个源，不动别的源。TV 端没有编辑入口，这项只在手机端有。
+        new MaterialAlertDialogBuilder(requireContext()).setTitle(item.getName()).setItems(new String[]{"修改源名称", "清除登录状态"}, (dialog, which) -> {
+            if (which == 1) clearSiteLogin(item);
+            else renameSiteDialog(item);
+        }).show();
+    }
+
+    private void clearSiteLogin(Site item) {
+        if (SiteCookieStore.clearSite(item)) Notify.show("已清除登录状态");
+        else Notify.show("该源没有保存的登录状态");
+    }
+
+    private void renameSiteDialog(Site item) {
         String current = getEditableName(item);
         EditText input = new EditText(requireContext());
         input.setInputType(InputType.TYPE_CLASS_TEXT);
