@@ -49,6 +49,19 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         List<Site> ordered = SiteOrder.applyOrder(all);
         all.clear();
         all.addAll(ordered);
+        // 0.1.113: 当前首页源置顶——点源名弹出的列表第一个就是正在用的首页源，
+        // 不再是配置文件顺序第一条。做在 all 上（applyOrder 之后），搜索过滤
+        // filter() 从 all 重建 items 时也受益。只改打开时的显示顺序，不碰
+        // 首页源选择本身；拖拽存的顺序不受影响，下次打开仍会置顶。
+        Site home = VodConfig.get().getHome();
+        if (home != null && home.getKey() != null) {
+            for (int i = 0; i < all.size(); i++) {
+                if (home.getKey().equals(all.get(i).getKey())) {
+                    if (i > 0) all.add(0, all.remove(i));
+                    break;
+                }
+            }
+        }
         items.addAll(all);
     }
 

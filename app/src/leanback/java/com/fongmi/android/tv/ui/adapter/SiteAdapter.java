@@ -59,6 +59,16 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
             if (!site.isHide() && (!isolate || !SiteOrder.isLocalScript(site))) mItems.add(site);
         }
         if (mItems.isEmpty()) for (Site site : VodConfig.get().getSites()) if (!site.isHide()) mItems.add(site);
+        // 0.1.113: 当前首页源置顶（与移动端同款），打开列表第一个就是正在用的首页源。
+        Site home = VodConfig.get().getHome();
+        if (home != null && home.getKey() != null) {
+            for (int i = 0; i < mItems.size(); i++) {
+                if (home.getKey().equals(mItems.get(i).getKey())) {
+                    if (i > 0) mItems.add(0, mItems.remove(i));
+                    break;
+                }
+            }
+        }
     }
 
     public List<Site> getItems() {

@@ -71,7 +71,6 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         binding.recycler.setHasFixedSize(true);
         decoration = new SpaceItemDecoration(SiteOrder.getLayout(), 8);
         binding.recycler.addItemDecoration(decoration);
-        binding.recycler.post(() -> binding.recycler.scrollToPosition(VodConfig.getHomeIndex()));
         binding.keyword.addTextChangedListener(new CustomTextListener() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
