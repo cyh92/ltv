@@ -82,6 +82,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.renderText.setText(render[PlayerSetting.getRender()]);
         mBinding.adblockText.setText(Setting.getSwitch(Setting.isAdblock()));
         mBinding.libassText.setText(Setting.getSwitch(PlayerSetting.isLibass()));
+        mBinding.cronetText.setText(Setting.getSwitch(PlayerSetting.isCronet()));
         setBufferText();
         setMpvOptions();
         mBinding.backgroundText.setText((background = ResUtil.getStringArray(R.array.select_background))[PlayerSetting.getBackground()]);
@@ -126,6 +127,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.buffer.setOnClickListener(this::onBuffer);
         mBinding.preload.setOnClickListener(this::onPreload);
         mBinding.ua.setOnClickListener(this::onUa);
+        mBinding.cronet.setOnClickListener(this::setCronet);
         mBinding.parseManage.setOnClickListener(v -> ParseActivity.start(requireActivity()));
         mBinding.incognito.setOnClickListener(this::setIncognito);
     }
@@ -148,6 +150,9 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
         mBinding.dividerMpvGpuNext.setVisibility(mpv ? View.VISIBLE : View.GONE);
         mBinding.libass.setVisibility(exo ? View.VISIBLE : View.GONE);
         mBinding.dividerLibass.setVisibility(exo ? View.VISIBLE : View.GONE);
+        // 0.1.107：Cronet 只接 EXO 的 HTTP 层，MPV/IJK 下隐藏。
+        mBinding.cronet.setVisibility(exo ? View.VISIBLE : View.GONE);
+        mBinding.dividerCronet.setVisibility(exo ? View.VISIBLE : View.GONE);
         mBinding.buffer.setVisibility(exo ? View.VISIBLE : View.GONE);
         mBinding.dividerBuffer.setVisibility(exo ? View.VISIBLE : View.GONE);
     }
@@ -331,6 +336,12 @@ public class SettingPlayerFragment extends BaseFragment implements UaListener, B
     private void setLibass(View view) {
         PlayerSetting.putLibass(!PlayerSetting.isLibass());
         mBinding.libassText.setText(Setting.getSwitch(PlayerSetting.isLibass()));
+    }
+
+    // 0.1.107：Cronet 开关，下次播放生效（ExoMediaSourceFactory 每次建 factory 时读）。
+    private void setCronet(View view) {
+        PlayerSetting.putCronet(!PlayerSetting.isCronet());
+        mBinding.cronetText.setText(Setting.getSwitch(PlayerSetting.isCronet()));
     }
 
     private void onPreload(View view) {

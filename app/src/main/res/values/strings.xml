@@ -399,6 +399,7 @@
     <string name="player_mpv_conf_import_failed">Unable to import mpv.conf</string>
     <string name="player_mpv_conf_save_failed">Unable to save mpv.conf</string>
     <string name="player_ua">User-Agent</string>
+    <string name="player_cronet">Cronet 网络引擎</string>
 
     <!-- Danmaku -->
     <string name="danmaku_load">Danmaku load</string>

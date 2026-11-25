@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.player.exo;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.util.LocalClearKeyLicense;
@@ -13,6 +14,7 @@ import androidx.media3.datasource.cache.Cache;
 import androidx.media3.datasource.cache.CacheDataSource;
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor;
 import androidx.media3.datasource.cache.SimpleCache;
+import androidx.media3.datasource.cronet.CronetDataSource;
 import androidx.media3.datasource.okhttp.OkHttpDataSource;
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider;
 import androidx.media3.exoplayer.libass.LibassPlaybackSession;
@@ -33,6 +35,7 @@ import androidx.media3.extractor.ts.TsExtractor;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.player.media.ConcatenatingUrl;
+import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.PreloadSetting;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Auth;
@@ -42,6 +45,8 @@ import com.github.catvod.utils.UriUtil;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+
+import org.chromium.net.CronetEngine;
 
 public class ExoMediaSourceFactory implements MediaSource.Factory {
 
@@ -82,9 +87,19 @@ public class ExoMediaSourceFactory implements MediaSource.Factory {
     }
 
     static DataSource.Factory createUpstreamDataSourceFactory(Map<String, String> headers, Auth.Context auth) {
-        HttpDataSource.Factory factory = new OkHttpDataSource.Factory(OkHttp.player(auth));
+        HttpDataSource.Factory factory = createHttpDataSourceFactory(auth);
         factory.setDefaultRequestProperties(headers == null ? Map.of() : headers);
         return new DefaultDataSource.Factory(App.get(), factory);
+    }
+
+    // 0.1.107：Cronet 开关开着且引擎可用时用 Cronet，否则 OkHttp。
+    // 带 Auth 上下文的源仍走 OkHttp（CronetDataSource 不接 OkHttp 的 auth 拦截器）。
+    private static HttpDataSource.Factory createHttpDataSourceFactory(@Nullable Auth.Context auth) {
+        if (PlayerSetting.isCronet() && auth == null) {
+            CronetEngine engine = CronetEngineHolder.getEngine(App.get());
+            if (engine != null) return new CronetDataSource.Factory(engine, CronetEngineHolder.getExecutor());
+        }
+        return new OkHttpDataSource.Factory(OkHttp.player(auth));
     }
 
     public static DataSource.Factory createDataSourceFactory(Map<String, String> headers) {

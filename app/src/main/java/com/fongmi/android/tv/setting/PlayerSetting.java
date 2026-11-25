@@ -69,6 +69,15 @@ public class PlayerSetting {
         Prefers.put("player_libass", libass);
     }
 
+    // 0.1.107：Cronet 网络引擎开关，默认关（回落 OkHttp）。
+    public static boolean isCronet() {
+        return Prefers.getBoolean("player_cronet", false);
+    }
+
+    public static void putCronet(boolean cronet) {
+        Prefers.put("player_cronet", cronet);
+    }
+
     public static boolean isMpvGpuNext() {
         return Prefers.getBoolean("mpv_gpu_next");
     }
