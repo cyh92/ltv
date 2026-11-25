@@ -50,13 +50,19 @@ public final class HlsAdStripper {
         if (m3u8 == null || m3u8.isEmpty()) return m3u8;
         String[] lines = m3u8.split("\n", -1);
         List<String> kept = new ArrayList<>();
+        int before = 0;
         for (String line : lines) {
+            if (line.startsWith("#EXTINF")) before++;
             if (isAdSegment(line)) {
                 if (!kept.isEmpty() && kept.get(kept.size() - 1).startsWith("#EXTINF")) kept.remove(kept.size() - 1);
                 continue;
             }
             kept.add(line);
         }
+        // 删空保护：原列表有段、剥完一个不剩，说明规则误判了合法 CDN，原样返回（宁可留广告也不播不了）。
+        int after = 0;
+        for (String line : kept) if (line.startsWith("#EXTINF")) after++;
+        if (before > 0 && after == 0) return m3u8;
         return String.join("\n", kept);
     }
 }

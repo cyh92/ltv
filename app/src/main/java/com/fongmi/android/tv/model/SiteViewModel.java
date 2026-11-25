@@ -14,6 +14,7 @@ import com.fongmi.android.tv.utils.Notify;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class SiteViewModel extends ViewModel {
@@ -24,6 +25,9 @@ public class SiteViewModel extends ViewModel {
 
     private final ViewModelTaskRunner<TaskType> tasks;
     private final ViewModelSearchRunner searches;
+
+    /** 首页内存缓存：key = 接口 URL + 首页源 key。只放内存，退出即丢；只用来先显示，后台一定再拉一次（见 homeContent）。 */
+    private final Map<String, Result> homeCache = new HashMap<>();
 
     public SiteViewModel() {
         result = new MutableLiveData<>();
@@ -53,7 +57,20 @@ public class SiteViewModel extends ViewModel {
     }
 
     public void homeContent() {
-        execute(TaskType.RESULT, result, () -> SiteApi.homeContent(VodConfig.get().getHome()));
+        Site home = VodConfig.get().getHome();
+        String key = homeCacheKey(home);
+        Result cached = homeCache.get(key);
+        // 先显示缓存（切回已打开过的接口秒出内容），同时一定再拉一次新的，回来后更新缓存并刷新界面。
+        if (cached != null) result.postValue(cached);
+        execute(TaskType.RESULT, result, () -> {
+            Result fresh = SiteApi.homeContent(home);
+            if (fresh != null) homeCache.put(key, fresh);
+            return fresh;
+        });
+    }
+
+    private static String homeCacheKey(Site home) {
+        return VodConfig.getUrl() + "|" + (home == null ? "" : home.getKey());
     }
 
     public void categoryContent(String key, String tid, String page, boolean filter, HashMap<String, String> extend) {

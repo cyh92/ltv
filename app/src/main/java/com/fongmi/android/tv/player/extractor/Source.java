@@ -122,12 +122,18 @@ public class Source {
             Extractor extractor = getExtractor(uri);
             if (extractor != null) result.setParse(extractor instanceof Video ? 1 : 0);
             url = extractor == null ? url : extractor.fetch(result, id);
+            url = stripTvboxXg(url);
             validateEpisode(result, id);
             BaseLoader.get().requireProxy(url);
             return url;
         } finally {
             end();
         }
+    }
+
+    /** 蜘蛛有时返回 tvbox-xg: 前缀（非 m3u8 地址时，见荐片.py）。两个播放器都不认这个 scheme，去掉前缀后就是普通直链。 */
+    private static String stripTvboxXg(String url) {
+        return url != null && url.startsWith("tvbox-xg:") ? url.substring("tvbox-xg:".length()) : url;
     }
 
     private String resolveEpisode(Result result, String id) {
