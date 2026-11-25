@@ -94,11 +94,19 @@ public class BaseLoader {
         List<SpiderLoader> previous;
         List<SpiderLoader> retired;
         synchronized (this) {
-            previous = Stream.of(nodeLoader, jarLoader, pyLoader, jsLoader, webLoader).filter(Objects::nonNull).toList();
+            // 0.1.108：非退出时保留 JarLoader（及其 md5 缓存的 DexClassLoader 与
+            // spider 实例），不要每次切接口都换一个空的。以前每次 VodConfig.load()
+            // 都调 clear() 换掉 JarLoader，parseJar 缓存永远是空的，每次切换都要
+            // 重新 DexClassLoader + 跑 Init.init() + 重启 Go（“Go 启动成功”反复弹），
+            // 切换要 5–10 秒。退出时仍全部销毁。
+            List<SpiderLoader> toClear = exiting
+                    ? Stream.of(nodeLoader, jarLoader, pyLoader, jsLoader, webLoader).filter(Objects::nonNull).toList()
+                    : Stream.of(nodeLoader, pyLoader, jsLoader, webLoader).filter(Objects::nonNull).toList();
+            previous = toClear;
             retiredLoaders.addAll(previous);
             retired = exiting ? new ArrayList<>(retiredLoaders) : List.of();
             if (exiting) retiredLoaders.clear();
-            jarLoader = new JarLoader();
+            if (exiting) jarLoader = new JarLoader();
             nodeLoader = new NodeLoader();
             if (exiting) {
                 pyLoader = null;

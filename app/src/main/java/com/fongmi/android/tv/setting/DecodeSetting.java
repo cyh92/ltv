@@ -25,9 +25,6 @@ public class DecodeSetting {
     @Nullable
     private static String getDecoderModeKey(int engine, @C.TrackType int trackType) {
         if (engine == PlayerSetting.ENGINE_MPV) return trackType == C.TRACK_TYPE_VIDEO ? "decode_mpv_video_mode" : null;
-        // 0.1.106：IJK 加回。视频三档都支持（AUTO/硬解/软解），用自己的 key 存；
-        // 音频固定 FFmpeg 解码，没有模式可选。
-        if (engine == PlayerSetting.ENGINE_IJK) return trackType == C.TRACK_TYPE_VIDEO ? "decode_ijk_video_mode" : null;
         if (engine != PlayerSetting.ENGINE_EXO) return null;
         return switch (trackType) {
             case C.TRACK_TYPE_AUDIO -> "decode_exo_audio_mode";

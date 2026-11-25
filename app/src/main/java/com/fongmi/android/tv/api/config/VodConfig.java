@@ -66,6 +66,26 @@ public class VodConfig extends BaseConfig {
         this.resetHome = resetHome;
     }
 
+    /**
+     * 0.1.108：一次加载算出的新状态，先放暂存里，确认是最新一次点击才提交。
+     * 根因（“切换过去不是我点的接口”）：旧一次加载的 parse 直接往单例字段写，
+     * 它跑完时新一次点击可能已经改了配置，新接口的数据会被旧接口的覆盖。
+     * 暂存 + 提交时判新旧，保证最后显示的永远是最后一次点的接口。
+     */
+    private static class Staged {
+        List<Site> sites;
+        Site home;
+        Parse parse;
+        List<Parse> parses;
+        List<Parse> configParses;
+        String wall;
+        List<Doh> doh;
+        List<Rule> rules;
+        List<String> flags;
+        List<String> ads;
+        boolean resetHomeUsed;
+    }
+
     public static VodConfig get() {
         return Loader.INSTANCE;
     }
@@ -152,7 +172,9 @@ public class VodConfig extends BaseConfig {
     }
 
     public VodConfig config(Config config) {
-        this.config = config;
+        synchronized (this) {
+            this.config = config;
+        }
         return this;
     }
 
@@ -205,7 +227,7 @@ public class VodConfig extends BaseConfig {
     @Override
     protected void load(Config config) throws Throwable {
         if (config.isEmpty()) {
-            parseConfig(config, new JsonObject());
+            commitIfCurrent(config, parseConfig(config, new JsonObject()));
             return;
         }
         boolean node = NodeRuntime.isConfig(config.getUrl());
@@ -216,11 +238,48 @@ public class VodConfig extends BaseConfig {
             if (node) loaded = runtime.loadConfig(config.getUrl());
             String json = node ? loaded.json() : isLocalFile(config.getUrl()) ? readLocalText(config.getUrl()) : Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
             runtime.prune(loaded, Config.getAll(VOD).stream().map(Config::getUrl).toList(), config.getUrl());
-            checkJson(config, Json.parse(json).getAsJsonObject(), loaded);
+            Staged staged = checkJson(config, Json.parse(json).getAsJsonObject(), loaded);
+            if (staged != null) commitIfCurrent(config, staged);
         } catch (Throwable e) {
             if (node) runtime.fail(loaded);
             throw e;
         }
+    }
+
+    /**
+     * 0.1.108：同一个配置的不同对象（Room 每次查库都新建实例）要认作同一个接口，
+     * 用 URL + 类型判等，不用引用相等，也不用 id（未入库的配置 id 都是 0 会误判）。
+     */
+    private static boolean isSameConfig(Config a, Config b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        return a.getType() == b.getType() && TextUtils.equals(a.getUrl(), b.getUrl());
+    }
+
+    /**
+     * 0.1.108：只有本次加载的配置仍是当前配置（最后一次点击的那个）才提交；
+     * 已有更新的点击时直接丢弃本次解析结果，不碰单例字段。判-提交与改配置互斥。
+     */
+    private void commitIfCurrent(Config config, Staged staged) {
+        synchronized (this) {
+            if (!isSameConfig(config, this.config)) return;
+            commit(staged);
+        }
+    }
+
+    private void commit(Staged staged) {
+        sites = staged.sites;
+        configParses = staged.configParses;
+        parses = staged.parses;
+        doh = staged.doh;
+        rules = staged.rules;
+        flags = staged.flags;
+        ads = staged.ads;
+        wall = staged.wall;
+        RuleConfig.get().invalidate();
+        if (staged.resetHomeUsed) resetHome = false;
+        setHome(getConfig(), staged.home, false);
+        setParse(getConfig(), staged.parse, false);
     }
 
     @Override
@@ -228,46 +287,51 @@ public class VodConfig extends BaseConfig {
         return !getSites().isEmpty();
     }
 
-    private void checkJson(Config config, JsonObject object, NodeRuntimeApi.LoadedConfig loaded) throws Throwable {
+    private Staged checkJson(Config config, JsonObject object, NodeRuntimeApi.LoadedConfig loaded) throws Throwable {
         if (object.has("msg")) throw new Exception(object.get("msg").getAsString());
         if (object.has("urls")) {
             List<Depot> items = Depot.arrayFrom(object.getAsJsonArray("urls").toString());
             if (items.isEmpty()) throw new Exception("Depot urls is empty");
             if (loaded != null) NodeRuntime.get().accept(loaded);
             parseDepot(config, items);
-            return;
+            return null;
         }
-        parseConfig(config, object);
+        Staged staged = parseConfig(config, object);
         if (loaded != null) NodeRuntime.get().accept(loaded);
+        return staged;
     }
 
     private void parseDepot(Config config, List<Depot> items) throws Throwable {
         List<Config> configs = new ArrayList<>();
         for (Depot item : items) configs.add(Config.find(item, VOD));
-        load(this.config = configs.get(0));
+        Config first = configs.get(0);
+        config(first);
+        load(first);
         Config.delete(config.getUrl());
     }
 
-    private void parseConfig(Config config, JsonObject object) {
-        initList(object);
+    private Staged parseConfig(Config config, JsonObject object) {
+        Staged staged = new Staged();
+        initList(object, staged);
         initLive(config, object);
-        initWall(config, object);
-        initSite(config, object);
-        initParse(config, object);
+        initWall(config, object, staged);
+        initSite(config, object, staged);
+        initParse(config, object, staged);
         config.setLogo(Json.safeString(object, "logo"));
         config.setAssrt(Json.safeString(object, "assrt"));
         config.setNotice(Json.safeString(object, "notice"));
         config.setDanmaku(Json.safeString(object, "danmaku"));
+        return staged;
     }
 
-    private void initList(JsonObject object) {
+    private void initList(JsonObject object, Staged staged) {
         setHeaders(Header.arrayFrom(fetchArray(object, "headers")));
         setProxy(Proxy.arrayFrom(fetchArray(object, "proxy")));
-        setRules(Rule.arrayFrom(fetchArray(object, "rules")));
-        setDoh(Doh.arrayFrom(fetchArray(object, "doh")));
-        setFlags(Json.safeListString(object, "flags"));
+        staged.rules = Rule.arrayFrom(fetchArray(object, "rules"));
+        staged.doh = Doh.arrayFrom(fetchArray(object, "doh"));
+        staged.flags = Json.safeListString(object, "flags");
         setHosts(Json.safeListString(object, "hosts"));
-        setAds(Json.safeListString(object, "ads"));
+        staged.ads = Json.safeListString(object, "ads");
     }
 
     private void initLive(Config config, JsonObject object) {
@@ -277,29 +341,30 @@ public class VodConfig extends BaseConfig {
         if (sync) LiveConfig.get().config(temp.update()).parse(object);
     }
 
-    private void initWall(Config config, JsonObject object) {
+    private void initWall(Config config, JsonObject object, Staged staged) {
         if (Json.isEmpty(object, "wallpaper")) return;
-        this.wall = Json.safeString(object, "wallpaper");
-        Config temp = Config.find(wall, config.getName(), WALL).save();
-        boolean sync = WallConfig.get().needSync(wall);
+        staged.wall = Json.safeString(object, "wallpaper");
+        Config temp = Config.find(staged.wall, config.getName(), WALL).save();
+        boolean sync = WallConfig.get().needSync(staged.wall);
         if (sync) WallConfig.get().config(temp.update());
     }
 
-    private void initSite(Config config, JsonObject object) {
+    private void initSite(Config config, JsonObject object, Staged staged) {
         String spider = UrlUtil.resolveEncodedFile(UrlUtil.resolveRelative(config.getUrl(), Json.safeString(object, "spider")));
         BaseLoader.get().parseJar(spider, true);
-        setSites(Json.safeListElement(object, "sites").stream().map(e -> Site.objectFrom(e, spider)).distinct().collect(Collectors.toCollection(ArrayList::new)));
-        for (Site site : getSites()) {
+        List<Site> sites = Json.safeListElement(object, "sites").stream().map(e -> Site.objectFrom(e, spider)).distinct().collect(Collectors.toCollection(ArrayList::new));
+        for (Site site : sites) {
             site.setApi(UrlUtil.resolveEncodedFile(UrlUtil.resolveRelative(config.getUrl(), site.getApi())));
             site.setExt(UrlUtil.resolveEncodedFile(UrlUtil.resolveRelative(config.getUrl(), site.getExt())));
         }
-        Set<String> keys = getSites().stream().map(Site::getKey).collect(Collectors.toSet());
-        ScriptManager.get().scan().stream().filter(site -> keys.add(site.getKey())).forEach(site -> getSites().add(site));     
-        getSites().removeIf(site -> SiteOrder.isRemoved(site.getKey()) || ConfigManager.isScriptDisabled(site) || !ConfigManager.isSiteVisible(site));
-        getSites().forEach(site -> { String name = SiteOrder.getName(site.getKey()); if (name != null) site.setName(name); });
+        Set<String> keys = sites.stream().map(Site::getKey).collect(Collectors.toSet());
+        ScriptManager.get().scan().stream().filter(site -> keys.add(site.getKey())).forEach(site -> sites.add(site));
+        sites.removeIf(site -> SiteOrder.isRemoved(site.getKey()) || ConfigManager.isScriptDisabled(site) || !ConfigManager.isSiteVisible(site));
+        sites.forEach(site -> { String name = SiteOrder.getName(site.getKey()); if (name != null) site.setName(name); });
         Map<String, Site> items = Site.findAll().stream().collect(Collectors.toMap(Site::getKey, Function.identity()));
-        getSites().forEach(site -> site.sync(items.get(site.getKey())));
-        setHome(config, selectHomeSite(config), false);
+        sites.forEach(site -> site.sync(items.get(site.getKey())));
+        staged.sites = sites;
+        staged.home = selectHomeSite(config, sites, staged);
     }
 
     /**
@@ -308,30 +373,38 @@ public class VodConfig extends BaseConfig {
      * 自己的第一个源——接口自己的源排在前（config 的 sites 在先、脚本源后加），
      * 所以第一个“非本地脚本”源就是该接口自己的源；文件夹接口下过滤后只剩文件夹
      * 自己的源，直接取第一个。resetHome 一次性，选完就清掉。
+     * 0.1.108：resetHome 只在提交时清（staged.resetHomeUsed），过期加载丢弃时
+     * 不消费它，免得新一次切换拿不到重置标志。
      */
-    private Site selectHomeSite(Config config) {
-        if (getSites().isEmpty()) return new Site();
+    private Site selectHomeSite(Config config, List<Site> sites, Staged staged) {
+        if (sites.isEmpty()) return new Site();
         if (!resetHome) {
-            return getSites().stream().filter(item -> item.getKey().equals(config.getHome())).findFirst().orElse(getSites().get(0));
+            return sites.stream().filter(item -> item.getKey().equals(config.getHome())).findFirst().orElse(sites.get(0));
         }
-        resetHome = false;
-        for (Site site : getSites()) if (SiteOrder.getLocalPath(site) == null) return site;
-        return getSites().get(0);
+        staged.resetHomeUsed = true;
+        for (Site site : sites) if (SiteOrder.getLocalPath(site) == null) return site;
+        return sites.get(0);
     }
 
-    private void initParse(Config config, JsonObject object) {
-        configParses = Json.safeListElement(object, "parses").stream().map(Parse::objectFrom).distinct().collect(Collectors.toCollection(ArrayList::new));
-        rebuildParses();
-        setParse(config, getParses().isEmpty() ? new Parse() : getParses().stream().filter(item -> item.getName().equals(config.getParse())).findFirst().orElse(getParses().get(0)), false);
+    private void initParse(Config config, JsonObject object, Staged staged) {
+        staged.configParses = Json.safeListElement(object, "parses").stream().map(Parse::objectFrom).distinct().collect(Collectors.toCollection(ArrayList::new));
+        List<Parse> items = buildParses(staged.configParses);
+        if (!items.isEmpty()) items.add(0, Parse.god());
+        staged.parses = items;
+        staged.parse = staged.parses.isEmpty() ? new Parse() : staged.parses.stream().filter(item -> item.getName().equals(config.getParse())).findFirst().orElse(staged.parses.get(0));
     }
 
-    private void rebuildParses() {
+    private List<Parse> buildParses(List<Parse> configParses) {
         List<Parse> items = new ArrayList<>(configParses == null ? Collections.emptyList() : configParses);
         for (Parse item : ParseStore.getUserParses()) if (!items.contains(item)) items.add(item);
         // 0.1.104：接口没给 parses、用户也没加过时，补 4 条自带解析线兜底，
         // 新装的烛龙也能解析；给了就不用，不抢用户自己的配置。
         if (items.isEmpty()) items.addAll(Parse.builtin());
-        setParses(items);
+        return items;
+    }
+
+    private void rebuildParses() {
+        setParses(buildParses(configParses));
     }
 
     public void updateParses() {
@@ -344,10 +417,6 @@ public class VodConfig extends BaseConfig {
 
     public List<Site> getSites() {
         return sites == null ? Collections.emptyList() : sites;
-    }
-
-    private void setSites(List<Site> sites) {
-        this.sites = sites;
     }
 
     public List<Parse> getParses() {
@@ -367,17 +436,8 @@ public class VodConfig extends BaseConfig {
         return items;
     }
 
-    private void setDoh(List<Doh> doh) {
-        this.doh = doh;
-    }
-
     public List<Rule> getRules() {
         return rules == null ? Collections.emptyList() : rules;
-    }
-
-    private void setRules(List<Rule> rules) {
-        this.rules = rules;
-        RuleConfig.get().invalidate();
     }
 
     public List<Parse> getParses(int type) {
@@ -394,17 +454,8 @@ public class VodConfig extends BaseConfig {
         return flags == null ? Collections.emptyList() : flags;
     }
 
-    private void setFlags(List<String> flags) {
-        this.flags = flags;
-    }
-
     public List<String> getAds() {
         return ads == null ? Collections.emptyList() : ads;
-    }
-
-    private void setAds(List<String> ads) {
-        this.ads = ads;
-        RuleConfig.get().invalidate();
     }
 
     public Parse getParse() {

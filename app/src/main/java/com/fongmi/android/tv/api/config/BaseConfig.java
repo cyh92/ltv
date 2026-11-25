@@ -101,6 +101,21 @@ abstract class BaseConfig {
                 future.cancel(true);
             }
             future = Task.submit(() -> loadConfig(id, config, callback));
+            // 0.1.108：配置加载 30 秒看门狗。load(config) 里的 parseJar（DexClassLoader
+            // + Init.init + Go 启动）没有任何超时，Go 卡住时配置加载永远挂着：回调不触发、
+            // 事件不发、首页不拉取，转圈一直转，必须再点一次才好。30 秒后若本次加载仍是
+            // 当前那次且没完成，就判它超时：taskId++ 让它失效、取消 future，并在主线程
+            // 调 error（“连接超时”会被 0.1.104 自动换源认出来，走自动换源/回退同一条路），
+            // 界面必走到终态。已有更新的点击时看门狗什么都不做。
+            App.post(() -> {
+                synchronized (loadLock) {
+                    if (taskId.get() != id || future == null || future.isDone()) return;
+                    taskId.incrementAndGet();
+                    cancelLoad();
+                    future.cancel(true);
+                }
+                App.post(() -> callback.error("连接超时，请重试"));
+            }, 30000);
         }
         callback.start();
     }

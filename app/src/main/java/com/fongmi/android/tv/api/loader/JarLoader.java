@@ -50,12 +50,16 @@ public class JarLoader extends SpiderLoader {
     private final ConcurrentHashMap<String, DexClassLoader> loaders;
     private final ConcurrentHashMap<String, Method> methods;
     private final ConcurrentHashMap<String, Object> locks;
+    // 0.1.108：本地 jar 源文件的长度+修改时间（key → {length, lastModified}），
+    // JarLoader 跨切换保留后，靠它发现用户换了新的 spider.jar 文件。
+    private final ConcurrentHashMap<String, long[]> fileStamps;
     private volatile String recent;
 
     public JarLoader() {
         loaders = new ConcurrentHashMap<>();
         methods = new ConcurrentHashMap<>();
         locks = new ConcurrentHashMap<>();
+        fileStamps = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -63,6 +67,7 @@ public class JarLoader extends SpiderLoader {
         loaders.clear();
         methods.clear();
         locks.clear();
+        fileStamps.clear();
         recent = null;
     }
 
@@ -74,8 +79,13 @@ public class JarLoader extends SpiderLoader {
     private void load(String key, File file) {
         if (Thread.interrupted()) return;
         if (!Path.exists(file)) {
-            Log.w(TAG, "JAR missing or empty, skip loading: " + file);
-            return;
+            // 0.1.108：缺文件不再静默跳过。以前这里只 Log.w 就 return，loader 永远是
+            // null，配置照常列出 119 个站，点开才报“爬虫加载失败”，且 logcat 里没有任何
+            // 可定位的记录。现在直接抛 SpiderLoadException：配置加载时抛错会走 0.1.103
+            // 的快照恢复（留在旧接口上、不留空白首页）；点站时抛错走 SpiderLoader.load
+            // 的包装，照常弹“爬虫加载失败”。两种路径都比静默失败可诊断。
+            Log.e(TAG, "JAR missing or empty, cannot load: " + file);
+            throw new SpiderLoadException(new IllegalStateException("Cannot load spider JAR: " + file));
         }
         // 0.1.105: setReadOnly() is best-effort only. On shared storage it often
         // fails (read-only media / SAF), and DexClassLoader does NOT need the file
@@ -128,18 +138,70 @@ public class JarLoader extends SpiderLoader {
         Object lock;
         synchronized (this) {
             checkOpen();
-            if (loaders.containsKey(key)) return;
+            if (loaders.containsKey(key)) {
+                // 0.1.108：JarLoader 跨切换保留后，本地 jar 文件被用户换掉时缓存会
+                // 一直命中旧的 DexClassLoader。命中时校验源文件长度/修改时间，变了
+                // 就逐出重载；没变才直接返回。http jar 不校验（URL 缓存 + md5 机制已覆盖）。
+                if (!isLocalJarChanged(key, jar)) return;
+                loaders.remove(key);
+                methods.remove(key);
+                fileStamps.remove(key);
+            }
             lock = locks.computeIfAbsent(key, k -> new Object());
         }
         if (jar.startsWith("assets")) jar = UrlUtil.convert(jar);
         synchronized (lock) {
             checkOpen();
-            if (!loaders.containsKey(key)) loadJar(key, jar);
+            if (!loaders.containsKey(key)) {
+                loadJar(key, jar);
+                recordLocalJarStamp(key, jar);
+            }
         }
     }
 
+    // 本地 jar 源文件的长度+修改时间（换文件检测用）；不是本地文件返回 null。
+    private static long[] localJarStamp(String jar) {
+        String plain = jar.split(";md5;")[0];
+        if (!plain.startsWith("file") && !new File(plain).isFile()) return null;
+        File src = localJarFile(plain);
+        if (!Path.exists(src)) return null;
+        return new long[]{src.length(), src.lastModified()};
+    }
+
+    private boolean isLocalJarChanged(String key, String jar) {
+        long[] recorded = fileStamps.get(key);
+        if (recorded == null) return false;
+        long[] current = localJarStamp(jar);
+        if (current == null) return false;
+        return current[0] != recorded[0] || current[1] != recorded[1];
+    }
+
+    private void recordLocalJarStamp(String key, String jar) {
+        long[] stamp = localJarStamp(jar);
+        if (stamp != null) fileStamps.put(key, stamp);
+    }
+
+    // 0.1.108：本地 jar 路径确定性剥离 file:// scheme（与 Path.exists(String)
+    // 同一规则）。不要用 Path.local()：它 replace("file:/","") 后先拼
+    // new File(root(), path) 再回退 new File(path)，靠 Linux 把 //storage 解析成
+    // /storage，脆弱且不可读；file:/ 单斜杠与 file:// 三斜杠走不同分支，容易在
+    // 共享存储路径上悄悄算错。
+    private static File localJarFile(String jar) {
+        String path = jar;
+        if (path.startsWith("file://")) path = path.substring("file://".length());
+        else if (path.startsWith("file:")) path = path.substring("file:".length());
+        return new File(path);
+    }
+
     private static synchronized File copyLocalJar(String jar) {
-        File src = Path.local(jar);
+        File src = localJarFile(jar);
+        if (!Path.exists(src)) {
+            // 0.1.108：源文件根本不存在时不再返回一个不存在的 src（load() 收到后会静默
+            // 跳过，loader 留空，点站才报“爬虫加载失败”）。直接抛错，配置加载走 0.1.103
+            // 快照恢复，点站走 SpiderLoader 的 toast。
+            Log.e(TAG, "Local spider JAR not found: " + jar);
+            throw new SpiderLoadException(new IllegalStateException("Cannot load spider JAR: " + jar));
+        }
         File dst = Path.jar(jar);
         if (Path.exists(dst) && Path.exists(src) && dst.length() == src.length() && dst.lastModified() >= src.lastModified()) return dst;
         // 0.1.105: make sure the cache dir exists before copying, so a missing
@@ -168,6 +230,15 @@ public class JarLoader extends SpiderLoader {
         if (!md5.isEmpty() && Crypto.equals(Path.jar(jar), md5)) load(key, Path.jar(jar));
         else if (jar.startsWith("http")) load(key, Download.create(jar, Path.jar(jar)).get());
         else if (jar.startsWith("file")) load(key, copyLocalJar(jar));
+        // 0.1.108：裸本地路径兜底。以前除 http/file 外任何形式都悄悄落空，loader 留
+        // null，点站才报“爬虫加载失败”。现在真实存在的本地文件按本地 jar 加载；其他形式
+        // 记 Log.e 而不是静默跳过。
+        else if (isLocalFile(jar)) load(key, copyLocalJar(jar));
+        else Log.e(TAG, "Unsupported spider JAR location, skip loading: " + jar);
+    }
+
+    private static boolean isLocalFile(String jar) {
+        return !TextUtils.isEmpty(jar) && new File(jar).isFile();
     }
 
     public DexClassLoader dex(String jar) {

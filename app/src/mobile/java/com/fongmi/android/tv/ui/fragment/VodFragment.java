@@ -232,6 +232,10 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
                 showProgress();
                 hideContent();
                 setTitle();
+                // 0.1.108：每次加载开始都把顶栏接口名刷成当前 activeId。自动换源/
+                // 回退改了 activeId 后不刷，pill 会停在用户点的接口名上，而实际已是
+                // 另一个接口——正是“pill 是 demo.json、对话框选中 RRZY”的错位。
+                setIface();
             }
 
             @Override

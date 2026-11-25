@@ -36,7 +36,6 @@
     <string name="play_ed">ED</string>
     <string name="play_exo">EXO</string>
     <string name="play_mpv">MPV</string>
-    <string name="play_ijk">IJK</string>
     <string name="play_other">Other</string>
     <string name="play_next">Next</string>
     <string name="play_prev">Prev</string>
@@ -440,7 +439,7 @@
     <string name="error_episode_missing">Cannot restore the saved episode. Select another episode.</string>
     <string name="error_episode_not_found">Cannot find the requested episode. Select another episode.</string>
     <string name="error_play_flag">No flag data</string>
-    <string name="error_play_timeout">Timed out</string><string name="player_engine_fallback_ijk">IJK stalled, switched to Exo</string><string name="error_audio_effect_unsupported">Audio settings are unavailable for the current playback mode</string>
+    <string name="error_play_timeout">Timed out</string><string name="error_audio_effect_unsupported">Audio settings are unavailable for the current playback mode</string>
     <string name="bdj_preparing">Preparing BD-J menu</string>
     <string name="error_bdj_prepare">ISO menu check or BD-J setup failed: %1$s</string>
     <string name="error_audio_effect_tunnel">Audio settings are unavailable in tunnel mode</string>
@@ -493,7 +492,6 @@
     <string-array name="select_engine">
         <item>EXO</item>
         <item>MPV</item>
-        <item>IJK</item>
     </string-array>
 
     <string-array name="select_mpv_motion">
