@@ -1,0 +1,133 @@
+name: Apply staged changes and build
+
+# Applies a pre-staged change set (a tarball produced off-Codespace) to the
+# fongmi branch, commits it, and triggers the "Build mobile APK (from source)"
+# workflow. Used when Codespaces is unavailable (e.g. monthly free usage
+# exhausted). The tarball is produced by Muse off-Codespace and hosted on a
+# short-lived Muse storage link; its sha256 is verified before use.
+#
+# Inputs (workflow_dispatch):
+#   tarball_url    - https URL of the staged-changes tarball
+#   tarball_sha256 - sha256 of the tarball (verified before extraction)
+#   commit_message - commit message for the applied changes
+#
+# The tarball must mirror the repo layout at its top level (app/, catvod/,
+# ...). Extra files in the tarball outside those dirs are ignored.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tarball_url:
+        description: 'URL of the staged-changes tarball'
+        required: true
+        type: string
+      tarball_sha256:
+        description: 'sha256 of the tarball'
+        required: true
+        type: string
+      commit_message:
+        description: 'Commit message'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  apply-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out fongmi
+        uses: actions/checkout@v4
+        with:
+          ref: fongmi
+          fetch-depth: 0
+
+      - name: Download and verify staged tarball
+        env:
+          TARBALL_URL: ${{ inputs.tarball_url }}
+          TARBALL_SHA256: ${{ inputs.tarball_sha256 }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/staged
+          curl -fsSL -o /tmp/staged/changes.tar.gz "$TARBALL_URL"
+          echo "$TARBALL_SHA256  /tmp/staged/changes.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/staged/changes.tar.gz -C /tmp/staged
+          echo "--- staged top level ---"
+          ls /tmp/staged
+          echo "--- staged tree (first 40) ---"
+          find /tmp/staged -maxdepth 3 | head -40
+
+      - name: Apply staged files
+        run: |
+          set -euo pipefail
+          STAGED=$(find /tmp/staged -maxdepth 1 -type d -name 'run*' | head -n 1)
+          echo "STAGED=$STAGED"
+          test -d "$STAGED/app"
+          rsync -a "$STAGED/app/" app/
+          if [ -d "$STAGED/catvod" ]; then
+            rsync -a "$STAGED/catvod/" catvod/
+          fi
+          echo "--- applied; git status ---"
+          git status --short | head -60
+
+      - name: Remove dropped files and restore BaseLoader
+        run: |
+          set -euo pipefail
+          # Files dropped from scope for this version (must exist in HEAD).
+          git rm -q app/src/main/java/com/fongmi/android/tv/api/loader/PhpLoader.java
+          git rm -q app/src/main/java/com/fongmi/android/tv/api/loader/PhpSpider.java
+          git rm -q app/src/main/assets/php/runner.php
+          git rm -q app/libs/ijkplayer-cmake-release.aar
+          # BaseLoader must be the 0.1.105 version (no .php dispatch).
+          git show e3ae97eb:app/src/main/java/com/fongmi/android/tv/api/loader/BaseLoader.java > app/src/main/java/com/fongmi/android/tv/api/loader/BaseLoader.java
+          echo "--- after removals; git status ---"
+          git status --short | head -60
+
+      - name: Verify before commit
+        run: |
+          set -euo pipefail
+          echo "--- PHP must be gone from loader + assets ---"
+          if [ -d app/src/main/assets/php ]; then echo "::error::app/src/main/assets/php still exists"; exit 1; fi
+          if grep -ri "php" app/src/main/java/com/fongmi/android/tv/api/loader/ ; then echo "::error::PHP reference in loader"; exit 1; fi
+          echo "--- IJK native libs must be present (arm64) ---"
+          ls -la app/src/main/jniLibs/arm64-v8a/
+          test -f app/src/main/jniLibs/arm64-v8a/libijkffmpeg.so
+          test -f app/src/main/jniLibs/arm64-v8a/libijksdl.so
+          test -f app/src/main/jniLibs/arm64-v8a/libijkplayer.so
+          echo "--- 16KB alignment (arm64) ---"
+          for f in app/src/main/jniLibs/arm64-v8a/*.so; do
+            echo "== $f =="
+            readelf -lW "$f" | grep LOAD | awk '{print "Align:", $NF}'
+          done
+          echo "--- version ---"
+          grep -E "versionCode|versionName" app/build.gradle
+          echo "--- diff check ---"
+          git diff --check
+          echo "--- staged stat ---"
+          git add app catvod
+          git status --short | head -80
+          git diff --cached --stat
+
+      - name: Commit and push
+        env:
+          COMMIT_MESSAGE: ${{ inputs.commit_message }}
+        run: |
+          set -euo pipefail
+          git config user.name "lvsehuiyicm"
+          git config user.email "20523906@qq.com"
+          git commit -m "$COMMIT_MESSAGE"
+          git push origin fongmi
+          echo "--- new HEAD ---"
+          git log -1 --format="%H %s"
+          echo "NEW_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Trigger build workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api -X POST "repos/lvsehuiyicm/TV/actions/workflows/android.yml/dispatches" -f ref=fongmi
+          echo "Build workflow dispatched for commit $NEW_SHA"
