@@ -165,7 +165,9 @@ public class SiteViewModel extends ViewModel {
             message += "，" + ResUtil.getString(R.string.error_spider_saved_hint);
         }
         liveData.postValue(message != null ? Result.error(message) : Result.empty());
-        if (type == TaskType.RESULT && message != null) App.post(() -> Notify.show(message));
+        // message 在上面被多次赋值，不是 effectively final，lambda 不能直接捕获；用 final 副本。
+        final String toast = message;
+        if (type == TaskType.RESULT && toast != null) App.post(() -> Notify.show(toast));
         error.printStackTrace();
     }
 
