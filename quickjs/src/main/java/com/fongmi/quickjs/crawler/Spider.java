@@ -316,8 +316,25 @@ public class Spider extends com.github.catvod.crawler.Spider {
         String effectiveApi = resolveDrpyApi(api);
         String content = module.load(effectiveApi);
         content = transformDrpySource(content);
+        // 0.1.114: drpy2 引擎（drpy2.min.js）顶层有一行 const defaultParser =
+        // { pdfh: pdfh, pdfa: pdfa, pd: pd }，求值模块时就读裸全局 pdfh/pdfa/pd；
+        // 而装这些全局的 installDrpyGlobals() 以前只在 spider.js 的
+        // Drpy2Spider.init() 里调，那时引擎早已求值完，于是报
+        // ReferenceError: pdfh is not defined（0.1.112 只修掉了第一道关 createFun）。
+        // 引擎被换成本地包（effectiveApi != api）时，先求值一个引导模块把 drpy
+        // 全局装上，再求值引擎。只针对引擎：普通 Spider / v1 / cat 规则不受影响；
+        // installDrpyGlobals 有 typeof 守卫可重复调用，init() 里那次照常跑。
+        if (!effectiveApi.equals(api)) installDrpyGlobals();
         evaluateModule(content, effectiveApi);
         evaluateModule(String.format(readHostAsset("js/lib/spider.js"), JSONObject.quote(effectiveApi)), effectiveApi + "#spider");
+    }
+
+    // 0.1.114: 引导模块——静态 import drpy.js（assets:// 与 catvod:host 的导入在
+    // evaluateModule 里都可解析，spider.js 就是这么求值的），同步调用
+    // installDrpyGlobals() 把 pdfh/pdfa/pd/req 等挂到 globalThis 上。
+    // 模块名只是求值时的标识，不对应磁盘文件（spider.js 用的 "#spider" 同理）。
+    private void installDrpyGlobals() throws Exception {
+        evaluateModule("import { installDrpyGlobals } from 'assets://js/lib/drpy.js';\ninstallDrpyGlobals();\n", "assets://js/lib/drpy-bootstrap.js");
     }
 
     // drpy support (0.1.94): when a site's api is a drpy2 engine file, use the engine
