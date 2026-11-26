@@ -182,6 +182,10 @@ function createSpider(api) {
 
 function output(value, method) {
     if (method === 'liveContent' && typeof value === 'string') return value;
+    if (typeof value === 'string') {
+        if (value[0] === '{' || value[0] === '[') return value;
+        throw new TypeError('Spider data must be an object or array');
+    }
     if (!value || typeof value !== 'object') throw new TypeError('Spider data must be an object or array');
     const json = stringify(value);
     if (json[0] !== '{' && json[0] !== '[') throw new TypeError('Spider data must be an object or array');
